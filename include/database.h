@@ -26,6 +26,7 @@ typedef struct Database {
 
 Database* create_database();
 Table* create_table(Database* db, char* name);
+Table* find_table(Database* db, char* name);
 void insert_row(Table* table, char* name, int age);
 void select_from_table(Table* table);
 void delete_row(Table* table, int id);

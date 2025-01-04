@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 
 #include "../include/database.h"
 
@@ -28,7 +29,7 @@ Table *create_table(Database *db, char *name) {
   }
 
   if (strlen(name) >= MAX_NAME_LENGTH) {
-    printf("Table name too long (max %d characters)\n", MAX_NAME_LENGTH - 1);
+    printf("Table name is too long (max %d characters)\n", MAX_NAME_LENGTH - 1);
     free(table);
     return NULL;
   }
@@ -45,6 +46,23 @@ Table *create_table(Database *db, char *name) {
   return table;
 };
 
+Table *find_table(Database *db, char *name) {
+  if (db == NULL) {
+    printf("Database is null\n");
+    return NULL;
+  }
+
+  Table *curr = db->tables_head;
+  while (curr != NULL) {
+    if (strcasecmp(curr->name, name) == 0) {
+      return curr;
+    }
+    curr = curr->next;
+  }
+
+  return NULL;
+}
+
 void insert_row(Table *table, char *name, int age) {
   if (table == NULL) {
     printf("Table is null\n");
@@ -58,7 +76,7 @@ void insert_row(Table *table, char *name, int age) {
   }
 
   if (strlen(name) >= MAX_NAME_LENGTH) {
-    printf("Row name too long (max %d characters)\n", MAX_NAME_LENGTH - 1);
+    printf("Row name is too long (max %d characters)\n", MAX_NAME_LENGTH - 1);
     free(row);
     return;
   }
