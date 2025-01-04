@@ -36,6 +36,7 @@ Table *create_table(Database *db, char *name) {
   table->name[MAX_NAME_LENGTH - 1] = '\0';
 
   table->size = 0;
+  table->next_id = 1;
   table->rows_head = NULL;
   table->rows_tail = NULL;
 
@@ -64,7 +65,7 @@ void insert_row(Table *table, char *name, int age) {
   strncpy(row->name, name, MAX_NAME_LENGTH - 1);
   row->name[MAX_NAME_LENGTH - 1] = '\0';
 
-  row->id = table->size + 1;
+  row->id = table->next_id;
   row->age = age;
   row->next = NULL;
 

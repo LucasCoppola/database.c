@@ -5,16 +5,18 @@
 
 typedef struct Row {
     int id;
-    char name[MAX_NAME_LENGTH];
     int age;
+    char name[MAX_NAME_LENGTH];
     struct Row* next; 
 } Row;
 
 typedef struct Table {
     char name[MAX_NAME_LENGTH];
+    // only increases
+    int next_id;
+    size_t size;
     Row* rows_head;
     Row* rows_tail;
-    size_t size;
     struct Table* next;
 } Table;
 
@@ -27,5 +29,9 @@ Table* create_table(Database* db, char* name);
 void insert_row(Table* table, char* name, int age);
 void select_from_table(Table* table);
 void delete_row(Table* table, int id);
+
+void free_rows(Row *row);
+void free_tables(Table *table);
+void free_database(Database *db);
 
 #endif

@@ -1,14 +1,16 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -g
-TARGET = simple-db
+CFLAGS = -Wall -Wextra -I./include
 
-all: $(TARGET)
+all: simple-db test-db
 
-$(TARGET): main.o db.o
-    $(CC) $(CFLAGS) -o $(TARGET) main.o db.o
+simple-db: src/main.c src/database.c include/database.h
+	$(CC) $(CFLAGS) src/main.c src/database.c -o simple-db
 
-main.o: main.c db.h
-db.o: db.c db.h
+test-db: tests/test_database.c src/database.c include/database.h
+	$(CC) $(CFLAGS) tests/test_database.c src/database.c -o test-db
+
+test: test-db
+	./test-db
 
 clean:
-    rm -f *.o $(TARGET)
+	rm -f simple-db test-db
