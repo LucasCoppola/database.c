@@ -4,52 +4,58 @@
 
 #include "../include/database.h"
 #include "../include/meta_commands.h"
-#include "../include/sql_statements.h"
+#include "../include/statements.h"
+
+#define MAX_INPUT_LENGTH 256
+
+void read_input(char *input, size_t input_size) {
+  if (fgets(input, input_size, stdin) == NULL) {
+    return;
+  }
+
+  input[strcspn(input, "\n")] = 0; // Remove newline character
+};
 
 int main() {
   Database *db = create_database();
-  char command[256];
+  char input[MAX_INPUT_LENGTH];
+
   printf("Connected to a transient in-memory database.\n");
-  printf("Type 'help' for commands.\n");
+  printf("Type '.help' for commands.\n");
 
   while (1) {
     printf("db> ");
-    if (fgets(command, sizeof(command), stdin) == NULL) {
-      break;
+    read_input(input, sizeof(input));
+
+    if (input[0] == '.') {
+      process_meta_command(input);
+      continue;
     }
-    command[strcspn(command, "\n")] = 0; // Remove newline character
 
-    if (command[0] == '.') {
-      process_meta_command(command);
-    } else {
-      SQLStatement statement;
-      PrepareResult table_result = prepare_table_statement(command, &statement);
+    Statement stmt;
+    PrepareResult prepare_result = prepare_statement(input, &stmt);
 
-      if (table_result == PREPARE_SUCCESS) {
-        execute_table_statement(db, &statement);
-        printf("Executed.\n");
-        continue;
-      }
+    if (prepare_result == PREPARE_SYNTAX_ERROR) {
+      printf("Error: in prepare, near '%s': syntax error\n", input);
+      continue;
+    }
 
-      PrepareResult row_result = prepare_row_statement(command, &statement);
+    if (prepare_result == PREPARE_UNRECOGNIZED_STATEMENT) {
+      printf("Error: Unrecognized statement\n");
+      continue;
+    }
 
-      if (row_result == PREPARE_SUCCESS) {
-        execute_row_statement(db, &statement);
-        printf("Executed.\n");
-        continue;
-      }
-
-      if (table_result == PREPARE_SYNTAX_ERROR ||
-          row_result == PREPARE_SYNTAX_ERROR) {
-        printf("Error: in prepare, near '%s': syntax error\n", command);
-        continue;
-      }
-
-      if (table_result == PREPARE_UNRECOGNIZED_STATEMENT &&
-          row_result == PREPARE_UNRECOGNIZED_STATEMENT) {
-        printf("Error: unrecognized statement\n");
-        continue;
-      }
+    ExecuteResult result = execute_statement(db, &stmt);
+    switch (result) {
+    case EXECUTE_SUCCESS:
+      printf("Executed.\n");
+      break;
+    case EXECUTE_TABLE_FULL:
+      printf("Error: Table full.\n");
+      break;
+    case EXECUTE_FAILURE:
+      printf("Error: Execution failed.\n");
+      break;
     }
   }
 
