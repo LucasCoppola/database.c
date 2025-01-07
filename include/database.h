@@ -1,13 +1,11 @@
 #ifndef DATABASE_H
 #define DATABASE_H
 
-#define size_of_attribute(Struct, Attribute) sizeof(((Struct *)0)->Attribute)
 #define MAX_NAME_LENGTH 64
 #define MAX_PAGES 100
 #define PAGE_SIZE 4096
 
 #include <stdint.h>
-
 
 typedef struct Row {
     uint32_t id;
@@ -28,14 +26,10 @@ typedef struct Database {
 } Database;
 
 Database* create_database();
+void free_database(Database *db);
+
 Table* create_table(Database* db, char* name);
 Table* find_table(Database* db, char* name);
-void insert_row(Table* table, char* name, int age);
-void select_from_table(Table* table);
-void delete_row(Table* table, int id);
-
-void free_rows(Row *row);
-void free_tables(Table *table);
-void free_database(Database *db);
+void free_table(Table *table);
 
 #endif
