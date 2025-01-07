@@ -1,22 +1,25 @@
 #ifndef DATABASE_H
 #define DATABASE_H
 
+#define size_of_attribute(Struct, Attribute) sizeof(((Struct *)0)->Attribute)
 #define MAX_NAME_LENGTH 64
+#define MAX_PAGES 100
+#define PAGE_SIZE 4096
+
+#include <stdint.h>
+
 
 typedef struct Row {
-    int id;
-    int age;
-    char name[MAX_NAME_LENGTH];
-    struct Row* next; 
+    uint32_t id;
+    char username[MAX_NAME_LENGTH];
+    char email[MAX_NAME_LENGTH];
 } Row;
 
 typedef struct Table {
+    uint32_t next_id; // id of the next row to be inserted
     char name[MAX_NAME_LENGTH];
-    // only increases
-    int next_id;
-    size_t size;
-    Row* rows_head;
-    Row* rows_tail;
+    uint32_t num_rows;
+    void *pages[MAX_PAGES];
     struct Table* next;
 } Table;
 

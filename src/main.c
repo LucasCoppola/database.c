@@ -22,17 +22,34 @@ int main() {
     if (command[0] == '.') {
       process_meta_command(command);
     } else {
-      Statement statement;
-      switch (prepare_statement(command, &statement)) {
-      case (PREPARE_SUCCESS):
-        break;
-      case (PREPARE_UNRECOGNIZED_STATEMENT):
+      SQLStatement statement;
+      PrepareResult table_result = prepare_table_statement(command, &statement);
+
+      if (table_result == PREPARE_SUCCESS) {
+        execute_table_statement(db, &statement);
+        printf("Executed.\n");
+        continue;
+      }
+
+      PrepareResult row_result = prepare_row_statement(command, &statement);
+
+      if (row_result == PREPARE_SUCCESS) {
+        execute_row_statement(db, &statement);
+        printf("Executed.\n");
+        continue;
+      }
+
+      if (table_result == PREPARE_SYNTAX_ERROR ||
+          row_result == PREPARE_SYNTAX_ERROR) {
         printf("Error: in prepare, near '%s': syntax error\n", command);
         continue;
       }
 
-      execute_statement(db, &statement);
-      printf("Executed.\n");
+      if (table_result == PREPARE_UNRECOGNIZED_STATEMENT &&
+          row_result == PREPARE_UNRECOGNIZED_STATEMENT) {
+        printf("Error: unrecognized statement\n");
+        continue;
+      }
     }
   }
 
