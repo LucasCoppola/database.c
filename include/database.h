@@ -9,14 +9,14 @@
 
 typedef struct Row {
     uint32_t id;
-    char username[MAX_NAME_LENGTH];
-    char email[MAX_NAME_LENGTH];
+    char username[MAX_NAME_LENGTH + 1];
+    char email[MAX_NAME_LENGTH + 1];
 } Row;
 
 typedef struct Table {
     uint32_t next_id; // id of the next row to be inserted
-    char name[MAX_NAME_LENGTH];
     uint32_t num_rows;
+    char name[MAX_NAME_LENGTH + 1];
     void *pages[MAX_PAGES];
     struct Table* next;
 } Table;

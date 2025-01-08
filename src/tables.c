@@ -56,8 +56,19 @@ Table *find_table(Database *db, char *name) {
 }
 
 void free_table(Table *table) {
-  for (int i = 0; table->pages[i]; i++) {
-    free(table->pages[i]);
+  if (table == NULL) {
+    return;
   }
+
+  for (int i = 0; i < MAX_PAGES; i++) {
+    if (table->pages[i] != NULL) {
+      free(table->pages[i]);
+    }
+  }
+
+  if (table->next != NULL) {
+    free_table(table->next);
+  }
+
   free(table);
 }
