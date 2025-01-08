@@ -125,5 +125,7 @@ ExecuteResult execute_statement(Database *db, Statement *statement) {
   case STATEMENT_DELETE:
     return printf("Delete not implemented yet.\n");
     // return execute_delete(db, statement);
+  default:
+    return EXECUTE_FAILURE;
   }
 }

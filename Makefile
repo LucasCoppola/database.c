@@ -1,16 +1,14 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -I./include
+CFLAGS = -g -Wall -I./include
 
-all: simple-db test-db
+main:
+	$(CC) $(CFLAGS) src/*.c src/storage/*.c -o main 
 
-simple-db: src/main.c src/database.c include/database.h
-	$(CC) $(CFLAGS) src/main.c src/database.c -o simple-db
-
-test-db: tests/test_database.c src/database.c include/database.h
-	$(CC) $(CFLAGS) tests/test_database.c src/database.c -o test-db
-
-test: test-db
-	./test-db
+test:
+	$(CC) $(CFLAGS) tests/test_hashmap.c src/hashmap.c src/hashmap_utils.c -o test_hashmap
+	valgrind --leak-check=full --show-leak-kinds=all ./test_hashmap
 
 clean:
-	rm -f simple-db test-db
+	rm -f main test_hashmap
+
+.PHONY: test clean

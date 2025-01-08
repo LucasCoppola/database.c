@@ -7,19 +7,19 @@
 #include "../include/hashmap.h"
 
 HashMapResult hashmap_initialize(size_t capacity, HashMap **out_map) {
-  HashMap *map = malloc(sizeof(HashMap));
-  if (map == NULL) {
+  *out_map = malloc(sizeof(HashMap));
+  if (*out_map == NULL) {
     return HASHMAP_ALLOCATION_FAILURE;
   }
 
-  map->buckets = calloc(capacity, sizeof(Bucket *));
-  if (map->buckets == NULL) {
-    free(map);
+  (*out_map)->buckets = calloc(capacity, sizeof(Bucket *));
+  if ((*out_map)->buckets == NULL) {
+    free(*out_map);
     return BUCKETS_ALLOCATION_FAILURE;
   }
 
-  map->capacity = capacity;
-  map->size = 0;
+  (*out_map)->capacity = capacity;
+  (*out_map)->size = 0;
   return HASHMAP_SUCCESS;
 }
 
@@ -28,7 +28,7 @@ HashMapResult hashmap_set(HashMap *map, char *key, Table *value) {
     return HASHMAP_INVALID_MAP;
   }
 
-  float loadFactor = (float)map->size / (float)map->capacity;
+  float loadFactor = ((float)map->size + 1) / (float)map->capacity;
   if (loadFactor > 0.7) {
     HashMapResult resize_result = hashmap_resize(map);
     if (resize_result != HASHMAP_SUCCESS) {
@@ -37,7 +37,7 @@ HashMapResult hashmap_set(HashMap *map, char *key, Table *value) {
   }
 
   size_t index = hash(key, map->capacity);
-  Bucket *out_bucket;
+  Bucket *out_bucket = NULL;
   BucketResult find_result = bucket_find(map, index, key, &out_bucket);
 
   if (find_result == BUCKET_SUCCESS) {
@@ -45,7 +45,7 @@ HashMapResult hashmap_set(HashMap *map, char *key, Table *value) {
     out_bucket->value = value;
     return HASHMAP_SUCCESS;
   } else if (find_result == BUCKET_NOT_FOUND) {
-    Bucket *out_bucket;
+    Bucket *out_bucket = NULL;
     BucketResult create_result = bucket_create(key, value, &out_bucket);
     if (create_result != BUCKET_SUCCESS) {
       return BUCKETS_ALLOCATION_FAILURE;
@@ -66,7 +66,7 @@ HashMapResult hashmap_get(HashMap *map, char *key, Table **out_value) {
   }
 
   size_t index = hash(key, map->capacity);
-  Bucket *out_bucket;
+  Bucket *out_bucket = NULL;
   BucketResult find_result = bucket_find(map, index, key, &out_bucket);
   if (find_result == BUCKET_SUCCESS) {
     *out_value = out_bucket->value;
