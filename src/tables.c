@@ -5,6 +5,7 @@
 #include <strings.h>
 
 #include "../include/database.h"
+#include "../include/hashmap.h"
 
 Table *create_table(Database *db, char *name) {
   if (db == NULL) {
@@ -28,8 +29,11 @@ Table *create_table(Database *db, char *name) {
 
   table->next_id = 1;
   table->num_rows = 0;
-  table->next = db->tables_head;
-  db->tables_head = table;
+
+  if (hashmap_set(db->tables, name, table) != HASHMAP_SUCCESS) {
+    free(table);
+    return NULL;
+  }
 
   for (uint32_t i = 0; i < MAX_PAGES; i++) {
     table->pages[i] = NULL;
@@ -44,12 +48,9 @@ Table *find_table(Database *db, char *name) {
     return NULL;
   }
 
-  Table *curr = db->tables_head;
-  while (curr != NULL) {
-    if (strcasecmp(curr->name, name) == 0) {
-      return curr;
-    }
-    curr = curr->next;
+  Table *table = NULL;
+  if (hashmap_get(db->tables, name, (Table **)&table) == HASHMAP_SUCCESS) {
+    return table;
   }
 
   return NULL;
@@ -64,10 +65,6 @@ void free_table(Table *table) {
     if (table->pages[i] != NULL) {
       free(table->pages[i]);
     }
-  }
-
-  if (table->next != NULL) {
-    free_table(table->next);
   }
 
   free(table);

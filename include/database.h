@@ -6,6 +6,7 @@
 #define PAGE_SIZE 4096
 
 #include <stdint.h>
+#include "hashmap.h"
 
 typedef struct Row {
     uint32_t id;
@@ -18,11 +19,10 @@ typedef struct Table {
     uint32_t num_rows;
     char name[MAX_NAME_LENGTH + 1];
     void *pages[MAX_PAGES];
-    struct Table* next;
 } Table;
 
 typedef struct Database {
-    Table* tables_head; 
+    HashMap *tables;
 } Database;
 
 Database* create_database();

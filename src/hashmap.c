@@ -4,6 +4,7 @@
 #include <string.h>
 #include <strings.h>
 
+#include "../include/database.h"
 #include "../include/hashmap.h"
 
 HashMapResult hashmap_initialize(size_t capacity, HashMap **out_map) {
@@ -117,7 +118,7 @@ HashMapResult hashmap_free(HashMap *map) {
     Bucket *bucket = map->buckets[i];
     while (bucket != NULL) {
       Bucket *next = bucket->next;
-      free(bucket->value);
+      free_table(bucket->value);
       free(bucket->key);
       free(bucket);
       bucket = next;

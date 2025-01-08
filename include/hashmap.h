@@ -2,7 +2,9 @@
 #define HASHMAP_H
 
 #include <stdlib.h>
-#include "database.h"
+
+// Forward declaration of Table to avoid circular dependency
+typedef struct Table Table;
 
 typedef enum {
   HASHMAP_SUCCESS,
