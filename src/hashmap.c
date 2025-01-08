@@ -5,6 +5,7 @@
 #include <strings.h>
 
 #include "../include/database.h"
+#include "../include/error.h"
 #include "../include/hashmap.h"
 
 HashMapResult hashmap_initialize(size_t capacity, HashMap **out_map) {
@@ -33,6 +34,7 @@ HashMapResult hashmap_set(HashMap *map, char *key, Table *value) {
   if (loadFactor > 0.7) {
     HashMapResult resize_result = hashmap_resize(map);
     if (resize_result != HASHMAP_SUCCESS) {
+      LOG_ERROR("hashmap", HASHMAP_RESIZE_FAILURE);
       return HASHMAP_RESIZE_FAILURE;
     }
   }

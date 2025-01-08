@@ -1,7 +1,9 @@
 #include <assert.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
+#include "database.h"
 #include "hashmap.h"
 
 // Helper function to create a dummy table for testing
@@ -12,7 +14,6 @@ Table *create_dummy_table(const char *name, uint32_t id) {
   table->next_id = id;
   table->num_rows = 0;
   memset(table->pages, 0, sizeof(void *) * MAX_PAGES);
-  table->next = NULL;
   return table;
 }
 
@@ -93,7 +94,7 @@ void test_hashmap_resize() {
   assert(map->capacity > 3);
 
   // Verify all items are still accessible
-  for (int i = 0; i < 3; i++) {
+  for (uint32_t i = 0; i < 3; i++) {
     char key[20];
     sprintf(key, "table%d", i);
     Table *retrieved_table = NULL;

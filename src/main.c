@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "../include/database.h"
+#include "../include/error.h"
 #include "../include/meta_commands.h"
 #include "../include/statements.h"
 
@@ -17,7 +18,13 @@ void read_input(char *input, size_t input_size) {
 };
 
 int main() {
-  Database *db = create_database();
+  Database *db = NULL;
+  DatabaseResult db_result = create_database(&db);
+  if (db_result != DATABASE_SUCCESS) {
+    LOG_ERROR("database", db_result);
+    return 1;
+  }
+
   char input[MAX_INPUT_LENGTH];
 
   printf("Connected to a transient in-memory database.\n");

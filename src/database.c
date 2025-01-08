@@ -5,24 +5,26 @@
 #include <strings.h>
 
 #include "../include/database.h"
+#include "../include/error.h"
 #include "../include/hashmap.h"
 
-Database *create_database() {
+DatabaseResult create_database(Database **out_db) {
   Database *db = malloc(sizeof(Database));
   if (db == NULL) {
-    printf("Failed to allocate db\n");
-    return NULL;
+    return DATABASE_ALLOC_ERROR;
   }
 
   HashMap *map = NULL;
   HashMapResult map_result = hashmap_initialize(10, &map);
   if (map_result != HASHMAP_SUCCESS) {
-    printf("Failed to initialize hashmap\n");
+    LOG_ERROR("hashmap", map_result);
     free(db);
-    return NULL;
+    return DATABASE_HASHMAP_INIT_ERROR;
   }
 
-  return db;
+  db->tables = map;
+  *out_db = db;
+  return DATABASE_SUCCESS;
 }
 
 void free_database(Database *db) {

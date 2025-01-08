@@ -5,55 +5,57 @@
 #include <strings.h>
 
 #include "../include/database.h"
+#include "../include/error.h"
 #include "../include/hashmap.h"
 
-Table *create_table(Database *db, char *name) {
+TableResult create_table(Database *db, char *name, Table **out_table) {
   if (db == NULL) {
-    printf("Database is null\n");
-    return NULL;
+    return TABLE_INVALID_DB;
   }
 
   Table *table = malloc(sizeof(Table));
   if (table == NULL) {
-    printf("Failed to allocate table\n");
-    return NULL;
+    return TABLE_ALLOC_ERROR;
   }
 
   if (strlen(name) >= MAX_NAME_LENGTH) {
-    printf("Table name is too long (max %d characters)\n", MAX_NAME_LENGTH - 1);
     free(table);
-    return NULL;
+    return TABLE_NAME_TOO_LONG;
   }
+
   strncpy(table->name, name, MAX_NAME_LENGTH - 1);
   table->name[MAX_NAME_LENGTH - 1] = '\0';
-
   table->next_id = 1;
   table->num_rows = 0;
 
-  if (hashmap_set(db->tables, name, table) != HASHMAP_SUCCESS) {
+  HashMapResult map_result = hashmap_set(db->tables, name, table);
+  if (map_result != HASHMAP_SUCCESS) {
+    LOG_ERROR("hashmap", map_result);
     free(table);
-    return NULL;
+    return TABLE_HASHMAP_SET_ERROR;
   }
 
   for (uint32_t i = 0; i < MAX_PAGES; i++) {
     table->pages[i] = NULL;
   }
 
-  return table;
-};
+  *out_table = table;
+  return TABLE_SUCCESS;
+}
 
-Table *find_table(Database *db, char *name) {
+TableResult find_table(Database *db, char *name, Table **out_table) {
   if (db == NULL) {
-    printf("Database is null\n");
-    return NULL;
+    return TABLE_INVALID_DB;
   }
 
   Table *table = NULL;
   if (hashmap_get(db->tables, name, (Table **)&table) == HASHMAP_SUCCESS) {
-    return table;
+    *out_table = table;
+    return TABLE_SUCCESS;
   }
 
-  return NULL;
+  printf("Table '%s' not found\n", name);
+  return TABLE_NOT_FOUND;
 }
 
 void free_table(Table *table) {
