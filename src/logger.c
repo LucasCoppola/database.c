@@ -26,6 +26,10 @@ const char *get_error_message(const char *context, int code) {
     return database_error_string(code);
   }
 
+  if (strcmp(context, "row") == 0) {
+    return row_error_string(code);
+  }
+
   return "Unknown error context";
 }
 
@@ -73,5 +77,18 @@ const char *table_error_string(TableResult result) {
     return "Table not found";
   default:
     return "Unrecognized table error";
+  }
+}
+
+const char *row_error_string(RowResult result) {
+  switch (result) {
+  case ROW_INVALID_TABLE:
+    return "Invalid table";
+  case ROW_NAME_TOO_LONG:
+    return "Name is too long";
+  case ROW_NOT_FOUND:
+    return "Row not found";
+  default:
+    return "Unrecognized row error";
   }
 }

@@ -62,7 +62,6 @@ static ExecuteResult execute_create_table(Database *db, Statement *statement) {
     return EXECUTE_FAILURE;
   }
 
-  printf("Table '%s' created successfully.\n", statement->table_name);
   return EXECUTE_SUCCESS;
 }
 
@@ -73,7 +72,6 @@ static ExecuteResult execute_drop_table(Database *db, Statement *statement) {
     return EXECUTE_FAILURE;
   }
 
-  printf("Table '%s' dropped successfully.\n", statement->table_name);
   return EXECUTE_SUCCESS;
 }
 
@@ -100,12 +98,15 @@ static ExecuteResult execute_insert(Database *db, Statement *statement) {
   }
 
   if (out_table->num_rows >= TABLE_MAX_ROWS) {
-    printf("Error: Table '%s' is full.\n", statement->table_name);
     return EXECUTE_TABLE_FULL;
   }
 
-  insert_row(out_table, statement->row);
-  printf("Inserted row into '%s' table.\n", statement->table_name);
+  RowResult row_result = insert_row(out_table, statement->row);
+  if (row_result != ROW_SUCCESS) {
+    LOG_ERROR("row", row_result);
+    return EXECUTE_FAILURE;
+  }
+
   return EXECUTE_SUCCESS;
 }
 
@@ -118,9 +119,12 @@ static ExecuteResult execute_delete(Database *db, Statement *statement) {
     return EXECUTE_FAILURE;
   }
 
-  delete_row(out_table, statement->row.id);
-  printf("Deleted row with id %d from '%s' table.\n", statement->row.id,
-         statement->table_name);
+  RowResult row_result = delete_row(out_table, statement->row.id);
+  if (row_result != ROW_SUCCESS) {
+    LOG_ERROR("row", row_result);
+    return EXECUTE_FAILURE;
+  }
+
   return EXECUTE_SUCCESS;
 }
 

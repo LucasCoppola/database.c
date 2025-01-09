@@ -23,6 +23,13 @@ typedef enum {
   TABLE_HASHMAP_SET_ERROR
 } TableResult;
 
+typedef enum {
+    ROW_SUCCESS,
+    ROW_NAME_TOO_LONG,
+    ROW_INVALID_TABLE,
+    ROW_NOT_FOUND,
+} RowResult;
+
 typedef struct Row {
     uint32_t id;
     char username[MAX_NAME_LENGTH + 1];
@@ -48,9 +55,8 @@ TableResult find_table(Database* db, char* name, Table **out_table);
 TableResult drop_table(Database *db, char *name);
 void free_table(Table *table);
 
-
-void insert_row(Table *table, Row row);
-void select_rows(Table *table);
-void delete_row(Table *table, uint32_t row_id);
+RowResult insert_row(Table *table, Row row);
+RowResult select_rows(Table *table);
+RowResult delete_row(Table *table, uint32_t row_id);
 
 #endif

@@ -18,6 +18,7 @@ const char* get_error_message(const char* context, int code);
 const char* hashmap_error_string(HashMapResult result);
 const char* table_error_string(TableResult result);
 const char* database_error_string(DatabaseResult result);
+const char *row_error_string(RowResult result);
 
 // LOG_ERROR: It should be used one level above implementation
 #define LOG_ERROR(ctx, err_code) do { \
