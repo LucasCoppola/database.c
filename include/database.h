@@ -47,4 +47,6 @@ TableResult create_table(Database* db, char* name, Table **out_table);
 TableResult find_table(Database* db, char* name, Table **out_table);
 void free_table(Table *table);
 
+void insert_row(Table *table, Row row);
+
 #endif

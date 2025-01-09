@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "../include/database.h"
-#include "../include/error.h"
+#include "../include/logger.h"
 #include "../include/meta_commands.h"
 #include "../include/statements.h"
 

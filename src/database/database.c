@@ -5,8 +5,8 @@
 #include <strings.h>
 
 #include "../include/database.h"
-#include "../include/error.h"
 #include "../include/hashmap.h"
+#include "../include/logger.h"
 
 DatabaseResult create_database(Database **out_db) {
   Database *db = malloc(sizeof(Database));

@@ -2,8 +2,8 @@
 #include <string.h>
 
 #include "../include/database.h"
-#include "../include/error.h"
 #include "../include/hashmap.h"
+#include "../include/logger.h"
 
 void log_error(const ErrorInfo *error) {
   fprintf(stderr, "Error in %s: %s.\n", error->context, error->message);

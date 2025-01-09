@@ -5,8 +5,8 @@
 #include <strings.h>
 
 #include "../include/database.h"
-#include "../include/error.h"
 #include "../include/hashmap.h"
+#include "../include/logger.h"
 
 TableResult create_table(Database *db, char *name, Table **out_table) {
   if (db == NULL) {

@@ -1,5 +1,5 @@
-#ifndef ERROR_HANDLING_H
-#define ERROR_HANDLING_H
+#ifndef LOGGER_H
+#define LOGGER_H
 
 #include <stdio.h>
 

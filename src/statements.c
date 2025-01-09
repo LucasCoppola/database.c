@@ -3,9 +3,9 @@
 #include <string.h>
 
 #include "../include/database.h"
+#include "../include/logger.h"
 #include "../include/statements.h"
 #include "../include/storage.h"
-#include "error.h"
 
 void to_lowercase(char *str) {
   for (int i = 0; str[i]; i++) {
@@ -76,19 +76,6 @@ static ExecuteResult execute_select(Database *db, Statement *statement) {
   }
   return EXECUTE_SUCCESS;
 }
-
-void insert_row(Table *table, Row row) {
-  if (strlen(row.username) >= MAX_NAME_LENGTH ||
-      strlen(row.email) >= MAX_NAME_LENGTH) {
-    printf("name is too long (max %d characters)\n", MAX_NAME_LENGTH - 1);
-    return;
-  }
-
-  void *slot = get_row_slot(table, table->num_rows);
-  row.id = table->next_id++;
-  serialize_row(&row, slot);
-  table->num_rows++;
-};
 
 static ExecuteResult execute_insert(Database *db, Statement *statement) {
   Table *out_table = NULL;

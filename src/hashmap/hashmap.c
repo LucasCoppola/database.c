@@ -5,8 +5,8 @@
 #include <strings.h>
 
 #include "../include/database.h"
-#include "../include/error.h"
 #include "../include/hashmap.h"
+#include "../include/logger.h"
 
 HashMapResult hashmap_initialize(size_t capacity, HashMap **out_map) {
   *out_map = malloc(sizeof(HashMap));
