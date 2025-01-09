@@ -45,8 +45,12 @@ void free_database(Database *db);
 
 TableResult create_table(Database* db, char* name, Table **out_table);
 TableResult find_table(Database* db, char* name, Table **out_table);
+TableResult drop_table(Database *db, char *name);
 void free_table(Table *table);
 
+
 void insert_row(Table *table, Row row);
+void select_rows(Table *table);
+void delete_row(Table *table, uint32_t row_id);
 
 #endif

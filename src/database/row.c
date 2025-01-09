@@ -19,3 +19,37 @@ void insert_row(Table *table, Row row) {
   serialize_row(&row, slot);
   table->num_rows++;
 };
+
+void select_rows(Table *table) {
+  Row row;
+  for (uint32_t i = 0; i < table->num_rows; i++) {
+    deserialize_row(get_row_slot(table, i), &row);
+    printf("(%d, %s, %s)\n", row.id, row.username, row.email);
+  }
+}
+
+void delete_row(Table *table, uint32_t row_id) {
+  int found = 0;
+
+  for (uint32_t i = 0; i < table->num_rows; i++) {
+    Row row;
+    deserialize_row(get_row_slot(table, i), &row);
+
+    if (row.id == row_id) {
+      found = 1;
+    }
+
+    if (found && i < table->num_rows - 1) {
+      // Shift the next row up to the current position
+      void *current_slot = get_row_slot(table, i);
+      void *next_slot = get_row_slot(table, i + 1);
+      memcpy(current_slot, next_slot, sizeof(Row));
+    }
+  }
+
+  if (found) {
+    table->num_rows--;
+  } else {
+    printf("Row with id %d not found.\n", row_id);
+  }
+}

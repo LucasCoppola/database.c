@@ -22,6 +22,12 @@ PrepareResult prepare_statement(char *command, Statement *statement) {
     return (args < 1) ? PREPARE_SYNTAX_ERROR : PREPARE_SUCCESS;
   }
 
+  if (strncmp(command, "drop table", 10) == 0) {
+    statement->type = STATEMENT_DROP_TABLE;
+    int args = sscanf(command, "drop table %s", statement->table_name);
+    return (args < 1) ? PREPARE_SYNTAX_ERROR : PREPARE_SUCCESS;
+  }
+
   if (strncmp(command, "select", 6) == 0) {
     statement->type = STATEMENT_SELECT;
     int args = sscanf(command, "select * from %s", statement->table_name);
@@ -60,6 +66,17 @@ static ExecuteResult execute_create_table(Database *db, Statement *statement) {
   return EXECUTE_SUCCESS;
 }
 
+static ExecuteResult execute_drop_table(Database *db, Statement *statement) {
+  TableResult table_result = drop_table(db, statement->table_name);
+  if (table_result != TABLE_SUCCESS) {
+    LOG_ERROR("table", table_result);
+    return EXECUTE_FAILURE;
+  }
+
+  printf("Table '%s' dropped successfully.\n", statement->table_name);
+  return EXECUTE_SUCCESS;
+}
+
 static ExecuteResult execute_select(Database *db, Statement *statement) {
   Table *out_table = NULL;
   TableResult table_result = find_table(db, statement->table_name, &out_table);
@@ -69,11 +86,7 @@ static ExecuteResult execute_select(Database *db, Statement *statement) {
     return EXECUTE_FAILURE;
   }
 
-  Row row;
-  for (uint32_t i = 0; i < out_table->num_rows; i++) {
-    deserialize_row(get_row_slot(out_table, i), &row);
-    printf("(%d, %s, %s)\n", row.id, row.username, row.email);
-  }
+  select_rows(out_table);
   return EXECUTE_SUCCESS;
 }
 
@@ -96,29 +109,33 @@ static ExecuteResult execute_insert(Database *db, Statement *statement) {
   return EXECUTE_SUCCESS;
 }
 
-// static ExecuteResult execute_delete(Database *db, Statement *statement) {
-//   Table *table = find_table(db, statement->table_name);
-//   if (!table) {
-//     printf("Table '%s' does not exist.\n", statement->table_name);
-//     return EXECUTE_FAILURE;
-//   }
-//
-//   printf("Deleted row with id %d from '%s' table.\n", statement->row.id,
-//          statement->table_name);
-//   return EXECUTE_SUCCESS;
-// }
+static ExecuteResult execute_delete(Database *db, Statement *statement) {
+  Table *out_table = NULL;
+  TableResult table_result = find_table(db, statement->table_name, &out_table);
+
+  if (table_result != TABLE_SUCCESS) {
+    LOG_ERROR("table", table_result);
+    return EXECUTE_FAILURE;
+  }
+
+  delete_row(out_table, statement->row.id);
+  printf("Deleted row with id %d from '%s' table.\n", statement->row.id,
+         statement->table_name);
+  return EXECUTE_SUCCESS;
+}
 
 ExecuteResult execute_statement(Database *db, Statement *statement) {
   switch (statement->type) {
   case STATEMENT_CREATE_TABLE:
     return execute_create_table(db, statement);
+  case STATEMENT_DROP_TABLE:
+    return execute_drop_table(db, statement);
   case STATEMENT_SELECT:
     return execute_select(db, statement);
   case STATEMENT_INSERT:
     return execute_insert(db, statement);
   case STATEMENT_DELETE:
-    return printf("Delete not implemented yet.\n");
-    // return execute_delete(db, statement);
+    return execute_delete(db, statement);
   default:
     return EXECUTE_FAILURE;
   }

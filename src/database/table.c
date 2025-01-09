@@ -58,6 +58,19 @@ TableResult find_table(Database *db, char *name, Table **out_table) {
   return TABLE_NOT_FOUND;
 }
 
+TableResult drop_table(Database *db, char *name) {
+  if (db == NULL) {
+    return TABLE_INVALID_DB;
+  }
+
+  if (hashmap_delete(db->tables, name) == HASHMAP_SUCCESS) {
+    return TABLE_SUCCESS;
+  }
+
+  printf("Table '%s' not found\n", name);
+  return TABLE_NOT_FOUND;
+}
+
 void free_table(Table *table) {
   if (table == NULL) {
     return;
