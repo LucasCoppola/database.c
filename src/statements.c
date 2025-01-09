@@ -31,7 +31,7 @@ PrepareResult prepare_statement(char *command, Statement *statement) {
   if (strncmp(command, "insert", 6) == 0) {
     statement->type = STATEMENT_INSERT;
     int args = sscanf(
-        command, "insert into %s (username, email) values (%s, %s)",
+        command, "insert into %s (username, email) values (%[^,], %[^)])",
         statement->table_name, statement->row.username, statement->row.email);
     return (args < 2) ? PREPARE_SYNTAX_ERROR : PREPARE_SUCCESS;
   }
@@ -84,29 +84,10 @@ void insert_row(Table *table, Row row) {
     return;
   }
 
-  // Check if there's space on the current page to insert the row
-  for (int i = 0; i < MAX_PAGES; i++) {
-    if (table->pages[i] == NULL) {
-      // Allocate space for this page (or reuse a page)
-      table->pages[i] = malloc(sizeof(Row) * TABLE_MAX_ROWS);
-      if (table->pages[i] == NULL) {
-        printf("Error: Failed to allocate space for rows.\n");
-        return;
-      }
-    }
-
-    // Find the first empty slot in the current page
-    Row *page = table->pages[i];
-    for (uint32_t j = 0; j < TABLE_MAX_ROWS; j++) {
-      if (page[j].id == 0) {  // Find the first uninitialized row (id == 0)
-        page[j] = row;        // Insert the row
-        table->num_rows += 1; // Increment the number of rows in the table
-        return;
-      }
-    }
-  }
-
-  printf("Error: No space left for new rows.\n");
+  void *slot = get_row_slot(table, table->num_rows);
+  row.id = table->next_id++;
+  serialize_row(&row, slot);
+  table->num_rows++;
 };
 
 static ExecuteResult execute_insert(Database *db, Statement *statement) {

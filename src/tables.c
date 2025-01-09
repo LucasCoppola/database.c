@@ -49,7 +49,7 @@ TableResult find_table(Database *db, char *name, Table **out_table) {
   }
 
   Table *table = NULL;
-  if (hashmap_get(db->tables, name, (Table **)&table) == HASHMAP_SUCCESS) {
+  if (hashmap_get(db->tables, name, &table) == HASHMAP_SUCCESS) {
     *out_table = table;
     return TABLE_SUCCESS;
   }
