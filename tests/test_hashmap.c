@@ -13,7 +13,7 @@ Table *create_dummy_table(const char *name, uint32_t id) {
   table->name[MAX_NAME_LENGTH - 1] = '\0';
   table->next_id = id;
   table->num_rows = 0;
-  memset(table->pages, 0, sizeof(void *) * MAX_PAGES);
+  memset(table->pages, 0, sizeof(void *) * TABLE_MAX_PAGES);
   return table;
 }
 

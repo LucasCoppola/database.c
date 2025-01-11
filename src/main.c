@@ -17,9 +17,11 @@ void read_input(char *input, size_t input_size) {
   input[strcspn(input, "\n")] = 0; // Remove newline character
 };
 
-int main() {
+int main(int argc, char *argv[]) {
   Database *db = NULL;
-  DatabaseResult db_result = create_database(&db);
+  const char *filename = argc > 1 ? argv[1] : NULL;
+
+  DatabaseResult db_result = database_open(&db, filename);
   if (db_result != DATABASE_SUCCESS) {
     LOG_ERROR("database", db_result);
     return 1;
@@ -27,7 +29,8 @@ int main() {
 
   char input[MAX_INPUT_LENGTH];
 
-  printf("Connected to a transient in-memory database.\n");
+  printf("Connected to %s database.\n",
+         filename ? filename : "a transient in-memory");
   printf("Type '.help' for commands.\n");
 
   while (1) {
@@ -35,7 +38,7 @@ int main() {
     read_input(input, sizeof(input));
 
     if (input[0] == '.') {
-      process_meta_command(input);
+      process_meta_command(input, db);
       continue;
     }
 
@@ -66,6 +69,6 @@ int main() {
     }
   }
 
-  free_database(db);
+  database_free(db);
   return 0;
 }

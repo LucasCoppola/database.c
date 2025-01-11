@@ -6,6 +6,6 @@
 
 #include <stdio.h>
 
-void process_meta_command(char *command);
+void process_meta_command(char *command, Database *db);
 
 #endif

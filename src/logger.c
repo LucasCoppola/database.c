@@ -39,6 +39,8 @@ const char *database_error_string(DatabaseResult result) {
     return "Failed to allocate memory for database";
   case DATABASE_HASHMAP_INIT_ERROR:
     return "Failed to initialize hashmap";
+  case DATABASE_PAGER_INIT_ERROR:
+    return "Failed to initialize pager";
   default:
     return "Unrecognized database error";
   }
@@ -73,6 +75,8 @@ const char *table_error_string(TableResult result) {
     return "Table name is too long";
   case TABLE_HASHMAP_SET_ERROR:
     return "Failed to set table in hashmap";
+  case TABLE_ALREADY_EXISTS:
+    return "Table already exists";
   case TABLE_NOT_FOUND:
     return "Table not found";
   default:

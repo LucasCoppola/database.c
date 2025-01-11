@@ -84,7 +84,12 @@ static ExecuteResult execute_select(Database *db, Statement *statement) {
     return EXECUTE_FAILURE;
   }
 
-  select_rows(out_table);
+  RowResult row_result = select_rows(out_table);
+  if (row_result != ROW_SUCCESS) {
+    LOG_ERROR("row", row_result);
+    return EXECUTE_FAILURE;
+  }
+
   return EXECUTE_SUCCESS;
 }
 

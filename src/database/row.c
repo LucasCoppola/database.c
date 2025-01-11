@@ -21,6 +21,10 @@ RowResult insert_row(Table *table, Row row) {
   row.id = table->next_id++;
   serialize_row(&row, slot);
   table->num_rows++;
+
+  uint32_t page_num = table->num_rows / ROWS_PER_PAGE;
+  pager_flush(table->pager, page_num);
+
   return ROW_SUCCESS;
 }
 
