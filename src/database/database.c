@@ -15,8 +15,10 @@ DatabaseResult database_open(Database **out_db, const char *filename) {
     return DATABASE_ALLOC_ERROR;
   }
 
-  Pager *pager = pager_open(filename);
-  if (pager == NULL) {
+  Pager *pager = NULL;
+  PagerResult pager_result = pager_open(filename, &pager);
+  if (pager_result != PAGER_SUCCESS) {
+    LOG_ERROR("pager", pager_result);
     free(db);
     return DATABASE_PAGER_INIT_ERROR;
   }

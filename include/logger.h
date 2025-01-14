@@ -5,6 +5,7 @@
 
 #include "database.h"
 #include "hashmap.h"
+#include "storage.h"
 
 typedef struct {
     const char* message;
@@ -19,6 +20,7 @@ const char* hashmap_error_string(HashMapResult result);
 const char* table_error_string(TableResult result);
 const char* database_error_string(DatabaseResult result);
 const char *row_error_string(RowResult result);
+const char *pager_error_string(PagerResult result);
 
 // LOG_ERROR: It should be used one level above implementation
 #define LOG_ERROR(ctx, err_code) do { \

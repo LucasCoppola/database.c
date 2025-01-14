@@ -6,6 +6,17 @@
 #include <stdint.h>
 #include "database.h"
 
+typedef enum {
+  PAGER_SUCCESS,
+  PAGER_OPEN_ERROR,
+  PAGER_ALLOC_ERROR,
+  PAGER_OUT_OF_BOUNDS,
+  PAGER_READ_ERROR,
+  PAGER_WRITE_ERROR,
+  PAGER_SEEK_ERROR,
+  PAGER_INVALID_PAGE,
+} PagerResult;
+
 typedef struct {
     char table_name[MAX_NAME_LENGTH];
     uint32_t num_rows;
@@ -18,10 +29,10 @@ void serialize_row(Row *source, void *destination);
 void deserialize_row(void *source, Row *destination);
 void *get_row_slot(Table *table, uint32_t row_num);
 
-Pager *pager_open(const char *filename);
+PagerResult pager_open(const char *filename, Pager **out_pager);
+PagerResult pager_get_page(Pager *pager, uint32_t page_num, void **out_page);
+PagerResult pager_flush(Pager *pager, uint32_t page_num);
 void pager_close(Pager *pager);
-void *pager_get_page(Pager *pager, uint32_t page_num);
-void pager_flush(Pager *pager, uint32_t page_num);
 
 void header_tables_restore(Pager *pager, HashMap *map);
 void header_tables_store(Database *db);

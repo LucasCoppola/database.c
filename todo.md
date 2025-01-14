@@ -1,13 +1,6 @@
 # TODO
 
-[] Pager
-    - Files included:
-        - database.c
-        - table.c
-        - row.c
-        - pager.c
-        - row_storage.c
-        - statements.c
+[] Implement pager and cursor to manage the disk-based operations
     
 [] SQL query parser is mid, how robust should i make it?
     - [] end with semicolon(;)

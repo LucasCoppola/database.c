@@ -4,6 +4,7 @@
 #include "../include/database.h"
 #include "../include/hashmap.h"
 #include "../include/logger.h"
+#include "../include/storage.h"
 
 void log_error(const ErrorInfo *error) {
   fprintf(stderr, "Error in %s: %s.\n", error->context, error->message);
@@ -28,6 +29,10 @@ const char *get_error_message(const char *context, int code) {
 
   if (strcmp(context, "row") == 0) {
     return row_error_string(code);
+  }
+
+  if (strcmp(context, "pager") == 0) {
+    return pager_error_string(code);
   }
 
   return "Unknown error context";
@@ -94,5 +99,26 @@ const char *row_error_string(RowResult result) {
     return "Row not found";
   default:
     return "Unrecognized row error";
+  }
+}
+
+const char *pager_error_string(PagerResult result) {
+  switch (result) {
+  case PAGER_OPEN_ERROR:
+    return "Failed to open file";
+  case PAGER_ALLOC_ERROR:
+    return "Failed to allocate memory for pager";
+  case PAGER_OUT_OF_BOUNDS:
+    return "Page number out of bounds";
+  case PAGER_READ_ERROR:
+    return "Failed to read from file";
+  case PAGER_WRITE_ERROR:
+    return "Failed to write to file";
+  case PAGER_SEEK_ERROR:
+    return "Failed to seek in file";
+  case PAGER_INVALID_PAGE:
+    return "Invalid page";
+  default:
+    return "Unrecognized pager error";
   }
 }
