@@ -49,13 +49,18 @@ typedef struct {
   void* pages[TABLE_MAX_PAGES];
 } Pager;
 
-
 typedef struct Table {
     char name[MAX_NAME_LENGTH + 1];
     uint32_t next_id; // id of the next row to be inserted
     uint32_t num_rows;
     Pager *pager;
 } Table;
+
+typedef struct {
+  Table* table;
+  uint32_t row_num;
+  bool end_of_table;  // Indicates a position one past the last element
+} Cursor;
 
 typedef struct Database {
     HashMap *tables;
@@ -73,7 +78,7 @@ TableResult drop_table(Database *db, char *name);
 void close_table(Table *table, Pager *pager);
 void free_table(Table *table);
 
-RowResult insert_row(Table *table, Row row);
+RowResult insert_row(Table *table, Row *row);
 RowResult select_rows(Table *table);
 RowResult delete_row(Table *table, uint32_t row_id);
 

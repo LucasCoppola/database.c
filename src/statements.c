@@ -106,7 +106,7 @@ static ExecuteResult execute_insert(Database *db, Statement *statement) {
     return EXECUTE_TABLE_FULL;
   }
 
-  RowResult row_result = insert_row(out_table, statement->row);
+  RowResult row_result = insert_row(out_table, &statement->row);
   if (row_result != ROW_SUCCESS) {
     LOG_ERROR("row", row_result);
     return EXECUTE_FAILURE;

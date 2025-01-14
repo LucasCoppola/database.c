@@ -23,9 +23,13 @@ void pager_close(Pager *pager);
 void *pager_get_page(Pager *pager, uint32_t page_num);
 void pager_flush(Pager *pager, uint32_t page_num);
 
-
 void header_tables_restore(Pager *pager, HashMap *map);
 void header_tables_store(Database *db);
+
+Cursor *table_start(Table *table);
+Cursor *table_end(Table *table);
+void *cursor_value(Cursor *cursor);
+void cursor_advance(Cursor *cursor); 
 
 extern const uint32_t TABLE_MAX_ROWS;  
 extern const uint32_t ROWS_PER_PAGE;  
