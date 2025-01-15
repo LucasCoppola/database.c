@@ -2,6 +2,7 @@
 #define HASHMAP_H
 
 #include <stdlib.h>
+#include <stdbool.h>
 
 // Forward declaration of Table to avoid circular dependency
 typedef struct Table Table;
@@ -29,16 +30,27 @@ typedef struct Bucket {
 } Bucket;
 
 typedef struct {
-  Bucket **buckets;
   size_t capacity;
   size_t size;
+  Bucket **buckets;
 } HashMap;
+
+typedef struct {
+  HashMap* map;
+  size_t index;       
+  Bucket* bucket;   
+} HashMapIterator;
 
 HashMapResult hashmap_initialize(size_t capacity, HashMap **out_map);
 HashMapResult hashmap_set(HashMap *map, char *key, Table *value);
 HashMapResult hashmap_get(HashMap *map, char *key, Table **out_value);
 HashMapResult hashmap_delete(HashMap *map, char *key);
 HashMapResult hashmap_free(HashMap *map);
+
+HashMapIterator* hashmap_iterator_init(HashMap* map);
+bool hashmap_iterator_has_next(HashMapIterator* iterator);
+Bucket* hashmap_iterator_next(HashMapIterator* iterator);
+void hashmap_iterator_free(HashMapIterator* iterator);
 
 // hashmap_utils
 size_t hash(const char *key, size_t capacity);
