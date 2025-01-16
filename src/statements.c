@@ -36,9 +36,9 @@ PrepareResult prepare_statement(char *command, Statement *statement) {
 
   if (strncmp(command, "insert", 6) == 0) {
     statement->type = STATEMENT_INSERT;
-    int args = sscanf(
-        command, "insert into %s (username, email) values (%[^,], %[^)])",
-        statement->table_name, statement->row.username, statement->row.email);
+    int args =
+        sscanf(command, "insert into %s (%[^,], %[^)])", statement->table_name,
+               statement->row.username, statement->row.email);
     return (args < 2) ? PREPARE_SYNTAX_ERROR : PREPARE_SUCCESS;
   }
 

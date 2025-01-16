@@ -34,6 +34,9 @@ typedef enum {
     ROW_NAME_TOO_LONG,
     ROW_INVALID_TABLE,
     ROW_NOT_FOUND,
+    ROW_ALLOC_PAGE_ERROR,
+    ROW_GET_PAGE_ERROR,
+    ROW_FLUSH_PAGE_ERROR,
 } RowResult;
 
 typedef struct {

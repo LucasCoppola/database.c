@@ -1,8 +1,8 @@
 # TODO
 
-[x] Fix HeaderMetadata (supports a single table 'users')
-[] Add metadata to store/restore rows
+[] Pages/cursor to store/restore rows
     
+
 [] Optimize pager
 [] SQL query parser is mid, how robust should i make it?
     - [] end with semicolon(;)

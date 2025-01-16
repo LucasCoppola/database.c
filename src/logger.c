@@ -97,6 +97,12 @@ const char *row_error_string(RowResult result) {
     return "Name is too long";
   case ROW_NOT_FOUND:
     return "Row not found";
+  case ROW_ALLOC_PAGE_ERROR:
+    return "Failed to allocate page";
+  case ROW_GET_PAGE_ERROR:
+    return "Failed to get page";
+  case ROW_FLUSH_PAGE_ERROR:
+    return "Failed to flush page";
   default:
     return "Unrecognized row error";
   }

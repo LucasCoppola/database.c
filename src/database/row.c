@@ -5,6 +5,7 @@
 
 #include "../include/database.h"
 #include "../include/hashmap.h"
+#include "../include/logger.h"
 #include "../include/storage.h"
 
 RowResult insert_row(Table *table, Row *row) {
@@ -18,15 +19,35 @@ RowResult insert_row(Table *table, Row *row) {
   }
 
   Cursor *cursor = table_end(table);
+  uint32_t page_num = table->num_rows / ROWS_PER_PAGE;
+  uint32_t row_offset = table->num_rows % ROWS_PER_PAGE;
+  void *page = NULL;
+
+  if (row_offset == 0) {
+    pager_alloc_page(table->pager, page_num);
+    PagerResult result = pager_get_page(table->pager, page_num, &page);
+    if (result != PAGER_SUCCESS) {
+      return ROW_ALLOC_PAGE_ERROR;
+    }
+  } else {
+    PagerResult result = pager_get_page(table->pager, page_num, &page);
+    if (result != PAGER_SUCCESS) {
+      LOG_ERROR("pager", result);
+      return ROW_GET_PAGE_ERROR;
+    }
+  }
+
   row->id = table->next_id++;
   serialize_row(row, cursor_value(cursor));
   table->num_rows++;
 
-  uint32_t page_num = table->num_rows / ROWS_PER_PAGE;
-  pager_flush(table->pager, page_num);
+  PagerResult pager_result = pager_flush(table->pager, page_num);
+  if (pager_result != PAGER_SUCCESS) {
+    LOG_ERROR("pager", pager_result);
+    return ROW_FLUSH_PAGE_ERROR;
+  }
 
   free(cursor);
-
   return ROW_SUCCESS;
 }
 
@@ -62,6 +83,7 @@ RowResult delete_row(Table *table, uint32_t row_id) {
       found = 1;
     }
 
+    // shift row to fill the gap
     if (found && !cursor->end_of_table) {
       void *current_slot = cursor_value(cursor);
       void *next_slot = cursor_value(cursor) + sizeof(Row);

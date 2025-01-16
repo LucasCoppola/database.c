@@ -23,6 +23,7 @@ Cursor *table_end(Table *table) {
 void *cursor_value(Cursor *cursor) {
   uint32_t row_num = cursor->row_num;
   uint32_t page_num = row_num / ROWS_PER_PAGE;
+
   void *page = NULL;
   PagerResult result = pager_get_page(cursor->table->pager, page_num, &page);
   if (result != PAGER_SUCCESS) {
