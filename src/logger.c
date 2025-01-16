@@ -110,12 +110,6 @@ const char *pager_error_string(PagerResult result) {
     return "Failed to allocate memory for pager";
   case PAGER_OUT_OF_BOUNDS:
     return "Page number out of bounds";
-  case PAGER_READ_ERROR:
-    return "Failed to read from file";
-  case PAGER_WRITE_ERROR:
-    return "Failed to write to file";
-  case PAGER_SEEK_ERROR:
-    return "Failed to seek in file";
   case PAGER_INVALID_PAGE:
     return "Invalid page";
   default:

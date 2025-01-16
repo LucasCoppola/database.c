@@ -8,13 +8,7 @@
 #include "../../include/storage.h"
 
 PagerResult pager_open(const char *filename, Pager **out_pager) {
-  int fd = open(filename,
-                O_RDWR |     // Read/Write mode
-                    O_CREAT, // Create file if it doesn't exist
-                S_IWUSR |    // User write permission
-                    S_IRUSR  // User read permission
-  );
-
+  int fd = open(filename, O_RDWR | O_CREAT, S_IWUSR | S_IRUSR);
   if (fd == -1) {
     printf("PAGER_OPEN_ERROR: %s\n", strerror(errno));
     return PAGER_OPEN_ERROR;
@@ -39,27 +33,27 @@ PagerResult pager_open(const char *filename, Pager **out_pager) {
   return PAGER_SUCCESS;
 }
 
+// loads a page from disk into memory
+void pager_load_page(Pager *pager, uint32_t page_num) {
+  void *page = malloc(PAGE_SIZE);
+  uint32_t header_offset = sizeof(TableHeader);
+
+  if (page_num <= pager->num_pages) {
+    lseek(pager->file_descriptor, header_offset + (page_num * PAGE_SIZE),
+          SEEK_SET);
+    read(pager->file_descriptor, page, PAGE_SIZE);
+  }
+
+  pager->pages[page_num] = page;
+}
+
 PagerResult pager_get_page(Pager *pager, uint32_t page_num, void **out_page) {
   if (page_num >= TABLE_MAX_PAGES) {
     return PAGER_OUT_OF_BOUNDS;
   }
 
   if (pager->pages[page_num] == NULL) {
-    void *page = malloc(PAGE_SIZE);
-
-    uint32_t header_offset = sizeof(TableHeader); // Account for header
-    if (page_num <= pager->num_pages) {
-      lseek(pager->file_descriptor, header_offset + (page_num * PAGE_SIZE),
-            SEEK_SET);
-      ssize_t bytes_read = read(pager->file_descriptor, page, PAGE_SIZE);
-      if (bytes_read == -1) {
-        free(page);
-        printf("PAGER_READ_ERROR: %s\n", strerror(errno));
-        return PAGER_READ_ERROR;
-      }
-    }
-
-    pager->pages[page_num] = page;
+    pager_load_page(pager, page_num);
   }
 
   *out_page = pager->pages[page_num];
@@ -72,27 +66,18 @@ PagerResult pager_flush(Pager *pager, uint32_t page_num) {
   }
 
   uint32_t header_offset = sizeof(TableHeader);
-  off_t offset = lseek(pager->file_descriptor,
-                       header_offset + (page_num * PAGE_SIZE), SEEK_SET);
-
-  if (offset == -1) {
-    printf("PAGER_SEEK_ERROR: %s\n", strerror(errno));
-    return PAGER_SEEK_ERROR;
-  }
-
-  ssize_t bytes_written =
-      write(pager->file_descriptor, pager->pages[page_num], PAGE_SIZE);
-
-  if (bytes_written == -1) {
-    printf("PAGER_WRITE_ERROR: %s\n", strerror(errno));
-    return PAGER_WRITE_ERROR;
-  }
+  lseek(pager->file_descriptor, header_offset + (page_num * PAGE_SIZE),
+        SEEK_SET);
+  write(pager->file_descriptor, pager->pages[page_num], PAGE_SIZE);
 
   return PAGER_SUCCESS;
 }
 
-void pager_close(Pager *pager) {
-  // Flush all pages that have data
+void pager_flush_all(Pager *pager) {
+  if (pager == NULL) {
+    return;
+  }
+
   for (uint32_t i = 0; i < TABLE_MAX_PAGES; i++) {
     if (pager->pages[i] != NULL) {
       pager_flush(pager, i);
@@ -100,7 +85,9 @@ void pager_close(Pager *pager) {
       pager->pages[i] = NULL;
     }
   }
+}
 
+void pager_close(Pager *pager) {
   close(pager->file_descriptor);
   free(pager);
 }

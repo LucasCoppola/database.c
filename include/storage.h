@@ -11,9 +11,6 @@ typedef enum {
   PAGER_OPEN_ERROR,
   PAGER_ALLOC_ERROR,
   PAGER_OUT_OF_BOUNDS,
-  PAGER_READ_ERROR,
-  PAGER_WRITE_ERROR,
-  PAGER_SEEK_ERROR,
   PAGER_INVALID_PAGE,
 } PagerResult;
 
@@ -32,6 +29,7 @@ void *get_row_slot(Table *table, uint32_t row_num);
 PagerResult pager_open(const char *filename, Pager **out_pager);
 PagerResult pager_get_page(Pager *pager, uint32_t page_num, void **out_page);
 PagerResult pager_flush(Pager *pager, uint32_t page_num);
+void pager_flush_all(Pager *pager);
 void pager_close(Pager *pager);
 
 void header_tables_restore(Pager *pager, HashMap *map);
