@@ -1,5 +1,6 @@
 #include <errno.h>
 #include <fcntl.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -25,7 +26,8 @@ PagerResult pager_open(const char *filename, Pager **out_pager) {
   pager->file_descriptor = fd;
   pager->file_length = file_length;
   pager->num_tables = 0;
-  pager->num_pages = (file_length - HEADER_SIZE) / PAGE_SIZE;
+  uint32_t header_offset = (HEADER_SIZE * pager->num_tables) + sizeof(uint32_t);
+  pager->num_pages = (file_length - header_offset) / PAGE_SIZE;
 
   // Initialize all page pointers to NULL
   memset(pager->pages, 0, sizeof(void *) * TABLE_MAX_PAGES);
@@ -37,15 +39,25 @@ PagerResult pager_open(const char *filename, Pager **out_pager) {
 // loads a page from disk into memory
 void pager_load_page(Pager *pager, uint32_t page_num) {
   void *page = malloc(PAGE_SIZE);
-  uint32_t offset = HEADER_SIZE + (page_num * PAGE_SIZE);
+  if (page == NULL) {
+    printf("Failed to allocate memory for page %u\n", page_num);
+    return;
+  }
+
+  uint32_t header_offset = sizeof(uint32_t) + (HEADER_SIZE * pager->num_tables);
+  uint32_t offset = header_offset + (page_num * PAGE_SIZE);
+
+  printf("Loading page %u at offset %u\n", page_num, offset); // Debug print
 
   if (page_num <= pager->num_pages) {
     lseek(pager->file_descriptor, offset, SEEK_SET);
     ssize_t bytes_read = read(pager->file_descriptor, page, PAGE_SIZE);
     if (bytes_read == -1) {
+      printf("Error reading page %u: %s\n", page_num, strerror(errno));
       free(page);
       return;
     }
+    printf("Read %zd bytes for page %u\n", bytes_read, page_num); // Debug print
   }
 
   pager->pages[page_num] = page;
@@ -84,7 +96,8 @@ PagerResult pager_flush(Pager *pager, uint32_t page_num) {
     return PAGER_INVALID_PAGE;
   }
 
-  uint32_t offset = HEADER_SIZE + (page_num * PAGE_SIZE);
+  uint32_t header_offset = sizeof(uint32_t) + (HEADER_SIZE * pager->num_tables);
+  uint32_t offset = header_offset + (page_num * PAGE_SIZE);
   lseek(pager->file_descriptor, offset, SEEK_SET);
   write(pager->file_descriptor, pager->pages[page_num], PAGE_SIZE);
 
