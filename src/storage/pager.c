@@ -24,6 +24,7 @@ PagerResult pager_open(const char *filename, Pager **out_pager) {
 
   pager->file_descriptor = fd;
   pager->file_length = file_length;
+  pager->num_tables = 0;
   pager->num_pages = (file_length - HEADER_SIZE) / PAGE_SIZE;
 
   // Initialize all page pointers to NULL
@@ -36,7 +37,7 @@ PagerResult pager_open(const char *filename, Pager **out_pager) {
 // loads a page from disk into memory
 void pager_load_page(Pager *pager, uint32_t page_num) {
   void *page = malloc(PAGE_SIZE);
-  uint32_t offset = sizeof(TableHeader) + (page_num * PAGE_SIZE);
+  uint32_t offset = HEADER_SIZE + (page_num * PAGE_SIZE);
 
   if (page_num <= pager->num_pages) {
     lseek(pager->file_descriptor, offset, SEEK_SET);
@@ -83,9 +84,13 @@ PagerResult pager_flush(Pager *pager, uint32_t page_num) {
     return PAGER_INVALID_PAGE;
   }
 
-  uint32_t offset = sizeof(TableHeader) + (page_num * PAGE_SIZE);
+  uint32_t offset = HEADER_SIZE + (page_num * PAGE_SIZE);
   lseek(pager->file_descriptor, offset, SEEK_SET);
   write(pager->file_descriptor, pager->pages[page_num], PAGE_SIZE);
+
+  if (offset + PAGE_SIZE > pager->file_length) {
+    pager->file_length = offset + PAGE_SIZE;
+  }
 
   return PAGER_SUCCESS;
 }

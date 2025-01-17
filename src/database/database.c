@@ -44,7 +44,6 @@ void database_close(Database *db) {
   if (!db)
     return;
 
-  pager_flush_all(db->pager);
   header_tables_store(db);
   pager_close(db->pager);
   database_free(db);

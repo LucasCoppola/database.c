@@ -34,6 +34,7 @@ TableResult create_table(Database *db, char *name, Table **out_table) {
   table->next_id = 1;
   table->num_rows = 0;
   table->pager = db->pager;
+  table->pager->num_tables++;
 
   HashMapResult map_result = hashmap_set(db->tables, name, table);
   if (map_result != HASHMAP_SUCCESS) {
@@ -67,6 +68,7 @@ TableResult drop_table(Database *db, char *name) {
   }
 
   if (hashmap_delete(db->tables, name) == HASHMAP_SUCCESS) {
+    db->pager->num_tables--;
     return TABLE_SUCCESS;
   }
 
