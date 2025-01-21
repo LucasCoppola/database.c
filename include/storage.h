@@ -33,7 +33,7 @@ PagerResult pager_flush(Pager *pager, uint32_t page_num, Table *table);
 void pager_load_page(Pager *pager, uint32_t page_num, Table *table);
 void pager_flush_all(Pager *pager, Table *table);
 void pager_close(Pager *pager);
-void pager_alloc_page(Pager *pager, uint32_t page_num, Table *table);
+void pager_alloc_page(uint32_t page_num, Table *table);
 
 void header_tables_store(Database *db);
 void header_tables_restore(Pager *pager, HashMap *map);

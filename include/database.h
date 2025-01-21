@@ -50,7 +50,6 @@ typedef struct {
   uint32_t file_length;
   uint32_t num_pages;
   uint32_t num_tables;
-  void* pages[TABLE_MAX_PAGES];
 } Pager;
 
 typedef struct Table {
@@ -59,12 +58,13 @@ typedef struct Table {
     uint32_t page_offset;
     char name[MAX_NAME_LENGTH];
     Pager *pager;
+    void* pages[TABLE_MAX_PAGES];  
 } Table;
 
 typedef struct {
   Table* table;
   uint32_t row_num;
-  bool end_of_table;  // Indicates a position one past the last element
+  bool end_of_table;
 } Cursor;
 
 typedef struct Database {

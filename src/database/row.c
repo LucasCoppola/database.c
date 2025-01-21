@@ -27,7 +27,7 @@ RowResult insert_row(Table *table, Row *row) {
          page_num, row_offset);
 
   if (row_offset == 0) {
-    pager_alloc_page(table->pager, page_num, table);
+    pager_alloc_page(page_num, table);
   }
 
   PagerResult result = pager_get_page(table->pager, page_num, table, &page);

@@ -58,6 +58,7 @@ TableResult create_table(Database *db, char *name, Table **out_table) {
   table->num_rows = 0;
   table->pager = db->pager;
   table->page_offset = current_data_position;
+  memset(table->pages, 0, sizeof(void *) * TABLE_MAX_PAGES);
 
   printf("Created table %s with initial page_offset: %ld\n", name,
          current_data_position);
@@ -116,12 +117,12 @@ void close_table(Table *table, Pager *pager) {
   uint32_t num_full_pages = table->num_rows / ROWS_PER_PAGE;
 
   for (uint32_t i = 0; i < num_full_pages; i++) {
-    if (pager->pages[i] == NULL) {
+    if (table->pages[i] == NULL) {
       continue;
     }
     pager_flush(pager, i, table);
-    free(pager->pages[i]);
-    pager->pages[i] = NULL;
+    free(table->pages[i]);
+    table->pages[i] = NULL;
   }
 
   // There may be a partial page to write to the end of the file
@@ -129,10 +130,10 @@ void close_table(Table *table, Pager *pager) {
   uint32_t num_additional_rows = table->num_rows % ROWS_PER_PAGE;
   if (num_additional_rows > 0) {
     uint32_t page_num = num_full_pages;
-    if (pager->pages[page_num] != NULL) {
+    if (table->pages[page_num] != NULL) {
       pager_flush(pager, page_num, table);
-      free(pager->pages[page_num]);
-      pager->pages[page_num] = NULL;
+      free(table->pages[page_num]);
+      table->pages[page_num] = NULL;
     }
   }
 
@@ -143,10 +144,10 @@ void close_table(Table *table, Pager *pager) {
   }
 
   for (uint32_t i = 0; i < TABLE_MAX_PAGES; i++) {
-    void *page = pager->pages[i];
+    void *page = table->pages[i];
     if (page) {
       free(page);
-      pager->pages[i] = NULL;
+      table->pages[i] = NULL;
     }
   }
 }
