@@ -29,11 +29,39 @@ TableResult create_table(Database *db, char *name, Table **out_table) {
     return TABLE_NAME_TOO_LONG;
   }
 
+  off_t min_data_offset = sizeof(uint32_t) + (MAX_TABLES * HEADER_SIZE);
+  off_t current_data_position = min_data_offset;
+
+  // Calculate data offsets for existing tables
+  HashMapIterator *iterator = hashmap_iterator_init(db->tables);
+  if (iterator != NULL) {
+    while (hashmap_iterator_has_next(iterator)) {
+      printf("Current data position after creating table: %ld\n",
+             current_data_position);
+      Bucket *bucket = hashmap_iterator_next(iterator);
+      if (bucket != NULL) {
+        Table *existing_table = bucket->value;
+        uint32_t num_pages =
+            (existing_table->num_rows + ROWS_PER_PAGE - 1) / ROWS_PER_PAGE;
+        if (num_pages == 0)
+          num_pages = 1; // Always allocate at least one page
+        current_data_position += num_pages * PAGE_SIZE;
+      }
+    }
+    hashmap_iterator_free(iterator);
+  }
+
+  // Initialize the table
   strncpy(table->name, name, MAX_NAME_LENGTH - 1);
   table->name[MAX_NAME_LENGTH - 1] = '\0';
   table->next_id = 1;
   table->num_rows = 0;
   table->pager = db->pager;
+  table->page_offset = current_data_position;
+
+  printf("Created table %s with initial page_offset: %ld\n", name,
+         current_data_position);
+
   table->pager->num_tables++;
 
   HashMapResult map_result = hashmap_set(db->tables, name, table);
@@ -91,7 +119,7 @@ void close_table(Table *table, Pager *pager) {
     if (pager->pages[i] == NULL) {
       continue;
     }
-    pager_flush(pager, i);
+    pager_flush(pager, i, table);
     free(pager->pages[i]);
     pager->pages[i] = NULL;
   }
@@ -102,7 +130,7 @@ void close_table(Table *table, Pager *pager) {
   if (num_additional_rows > 0) {
     uint32_t page_num = num_full_pages;
     if (pager->pages[page_num] != NULL) {
-      pager_flush(pager, page_num);
+      pager_flush(pager, page_num, table);
       free(pager->pages[page_num]);
       pager->pages[page_num] = NULL;
     }

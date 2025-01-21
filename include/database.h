@@ -3,7 +3,7 @@
 
 #define MAX_NAME_LENGTH 64
 #define TABLE_MAX_PAGES 100
-#define MAX_TABLES 100
+#define MAX_TABLES 50
 #define PAGE_SIZE 4096
 
 #include <stdint.h>
@@ -41,8 +41,8 @@ typedef enum {
 
 typedef struct {
     uint32_t id;
-    char username[MAX_NAME_LENGTH + 1];
-    char email[MAX_NAME_LENGTH + 1];
+    char username[MAX_NAME_LENGTH];
+    char email[MAX_NAME_LENGTH];
 } Row;
 
 typedef struct {
@@ -54,9 +54,10 @@ typedef struct {
 } Pager;
 
 typedef struct Table {
-    char name[MAX_NAME_LENGTH + 1];
     uint32_t next_id; // id of the next row to be inserted
     uint32_t num_rows;
+    uint32_t page_offset;
+    char name[MAX_NAME_LENGTH];
     Pager *pager;
 } Table;
 

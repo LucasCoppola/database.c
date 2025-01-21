@@ -25,8 +25,9 @@ void *cursor_value(Cursor *cursor) {
   uint32_t page_num = row_num / ROWS_PER_PAGE;
 
   void *page = NULL;
-  PagerResult result = pager_get_page(cursor->table->pager, page_num, &page);
-  if (result != PAGER_SUCCESS) {
+  PagerResult result =
+      pager_get_page(cursor->table->pager, page_num, cursor->table, &page);
+  if (result != PAGER_SUCCESS || page == NULL) {
     LOG_ERROR("pager", result);
     return NULL;
   }

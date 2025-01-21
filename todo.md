@@ -1,9 +1,12 @@
 # TODO
 
-[] Restoring rows from disk:
-    - I need to calculate the page offset
-    - Only one row gets written on disk
-    - The same row is being grabbed for all the tables (this is the offset fault anyway)
+### Page offset disk storage 
+    [] All in the same "session" (no close and open it back again)
+        [x] If i add multiple rows to the same table, it works fine
+        [-] If i add one row from 2 tables the first table's row data is corrupted
+
+    [] For different sessions i'd have to fix the restore function
+
 
     
 
@@ -39,7 +42,11 @@ Offset (hex)  | Hexadecimal Data                                   | ASCII Repre
 000000BC      | 70 65 74 65 72 2E 63 6F 6D 00 00 00 00 00 00 00    | peter.com.......    # Continuation of Row 2
 
 
-insert into admins ('lucas', 'lucas@lucas.com')
-insert into admins ('john', 'john@john.com')
+insert into admins ('lucas', 'lucas@admin.com')
+insert into admins ('john', 'john@admin.com')
+insert into admins ('juan', 'juan@admin.com')
+insert into admins ('sam', 'sam@admin.com')
+insert into admins ('alex', 'alex@admin.com')
+
 insert into bans ('jane', 'jane@jane.com')
 insert into bans ('peter', 'peter@peter.com')

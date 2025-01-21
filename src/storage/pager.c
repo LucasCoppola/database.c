@@ -26,8 +26,48 @@ PagerResult pager_open(const char *filename, Pager **out_pager) {
   pager->file_descriptor = fd;
   pager->file_length = file_length;
   pager->num_tables = 0;
-  uint32_t header_offset = (HEADER_SIZE * pager->num_tables) + sizeof(uint32_t);
-  pager->num_pages = (file_length - header_offset) / PAGE_SIZE;
+
+  // Read number of tables if file is not empty
+  if (file_length >= sizeof(uint32_t)) {
+    lseek(fd, 0, SEEK_SET);
+    ssize_t bytes_read = read(fd, &pager->num_tables, sizeof(uint32_t));
+    if (bytes_read != sizeof(uint32_t)) {
+      free(pager);
+      close(fd);
+      return PAGER_ALLOC_ERROR;
+    }
+
+    // Check if file has enough space for all table headers
+    off_t expected_size = sizeof(uint32_t) + (pager->num_tables * HEADER_SIZE);
+    if (file_length < expected_size) {
+      printf(
+          "File appears to be corrupted: expected size %ld, actual size %ld\n",
+          expected_size, file_length);
+      free(pager);
+      close(fd);
+      return PAGER_ALLOC_ERROR;
+    }
+    printf("Read num_tables: %d\n", pager->num_tables);
+
+    // Read and print table headers
+    for (uint32_t i = 0; i < pager->num_tables; i++) {
+      TableHeader header;
+      ssize_t header_read = read(fd, &header, HEADER_SIZE);
+      if (header_read != HEADER_SIZE) {
+        printf("Failed to read header %d: %s\n", i, strerror(errno));
+        free(pager);
+        close(fd);
+        return PAGER_ALLOC_ERROR;
+      }
+      printf("Read table header %d: name=%s, rows=%d, offset=%u\n", i,
+             header.table_name, header.num_rows, header.page_offset);
+    }
+  }
+
+  uint32_t header_offset = sizeof(uint32_t) + (HEADER_SIZE * pager->num_tables);
+  pager->num_pages = (file_length > header_offset)
+                         ? (file_length - header_offset) / PAGE_SIZE
+                         : 0;
 
   // Initialize all page pointers to NULL
   memset(pager->pages, 0, sizeof(void *) * TABLE_MAX_PAGES);
@@ -37,19 +77,17 @@ PagerResult pager_open(const char *filename, Pager **out_pager) {
 }
 
 // loads a page from disk into memory
-void pager_load_page(Pager *pager, uint32_t page_num) {
+void pager_load_page(Pager *pager, uint32_t page_num, Table *table) {
   void *page = malloc(PAGE_SIZE);
   if (page == NULL) {
     printf("Failed to allocate memory for page %u\n", page_num);
     return;
   }
 
-  uint32_t header_offset = sizeof(uint32_t) + (HEADER_SIZE * pager->num_tables);
-  uint32_t offset = header_offset + (page_num * PAGE_SIZE);
+  uint32_t offset = table->page_offset + (page_num * PAGE_SIZE);
+  memset(page, 0, PAGE_SIZE); // Initialize page to zeros
 
-  printf("Loading page %u at offset %u\n", page_num, offset); // Debug print
-
-  if (page_num <= pager->num_pages) {
+  if (offset < pager->file_length) { // Check if this offset exists in file
     lseek(pager->file_descriptor, offset, SEEK_SET);
     ssize_t bytes_read = read(pager->file_descriptor, page, PAGE_SIZE);
     if (bytes_read == -1) {
@@ -57,28 +95,41 @@ void pager_load_page(Pager *pager, uint32_t page_num) {
       free(page);
       return;
     }
-    printf("Read %zd bytes for page %u\n", bytes_read, page_num); // Debug print
+    printf("Read %zd bytes for page %u at offset %u\n", bytes_read, page_num,
+           offset);
   }
 
   pager->pages[page_num] = page;
 }
 
-PagerResult pager_get_page(Pager *pager, uint32_t page_num, void **out_page) {
+uint32_t get_table_page_index(Table *table, uint32_t page_num) {
+  // Use the table offset to generate a unique base index for each table
+  // uint32_t table_base_index =
+  //     (table->page_offset / PAGE_SIZE) * TABLE_MAX_PAGES;
+  // return table_base_index + page_num;
+  return page_num;
+}
+
+PagerResult pager_get_page(Pager *pager, uint32_t page_num, Table *table,
+                           void **out_page) {
   if (page_num >= TABLE_MAX_PAGES) {
     return PAGER_OUT_OF_BOUNDS;
   }
 
-  if (pager->pages[page_num] == NULL) {
-    pager_load_page(pager, page_num);
+  uint32_t page_index = get_table_page_index(table, page_num);
+  if (pager->pages[page_index] == NULL) {
+    pager_load_page(pager, page_num, table);
   }
 
-  *out_page = pager->pages[page_num];
+  *out_page = pager->pages[page_index];
   return PAGER_SUCCESS;
 }
 
-void pager_alloc_page(Pager *pager, uint32_t page_num) {
-  void *page = pager->pages[page_num];
+void pager_alloc_page(Pager *pager, uint32_t page_num, Table *table) {
+  uint32_t page_index = get_table_page_index(table, page_num);
+  void *page = pager->pages[page_index];
   if (page != NULL) {
+    printf("Page already allocated\n");
     return;
   }
 
@@ -87,19 +138,34 @@ void pager_alloc_page(Pager *pager, uint32_t page_num) {
     printf("Memory allocation failed for page\n");
     return;
   }
-
-  pager->pages[page_num] = page;
+  memset(page, 0, PAGE_SIZE); // Initialize page to zeros
+  pager->pages[page_index] = page;
 }
 
-PagerResult pager_flush(Pager *pager, uint32_t page_num) {
-  if (pager->pages[page_num] == NULL) {
+PagerResult pager_flush(Pager *pager, uint32_t page_num, Table *table) {
+  uint32_t page_index = get_table_page_index(table, page_num);
+  if (pager->pages[page_index] == NULL) {
     return PAGER_INVALID_PAGE;
   }
 
-  uint32_t header_offset = sizeof(uint32_t) + (HEADER_SIZE * pager->num_tables);
-  uint32_t offset = header_offset + (page_num * PAGE_SIZE);
+  uint32_t offset = table->page_offset + (page_num * PAGE_SIZE);
+  printf("Flushing page %u (index %u) for table %s at offset %u (table offset: "
+         "%u)\n",
+         page_num, page_index, table->name, offset, table->page_offset);
+
   lseek(pager->file_descriptor, offset, SEEK_SET);
-  write(pager->file_descriptor, pager->pages[page_num], PAGE_SIZE);
+  ssize_t bytes_written =
+      write(pager->file_descriptor, pager->pages[page_index], PAGE_SIZE);
+
+  if (bytes_written == -1) {
+    printf("Error writing page: %s\n", strerror(errno));
+    return PAGER_INVALID_PAGE;
+  }
+  if (bytes_written != PAGE_SIZE) {
+    printf("Warning: Only wrote %zd bytes instead of %d\n", bytes_written,
+           PAGE_SIZE);
+    return PAGER_INVALID_PAGE;
+  }
 
   if (offset + PAGE_SIZE > pager->file_length) {
     pager->file_length = offset + PAGE_SIZE;
@@ -108,14 +174,14 @@ PagerResult pager_flush(Pager *pager, uint32_t page_num) {
   return PAGER_SUCCESS;
 }
 
-void pager_flush_all(Pager *pager) {
+void pager_flush_all(Pager *pager, Table *table) {
   if (pager == NULL) {
     return;
   }
 
   for (uint32_t i = 0; i < TABLE_MAX_PAGES; i++) {
     if (pager->pages[i] != NULL) {
-      pager_flush(pager, i);
+      pager_flush(pager, i, table);
       free(pager->pages[i]);
       pager->pages[i] = NULL;
     }

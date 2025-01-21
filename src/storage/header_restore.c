@@ -53,7 +53,7 @@ void initialize_table_from_header(TableHeader *header, Pager *pager,
          table->num_rows, table->next_id);
 
   for (uint32_t i = 0; i < table->num_rows; i++) {
-    pager_load_page(pager, i);
+    pager_load_page(pager, i, table);
   }
 }
 

@@ -1,5 +1,5 @@
 .cache/
 compile_commands.json
 main
-details.md
+*.md
 *.db
