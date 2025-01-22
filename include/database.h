@@ -53,7 +53,7 @@ typedef struct {
 } Pager;
 
 typedef struct Table {
-    uint32_t next_id; // id of the next row to be inserted
+    uint32_t next_id; 
     uint32_t num_rows;
     uint32_t page_offset;
     char name[MAX_NAME_LENGTH];
@@ -76,12 +76,15 @@ DatabaseResult database_open(Database **out_db, const char *filename);
 void database_close(Database *db);
 void database_free(Database *db);
 
+// table.c
+TableResult table_create(Database* db, char* name, Table **out_table);
+TableResult table_find(Database* db, char* name, Table **out_table);
+TableResult table_drop(Database *db, char *name);
 
-TableResult create_table(Database* db, char* name, Table **out_table);
-TableResult find_table(Database* db, char* name, Table **out_table);
-TableResult drop_table(Database *db, char *name);
-void close_table(Table *table, Pager *pager);
-void free_table(Table *table);
+// table_utils.c
+TableResult table_initialize(Table *table, char *name, Database *db);
+off_t table_position(Database *db);
+uint32_t table_pages_count(Table *table);
 
 RowResult insert_row(Table *table, Row *row);
 RowResult select_rows(Table *table);

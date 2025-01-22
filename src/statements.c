@@ -55,7 +55,7 @@ PrepareResult prepare_statement(char *command, Statement *statement) {
 static ExecuteResult execute_create_table(Database *db, Statement *statement) {
   Table *out_table = NULL;
   TableResult table_result =
-      create_table(db, statement->table_name, &out_table);
+      table_create(db, statement->table_name, &out_table);
 
   if (table_result != TABLE_SUCCESS) {
     LOG_ERROR("table", table_result);
@@ -66,7 +66,7 @@ static ExecuteResult execute_create_table(Database *db, Statement *statement) {
 }
 
 static ExecuteResult execute_drop_table(Database *db, Statement *statement) {
-  TableResult table_result = drop_table(db, statement->table_name);
+  TableResult table_result = table_drop(db, statement->table_name);
   if (table_result != TABLE_SUCCESS) {
     LOG_ERROR("table", table_result);
     return EXECUTE_FAILURE;
@@ -77,7 +77,7 @@ static ExecuteResult execute_drop_table(Database *db, Statement *statement) {
 
 static ExecuteResult execute_select(Database *db, Statement *statement) {
   Table *out_table = NULL;
-  TableResult table_result = find_table(db, statement->table_name, &out_table);
+  TableResult table_result = table_find(db, statement->table_name, &out_table);
 
   if (table_result != TABLE_SUCCESS) {
     LOG_ERROR("table", table_result);
@@ -95,7 +95,7 @@ static ExecuteResult execute_select(Database *db, Statement *statement) {
 
 static ExecuteResult execute_insert(Database *db, Statement *statement) {
   Table *out_table = NULL;
-  TableResult table_result = find_table(db, statement->table_name, &out_table);
+  TableResult table_result = table_find(db, statement->table_name, &out_table);
 
   if (table_result != TABLE_SUCCESS) {
     LOG_ERROR("table", table_result);
@@ -117,7 +117,7 @@ static ExecuteResult execute_insert(Database *db, Statement *statement) {
 
 static ExecuteResult execute_delete(Database *db, Statement *statement) {
   Table *out_table = NULL;
-  TableResult table_result = find_table(db, statement->table_name, &out_table);
+  TableResult table_result = table_find(db, statement->table_name, &out_table);
 
   if (table_result != TABLE_SUCCESS) {
     LOG_ERROR("table", table_result);
