@@ -16,7 +16,7 @@ DatabaseResult database_open(Database **out_db, const char *filename) {
   }
 
   Pager *pager = NULL;
-  PagerResult pager_result = pager_open(filename, &pager);
+  PagerResult pager_result = pager_init(filename, &pager);
   if (pager_result != PAGER_SUCCESS) {
     LOG_ERROR("pager", pager_result);
     free(db);

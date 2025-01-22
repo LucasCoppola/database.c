@@ -7,11 +7,13 @@
 #include "database.h"
 
 typedef enum {
-  PAGER_SUCCESS,
-  PAGER_OPEN_ERROR,
-  PAGER_ALLOC_ERROR,
-  PAGER_OUT_OF_BOUNDS,
-  PAGER_INVALID_PAGE,
+   PAGER_SUCCESS,
+   PAGER_OPEN_ERROR,
+   PAGER_READ_ERROR,
+   PAGER_WRITE_ERROR,
+   PAGER_ALLOC_ERROR,
+   PAGER_INVALID_ARGS,
+   PAGER_INVALID_PAGE,
 } PagerResult;
 
 typedef struct {
@@ -29,13 +31,17 @@ void deserialize_row(void *source, Row *destination);
 void *get_row_slot(Table *table, uint32_t row_num);
 
 // pager.c
-PagerResult pager_open(const char *filename, Pager **out_pager);
-PagerResult pager_get_page(Pager *pager, uint32_t page_num, Table *table, void **out_page);
-PagerResult pager_flush(Pager *pager, uint32_t page_num, Table *table);
-void pager_load_page(Pager *pager, uint32_t page_num, Table *table);
-void pager_flush_all(Pager *pager, Table *table);
+PagerResult pager_init(const char *filename, Pager **out_pager);
+PagerResult pager_page_load(Pager *pager, uint32_t page_num, Table *table, void **out_page);
+PagerResult pager_page_flush(Pager *pager, uint32_t page_num, Table *table);
+PagerResult pager_pages_flush(Pager *pager, Table *table);
+PagerResult pager_page_alloc(uint32_t page_num, Table *table);
 void pager_close(Pager *pager);
-void pager_alloc_page(uint32_t page_num, Table *table);
+
+// pager_utils.c
+PagerResult pager_header_read(Pager *pager);
+bool pager_write_at_offset(Pager *pager, off_t offset, const void *buf, size_t size);
+bool pager_read_at_offset(Pager *pager, off_t offset, void *buf, size_t size);
 
 // header_restore.c
 void header_tables_restore(Pager *pager, HashMap *map);

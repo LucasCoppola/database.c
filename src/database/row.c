@@ -27,10 +27,14 @@ RowResult insert_row(Table *table, Row *row) {
          page_num, row_offset);
 
   if (row_offset == 0) {
-    pager_alloc_page(page_num, table);
+    PagerResult result = pager_page_alloc(page_num, table);
+    if (result != PAGER_SUCCESS) {
+      LOG_ERROR("pager", result);
+      return ROW_ALLOC_PAGE_ERROR;
+    }
   }
 
-  PagerResult result = pager_get_page(table->pager, page_num, table, &page);
+  PagerResult result = pager_page_load(table->pager, page_num, table, &page);
   if (result != PAGER_SUCCESS) {
     free(cursor);
     LOG_ERROR("pager", result);
@@ -45,7 +49,7 @@ RowResult insert_row(Table *table, Row *row) {
   serialize_row(row, row_location);
   table->num_rows++;
 
-  PagerResult pager_result = pager_flush(table->pager, page_num, table);
+  PagerResult pager_result = pager_page_flush(table->pager, page_num, table);
   if (pager_result != PAGER_SUCCESS) {
     LOG_ERROR("pager", pager_result);
     return ROW_FLUSH_PAGE_ERROR;

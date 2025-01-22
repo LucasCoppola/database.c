@@ -52,7 +52,12 @@ void header_table_initialize(TableHeader *header, Pager *pager, HashMap *map) {
   }
 
   for (uint32_t i = 0; i < table->num_rows; i++) {
-    pager_load_page(pager, i, table);
+    void *page = NULL;
+    PagerResult result = pager_page_load(pager, i, table, &page);
+    if (result != PAGER_SUCCESS) {
+      LOG_ERROR("pager", result);
+      return;
+    }
   }
 }
 

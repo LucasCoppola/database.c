@@ -6,6 +6,7 @@
 
 #include "../../include/database.h"
 #include "../../include/hashmap.h"
+#include "../../include/logger.h"
 #include "../../include/storage.h"
 
 void header_tables_store(Database *db) {
@@ -22,7 +23,11 @@ void header_tables_write(Database *db) {
   for (size_t i = 0; hashmap_iterator_has_next(iterator); i++) {
     Table *table = hashmap_iterator_next(iterator)->value;
     header_table_write(db->pager, table, i);
-    pager_flush_all(db->pager, table);
+    PagerResult result = pager_pages_flush(db->pager, table);
+    if (result != PAGER_SUCCESS) {
+      LOG_ERROR("pager", result);
+      return;
+    }
   }
 
   hashmap_iterator_free(iterator);

@@ -120,7 +120,11 @@ void close_table(Table *table, Pager *pager) {
     if (table->pages[i] == NULL) {
       continue;
     }
-    pager_flush(pager, i, table);
+    PagerResult result = pager_pages_flush(pager, table);
+    if (result != PAGER_SUCCESS) {
+      LOG_ERROR("pager", result);
+      return;
+    }
     free(table->pages[i]);
     table->pages[i] = NULL;
   }
@@ -131,7 +135,11 @@ void close_table(Table *table, Pager *pager) {
   if (num_additional_rows > 0) {
     uint32_t page_num = num_full_pages;
     if (table->pages[page_num] != NULL) {
-      pager_flush(pager, page_num, table);
+      PagerResult result = pager_page_flush(pager, page_num, table);
+      if (result != PAGER_SUCCESS) {
+        LOG_ERROR("pager", result);
+        return;
+      }
       free(table->pages[page_num]);
       table->pages[page_num] = NULL;
     }

@@ -26,7 +26,7 @@ void *cursor_value(Cursor *cursor) {
 
   void *page = NULL;
   PagerResult result =
-      pager_get_page(cursor->table->pager, page_num, cursor->table, &page);
+      pager_page_load(cursor->table->pager, page_num, cursor->table, &page);
   if (result != PAGER_SUCCESS || page == NULL) {
     LOG_ERROR("pager", result);
     return NULL;
