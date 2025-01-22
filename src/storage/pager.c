@@ -92,8 +92,6 @@ void pager_load_page(Pager *pager, uint32_t page_num, Table *table) {
       free(page);
       return;
     }
-    printf("Read %zd bytes for page %u at offset %u\n", bytes_read, page_num,
-           offset);
   }
 
   table->pages[page_num] = page;

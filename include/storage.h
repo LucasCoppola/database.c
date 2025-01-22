@@ -39,10 +39,9 @@ void pager_alloc_page(uint32_t page_num, Table *table);
 
 // header_restore.c
 void header_tables_restore(Pager *pager, HashMap *map);
-void initialize_table_from_header(TableHeader *header, Pager *pager, HashMap *map);
-ssize_t read_table_header(int file_descriptor, off_t *header_pos, TableHeader *header);
-uint32_t read_num_tables(int file_descriptor);
-void header_pages_restore(uint32_t num_rows, Pager *pager);
+void header_table_initialize(TableHeader *header, Pager *pager, HashMap *map);
+bool header_table_read(Pager *pager, off_t *header_pos, TableHeader *header);
+uint32_t header_tables_count_read(int file_descriptor);
 
 // header_store.c
 void header_tables_store(Database *db);
