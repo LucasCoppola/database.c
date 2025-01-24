@@ -21,6 +21,12 @@ int main(int argc, char *argv[]) {
   Database *db = NULL;
   const char *filename = argc > 1 ? argv[1] : NULL;
 
+  if (filename == NULL) {
+    printf("Error: No filename specified.\n");
+    printf("Usage: %s <filename>\n", argv[0]);
+    return 1;
+  }
+
   DatabaseResult db_result = database_open(&db, filename);
   if (db_result != DATABASE_SUCCESS) {
     LOG_ERROR("database", db_result);
@@ -29,8 +35,7 @@ int main(int argc, char *argv[]) {
 
   char input[MAX_INPUT_LENGTH];
 
-  printf("Connected to %s database.\n",
-         filename ? filename : "a transient in-memory");
+  printf("Connected to %s database.\n", filename);
   printf("Type '.help' for commands.\n");
 
   while (1) {
