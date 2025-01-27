@@ -19,7 +19,11 @@ void print_tokens(TokenizerState *state) {
 }
 
 int main() {
-  const char *query = "CREATE TABLE users 123 -456 3.14";
+  // const char *query = "CREATE TABLE users 123 -456 3.14 'is this working'";
+  // const char *query = "CREATE TABLE users 'unterminated";
+  // const char *query = "'it\\'s escaped'";
+  // const char *query = "''";
+  const char *query = "CREATE 123 'valid' invalid_token -34.56 'incomplete";
 
   TokenizerState *state = tokenizer_init(query);
   if (!state) {

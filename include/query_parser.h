@@ -1,3 +1,8 @@
+#ifndef QUERY_PARSER_H
+#define QUERY_PARSER_H
+
+#define MAX_VALUE_LENGTH 256
+
 typedef enum {
   TOKENIZER_SUCCESS,
   TOKENIZER_ERROR
@@ -14,7 +19,7 @@ typedef enum {
 
 typedef struct {
     TokenType type;  
-    char value[256];  
+    char value[MAX_VALUE_LENGTH];  
     int position;      
 } Token;
 
@@ -36,7 +41,9 @@ void add_token(TokenizerState* state, const char* value, TokenType type, int pos
 
 char *read_word(char* query, int* position);
 char *read_numeric_literal(char *query, int *position);
-char *read_string_literal(char *query, int *position);
+char *read_string_literal(char *query, int *position, char quote);
 
 bool is_keyword(const char* value);
 bool is_operator(const char value);
+
+#endif

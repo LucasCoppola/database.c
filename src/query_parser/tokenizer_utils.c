@@ -18,10 +18,6 @@ bool is_keyword(const char *value) {
   return false;
 }
 
-// Literals (e.g., strings, numbers).
-// Operators (e.g., =, <, >).
-// Punctuation (e.g., ,, (, )).
-
 void add_token(TokenizerState *state, const char *value, TokenType type,
                int position) {
   state->tokens =
@@ -47,7 +43,7 @@ char *read_word(char *query, int *position) {
   }
 
   int length = *position - start_pos;
-  static char value[256];
+  static char value[MAX_VALUE_LENGTH];
 
   strncpy(value, &query[start_pos], length);
   value[length] = '\0';
@@ -85,11 +81,73 @@ char *read_numeric_literal(char *query, int *position) {
   }
 
   int length = *position - start_pos;
-  static char value[256];
+  static char value[MAX_VALUE_LENGTH];
 
   strncpy(value, &query[start_pos], length);
   value[length] = '\0';
   return value;
 }
 
-char *read_string_literal(char *query, int *position) {}
+char *read_string_literal(char *query, int *position, char quote) {
+  int start_pos = *position;
+  (*position)++; // opening quote
+
+  static char value[MAX_VALUE_LENGTH];
+  int length = 0;
+
+  char c = query[*position];
+  bool escape = false;
+
+  while (c != quote || escape) {
+    if (length >= MAX_VALUE_LENGTH - 1) {
+      *position = start_pos;
+      return NULL;
+    }
+
+    if (escape) {
+      switch (c) {
+      case 'n':
+        value[length++] = '\n';
+        break;
+      case 't':
+        value[length++] = '\t';
+        break;
+      case 'r':
+        value[length++] = '\r';
+        break;
+      case '\\':
+        value[length++] = '\\';
+        break;
+      case '\'':
+        value[length++] = '\'';
+        break;
+      case '"':
+        value[length++] = '"';
+        break;
+      default:
+        value[length++] = c;
+        break;
+      }
+      escape = false;
+    } else if (c == '\\') {
+      escape = true;
+    } else {
+      value[length++] = c;
+    }
+
+    (*position)++;
+    c = query[*position];
+  }
+
+  // end of string (unmatched quotes)
+  if (c != quote) {
+    *position = start_pos;
+    return NULL;
+  }
+
+  // closing quote
+  (*position)++;
+
+  value[length] = '\0';
+  return value;
+}

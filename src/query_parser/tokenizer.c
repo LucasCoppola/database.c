@@ -31,7 +31,8 @@ TokenizerResult tokenize_query(TokenizerState *state) {
       continue;
     }
 
-    if (isalpha(c) || c == '_') { // Start of keyword or identifier
+    // keyword or identifier
+    if (isalpha(c) || c == '_') {
       int start_pos = state->position;
       char *word = read_word(state->query, &state->position);
 
@@ -40,25 +41,32 @@ TokenizerResult tokenize_query(TokenizerState *state) {
       continue;
     }
 
-    // Check for numeric literals
+    // numeric literals
     if (isdigit(c) ||
         (c == '-' && isdigit(state->query[state->position + 1]))) {
       int start_pos = state->position;
       char *number = read_numeric_literal(state->query, &state->position);
       if (number) {
         add_token(state, number, TOKEN_LITERAL, start_pos);
+      } else {
+        printf("Error thrown at read numeric literal\n");
+        return TOKENIZER_ERROR;
       }
       continue;
     }
 
-    // Check for string literals (single or double-quoted)
-    // if (c == '\'' || c == '"') {
-    //   int start_pos = state->position;
-    //   char *string = read_string_literal(state->query, &state->position,
-    //                                      c); // Handle quoted strings
-    //   add_token(state, string, TOKEN_LITERAL, start_pos);
-    //   continue;
-    // }
+    // string literals (single or double-quoted)
+    if (c == '\'' || c == '"') {
+      int start_pos = state->position;
+      char *string = read_string_literal(state->query, &state->position, c);
+      if (string) {
+        add_token(state, string, TOKEN_LITERAL, start_pos);
+      } else {
+        printf("Error thrown at read string literal\n");
+        return TOKENIZER_ERROR;
+      }
+      continue;
+    }
 
     state->position++;
   }
