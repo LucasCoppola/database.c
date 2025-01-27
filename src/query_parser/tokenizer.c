@@ -40,6 +40,26 @@ TokenizerResult tokenize_query(TokenizerState *state) {
       continue;
     }
 
+    // Check for numeric literals
+    if (isdigit(c) ||
+        (c == '-' && isdigit(state->query[state->position + 1]))) {
+      int start_pos = state->position;
+      char *number = read_numeric_literal(state->query, &state->position);
+      if (number) {
+        add_token(state, number, TOKEN_LITERAL, start_pos);
+      }
+      continue;
+    }
+
+    // Check for string literals (single or double-quoted)
+    // if (c == '\'' || c == '"') {
+    //   int start_pos = state->position;
+    //   char *string = read_string_literal(state->query, &state->position,
+    //                                      c); // Handle quoted strings
+    //   add_token(state, string, TOKEN_LITERAL, start_pos);
+    //   continue;
+    // }
+
     state->position++;
   }
 

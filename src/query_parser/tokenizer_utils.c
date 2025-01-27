@@ -18,6 +18,10 @@ bool is_keyword(const char *value) {
   return false;
 }
 
+// Literals (e.g., strings, numbers).
+// Operators (e.g., =, <, >).
+// Punctuation (e.g., ,, (, )).
+
 void add_token(TokenizerState *state, const char *value, TokenType type,
                int position) {
   state->tokens =
@@ -49,3 +53,43 @@ char *read_word(char *query, int *position) {
   value[length] = '\0';
   return value;
 }
+
+char *read_numeric_literal(char *query, int *position) {
+  int start_pos = *position;
+  bool has_decimal = false;
+  bool has_digits = false;
+
+  // check for negative sign
+  if (query[*position] == '-') {
+    (*position)++;
+  }
+
+  while (isdigit(query[*position]) || query[*position] == '.') {
+    if (query[*position] == '.') {
+      // prevent 3..14
+      if (has_decimal) {
+        break;
+      }
+      has_decimal = true;
+    } else {
+      has_digits = true;
+    }
+
+    (*position)++;
+  }
+
+  // check if we've read a number not just a sign
+  if (!has_digits) {
+    *position = start_pos;
+    return NULL;
+  }
+
+  int length = *position - start_pos;
+  static char value[256];
+
+  strncpy(value, &query[start_pos], length);
+  value[length] = '\0';
+  return value;
+}
+
+char *read_string_literal(char *query, int *position) {}

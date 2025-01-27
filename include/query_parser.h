@@ -32,6 +32,11 @@ TokenizerResult tokenize_query(TokenizerState* state);
 void tokenizer_free(TokenizerState* state);
 
 // tokenizer_utils.c
-bool is_keyword(const char* value);
 void add_token(TokenizerState* state, const char* value, TokenType type, int position);
-char* read_word(char* query, int* position);
+
+char *read_word(char* query, int* position);
+char *read_numeric_literal(char *query, int *position);
+char *read_string_literal(char *query, int *position);
+
+bool is_keyword(const char* value);
+bool is_operator(const char value);

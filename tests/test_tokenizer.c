@@ -10,6 +10,7 @@ void print_tokens(TokenizerState *state) {
     Token *token = &state->tokens[i];
     const char *type_str = token->type == TOKEN_KEYWORD      ? "KEYWORD"
                            : token->type == TOKEN_IDENTIFIER ? "IDENTIFIER"
+                           : token->type == TOKEN_LITERAL    ? "LITERAL"
                                                              : "UNKNOWN";
 
     printf("  [%d] Type: %s, Value: '%s', Position: %d\n", i, type_str,
@@ -18,7 +19,7 @@ void print_tokens(TokenizerState *state) {
 }
 
 int main() {
-  const char *query = "CREATE TABLE users";
+  const char *query = "CREATE TABLE users 123 -456 3.14";
 
   TokenizerState *state = tokenizer_init(query);
   if (!state) {
