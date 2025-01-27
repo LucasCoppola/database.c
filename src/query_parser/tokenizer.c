@@ -35,12 +35,12 @@ TokenizerResult tokenize_query(TokenizerState *state) {
       int start_pos = state->position;
       char *word = read_word(state->query, &state->position);
 
-      if (is_keyword(word)) {
-        add_token(state, word, TOKEN_KEYWORD, start_pos);
-      } else {
-        add_token(state, word, TOKEN_IDENTIFIER, start_pos);
-      }
+      TokenType type = is_keyword(word) ? TOKEN_KEYWORD : TOKEN_IDENTIFIER;
+      add_token(state, word, type, start_pos);
+      continue;
     }
+
+    state->position++;
   }
 
   return TOKENIZER_SUCCESS;
