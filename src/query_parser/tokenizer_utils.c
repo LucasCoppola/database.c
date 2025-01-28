@@ -7,15 +7,23 @@
 #include "../../include/query_parser.h"
 
 const char *keywords[] = {"CREATE", "DROP", "TABLE", "SELECT", "INSERT",
-                          "DELETE", "FROM", "WHERE", "INTO"};
+                          "DELETE", "FROM", "WHERE", "INTO",   "VALUES"};
 
-bool is_keyword(const char *value) {
+bool is_keyword(char *value) {
   for (int i = 0; i < sizeof(keywords) / sizeof(keywords[0]); i++) {
     if (strcmp(value, keywords[i]) == 0) {
       return true;
     }
   }
   return false;
+}
+
+bool is_operator(char value) {
+  return (value == '=' || value == '>' || value == '<');
+}
+
+bool is_punctuation(char value) {
+  return (value == ',' || value == '(' || value == ')');
 }
 
 void add_token(TokenizerState *state, const char *value, TokenType type,

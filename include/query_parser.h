@@ -14,6 +14,7 @@ typedef enum {
     TOKEN_LITERAL,     // String, number, or boolean values
     TOKEN_OPERATOR,    // Operators like =, >, <
     TOKEN_PUNCTUATION, // Symbols like commas, parentheses
+    TOKEN_WILDCARD,    // *
     TOKEN_EOF          // End of input
 } TokenType;
 
@@ -43,7 +44,8 @@ char *read_word(char* query, int* position);
 char *read_numeric_literal(char *query, int *position);
 char *read_string_literal(char *query, int *position, char quote);
 
-bool is_keyword(const char* value);
-bool is_operator(const char value);
+bool is_keyword(char* value);
+bool is_operator(char value);
+bool is_punctuation(char value);
 
 #endif
