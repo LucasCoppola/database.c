@@ -102,7 +102,10 @@ TokenizerResult tokenize_query(TokenizerState *state) {
 }
 
 void tokenizer_free(TokenizerState *state) {
-  free(state->query);
+  for (size_t i = 0; i < state->token_count; i++) {
+    free(state->tokens[i].value);
+  }
   free(state->tokens);
+  free(state->query);
   free(state);
 }

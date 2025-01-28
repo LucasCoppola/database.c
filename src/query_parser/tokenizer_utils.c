@@ -11,7 +11,7 @@ const char *keywords[] = {"CREATE", "DROP", "TABLE", "SELECT", "INSERT",
 
 bool is_keyword(char *value) {
   for (int i = 0; i < sizeof(keywords) / sizeof(keywords[0]); i++) {
-    if (strcmp(value, keywords[i]) == 0) {
+    if (strcasecmp(value, keywords[i]) == 0) {
       return true;
     }
   }
@@ -37,8 +37,11 @@ void add_token(TokenizerState *state, const char *value, TokenType type,
 
   Token *token = &state->tokens[state->token_count];
   token->type = type;
-  strncpy(token->value, value, sizeof(token->value) - 1);
-  token->value[sizeof(token->value) - 1] = '\0';
+  token->value = strdup(value);
+  if (!token->value) {
+    perror("Failed to allocate memory for token value");
+    exit(1);
+  }
   token->position = position;
 
   state->token_count++;
@@ -51,9 +54,14 @@ char *read_word(char *query, int *position) {
   }
 
   int length = *position - start_pos;
-  static char value[MAX_VALUE_LENGTH];
 
+  char *value = malloc(length + 1);
+  if (!value) {
+    perror("Failed to allocate memory for word");
+    return NULL;
+  }
   strncpy(value, &query[start_pos], length);
+
   value[length] = '\0';
   return value;
 }
@@ -89,9 +97,14 @@ char *read_numeric_literal(char *query, int *position) {
   }
 
   int length = *position - start_pos;
-  static char value[MAX_VALUE_LENGTH];
 
+  char *value = malloc(length + 1);
+  if (!value) {
+    perror("Failed to allocate memory for numeric literal");
+    return NULL;
+  }
   strncpy(value, &query[start_pos], length);
+
   value[length] = '\0';
   return value;
 }
@@ -100,16 +113,27 @@ char *read_string_literal(char *query, int *position, char quote) {
   int start_pos = *position;
   (*position)++; // opening quote
 
-  static char value[MAX_VALUE_LENGTH];
+  int capacity = 16;
   int length = 0;
+  char *value = malloc(capacity * sizeof(char));
+  if (value == NULL) {
+    *position = start_pos;
+    return NULL;
+  }
 
   char c = query[*position];
   bool escape = false;
 
   while (c != quote || escape) {
-    if (length >= MAX_VALUE_LENGTH - 1) {
-      *position = start_pos;
-      return NULL;
+    if (length >= capacity - 1) {
+      capacity *= 2;
+      char *new_value = (char *)realloc(value, capacity * sizeof(char));
+      if (new_value == NULL) {
+        free(value);
+        *position = start_pos;
+        return NULL;
+      }
+      value = new_value;
     }
 
     if (escape) {
@@ -149,6 +173,7 @@ char *read_string_literal(char *query, int *position, char quote) {
 
   // end of string (unmatched quotes)
   if (c != quote) {
+    free(value);
     *position = start_pos;
     return NULL;
   }

@@ -23,7 +23,7 @@ void print_tokens(TokenizerState *state) {
 }
 
 int main() {
-  const char *query = "SELECT column1, column2 FROM table WHERE condition;";
+  const char *query = "SELECT 'it\\'s' * FROM table WHERE condition;";
 
   TokenizerState *state = tokenizer_init(query);
   if (!state) {

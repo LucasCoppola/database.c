@@ -1,8 +1,6 @@
 #ifndef QUERY_PARSER_H
 #define QUERY_PARSER_H
 
-#define MAX_VALUE_LENGTH 256
-
 typedef enum {
   TOKENIZER_SUCCESS,
   TOKENIZER_ERROR
@@ -19,8 +17,8 @@ typedef enum {
 } TokenType;
 
 typedef struct {
+    char *value;  
     TokenType type;  
-    char value[MAX_VALUE_LENGTH];  
     int position;      
 } Token;
 
