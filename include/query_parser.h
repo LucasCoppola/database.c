@@ -2,8 +2,11 @@
 #define QUERY_PARSER_H
 
 typedef enum {
-  TOKENIZER_SUCCESS,
-  TOKENIZER_ERROR
+    TOKENIZER_SUCCESS,
+    TOKENIZER_UNTERMINATED_STRING,
+    TOKENIZER_INVALID_CHARACTER,
+    TOKENIZER_ALLOC_ERROR,
+    TOKENIZER_UNKNOWN_ERROR
 } TokenizerResult;
 
 typedef enum {
@@ -31,7 +34,7 @@ typedef struct {
 } TokenizerState;
 
 // tokenizer.c
-TokenizerState *tokenizer_init(const char* query);
+TokenizerResult tokenizer_init(const char* query, TokenizerState** state);
 TokenizerResult tokenize_query(TokenizerState* state);
 void tokenizer_free(TokenizerState* state);
 

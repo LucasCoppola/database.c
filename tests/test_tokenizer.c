@@ -23,10 +23,21 @@ void print_tokens(TokenizerState *state) {
 }
 
 int main() {
-  const char *query = "SELECT 'it\\'s' * FROM table WHERE condition;";
+  const char *query1 =
+      "CREATE TABLE users (id INT, username TEXT, email TEXT);";
+  const char *query2 = "INSERT INTO users (id, username, email) VALUES (1, "
+                       "'alice', 'alice@example.com');";
+  const char *query3 = "INSERT INTO users (id, username, email) VALUES (2, "
+                       "'bob', 'bob@example.com');";
+  const char *query4 = "SELECT * FROM users;";
+  const char *query5 = "SELECT username, email FROM users;";
+  const char *query6 =
+      "UPDATE users SET email = 'alice@newdomain.com' WHERE id = 1;";
+  const char *query7 = "DELETE FROM users WHERE id = 2;";
 
-  TokenizerState *state = tokenizer_init(query);
-  if (!state) {
+  TokenizerState *state = NULL;
+  TokenizerResult result = tokenizer_init(query2, &state);
+  if (result != TOKENIZER_SUCCESS) {
     fprintf(stderr, "Failed to initialize tokenizer.\n");
     return 1;
   }

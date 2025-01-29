@@ -6,8 +6,10 @@
 
 #include "../../include/query_parser.h"
 
-const char *keywords[] = {"CREATE", "DROP", "TABLE", "SELECT", "INSERT",
-                          "DELETE", "FROM", "WHERE", "INTO",   "VALUES"};
+const char *keywords[] = {"CREATE", "DROP",   "TABLE", "SELECT",  "INSERT",
+                          "DELETE", "FROM",   "WHERE", "INTO",    "VALUES",
+                          "UPDATE", "SET",    "INT",   "INTEGER", "REAL",
+                          "TEXT",   "BOOLEAN"};
 
 bool is_keyword(char *value) {
   for (int i = 0; i < sizeof(keywords) / sizeof(keywords[0]); i++) {
@@ -28,18 +30,22 @@ bool is_punctuation(char value) {
 
 void add_token(TokenizerState *state, const char *value, TokenType type,
                int position) {
-  state->tokens =
+  Token *new_tokens =
       realloc(state->tokens, (state->token_count + 1) * sizeof(Token));
-  if (!state->tokens) {
-    perror("Failed to allocate memory for tokens");
-    exit(1);
+  if (!new_tokens) {
+    perror("Failed to allocate memory for new token");
+    tokenizer_free(state);
+    exit(EXIT_FAILURE);
   }
+
+  state->tokens = new_tokens;
 
   Token *token = &state->tokens[state->token_count];
   token->type = type;
   token->value = strdup(value);
   if (!token->value) {
     perror("Failed to allocate memory for token value");
+    tokenizer_free(state);
     exit(1);
   }
   token->position = position;
@@ -121,13 +127,14 @@ char *read_string_literal(char *query, int *position, char quote) {
     return NULL;
   }
 
-  char c = query[*position];
   bool escape = false;
 
-  while (c != quote || escape) {
+  while (query[*position] != '\0') {
+    char c = query[*position];
+
     if (length >= capacity - 1) {
       capacity *= 2;
-      char *new_value = (char *)realloc(value, capacity * sizeof(char));
+      char *new_value = realloc(value, capacity * sizeof(char));
       if (new_value == NULL) {
         free(value);
         *position = start_pos;
@@ -156,31 +163,32 @@ char *read_string_literal(char *query, int *position, char quote) {
       case '"':
         value[length++] = '"';
         break;
+      case '0':
+        value[length++] = '\0';
+        break;
       default:
+        // Invalid escape sequence - treat as literal character
+        value[length++] = '\\';
         value[length++] = c;
         break;
       }
       escape = false;
     } else if (c == '\\') {
       escape = true;
+    } else if (c == quote && !escape) {
+      // End of string found
+      (*position)++; // Skip closing quote
+      value[length] = '\0';
+      return value;
     } else {
       value[length++] = c;
     }
 
     (*position)++;
-    c = query[*position];
   }
 
-  // end of string (unmatched quotes)
-  if (c != quote) {
-    free(value);
-    *position = start_pos;
-    return NULL;
-  }
-
-  // closing quote
-  (*position)++;
-
-  value[length] = '\0';
-  return value;
+  // Unterminated string or escape sequence
+  free(value);
+  *position = start_pos;
+  return NULL;
 }

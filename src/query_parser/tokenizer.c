@@ -6,18 +6,31 @@
 
 #include "../../include/query_parser.h"
 
-TokenizerState *tokenizer_init(const char *query) {
-  TokenizerState *state = malloc(sizeof(TokenizerState));
-  if (!state) {
-    return NULL;
+TokenizerResult tokenizer_init(const char *query, TokenizerState **state) {
+  *state = (TokenizerState *)malloc(sizeof(TokenizerState));
+  if (!*state) {
+    return TOKENIZER_ALLOC_ERROR;
   }
 
-  state->query = strdup(query);
-  state->tokens = malloc(0);
-  state->token_count = 0;
-  state->position = 0;
-  state->length = strlen(query);
-  return state;
+  (*state)->query = strdup(query);
+  if (!(*state)->query) {
+    free(*state);
+    *state = NULL;
+    return TOKENIZER_ALLOC_ERROR;
+  }
+
+  (*state)->tokens = calloc(1, sizeof(Token));
+  if (!(*state)->tokens) {
+    free((*state)->query);
+    free(*state);
+    *state = NULL;
+    return TOKENIZER_ALLOC_ERROR;
+  }
+
+  (*state)->token_count = 0;
+  (*state)->position = 0;
+  (*state)->length = strlen(query);
+  return TOKENIZER_SUCCESS;
 }
 
 TokenizerResult tokenize_query(TokenizerState *state) {
@@ -35,9 +48,15 @@ TokenizerResult tokenize_query(TokenizerState *state) {
     if (isalpha(c) || c == '_') {
       int start_pos = state->position;
       char *word = read_word(state->query, &state->position);
+      if (!word) {
+        fprintf(stderr, "Error: Failed to read word at position %d\n",
+                start_pos);
+        return TOKENIZER_UNKNOWN_ERROR;
+      }
 
       TokenType type = is_keyword(word) ? TOKEN_KEYWORD : TOKEN_IDENTIFIER;
       add_token(state, word, type, start_pos);
+      free(word);
       continue;
     }
 
@@ -46,12 +65,14 @@ TokenizerResult tokenize_query(TokenizerState *state) {
         (c == '-' && isdigit(state->query[state->position + 1]))) {
       int start_pos = state->position;
       char *number = read_numeric_literal(state->query, &state->position);
-      if (number) {
-        add_token(state, number, TOKEN_LITERAL, start_pos);
-      } else {
-        printf("Error thrown at read numeric literal\n");
-        return TOKENIZER_ERROR;
+      if (!number) {
+        fprintf(stderr, "Error: Invalid numeric literal at position %d\n",
+                start_pos);
+        return TOKENIZER_UNKNOWN_ERROR;
       }
+
+      add_token(state, number, TOKEN_LITERAL, start_pos);
+      free(number);
       continue;
     }
 
@@ -59,12 +80,14 @@ TokenizerResult tokenize_query(TokenizerState *state) {
     if (c == '\'' || c == '"') {
       int start_pos = state->position;
       char *string = read_string_literal(state->query, &state->position, c);
-      if (string) {
-        add_token(state, string, TOKEN_LITERAL, start_pos);
-      } else {
-        printf("Error thrown at read string literal\n");
-        return TOKENIZER_ERROR;
+      if (!string) {
+        fprintf(stderr, "Error: Unterminated string literal at position %d\n",
+                start_pos);
+        return TOKENIZER_UNKNOWN_ERROR;
       }
+
+      add_token(state, string, TOKEN_LITERAL, start_pos);
+      free(string);
       continue;
     }
 
@@ -94,11 +117,12 @@ TokenizerResult tokenize_query(TokenizerState *state) {
       add_token(state, eof_str, TOKEN_EOF, state->position);
       return TOKENIZER_SUCCESS;
     }
-
+    fprintf(stderr, "Warning: Unrecognized character '%c' at position %d\n", c,
+            state->position);
     state->position++;
   }
 
-  return TOKENIZER_ERROR;
+  return TOKENIZER_UNKNOWN_ERROR;
 }
 
 void tokenizer_free(TokenizerState *state) {
