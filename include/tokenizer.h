@@ -1,5 +1,5 @@
-#ifndef QUERY_PARSER_H
-#define QUERY_PARSER_H
+#ifndef TOKENIZER_H
+#define TOKENIZER_H
 
 typedef enum {
     TOKENIZER_SUCCESS,

@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "../include/query_parser.h"
+#include "../include/tokenizer.h"
 
 void print_tokens(TokenizerState *state) {
   printf("Length: %d\n", state->length);

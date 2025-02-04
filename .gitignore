@@ -4,4 +4,5 @@ main
 query-parser.md
 details.md
 todo.md
+parser.md
 *.db
