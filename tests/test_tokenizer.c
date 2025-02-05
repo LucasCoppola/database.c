@@ -36,7 +36,7 @@ int main() {
   const char *query7 = "DELETE FROM users WHERE id = 2;";
 
   TokenizerState *state = NULL;
-  TokenizerResult result = tokenizer_init(query2, &state);
+  TokenizerResult result = tokenizer_init(query1, &state);
   if (result != TOKENIZER_SUCCESS) {
     fprintf(stderr, "Failed to initialize tokenizer.\n");
     return 1;

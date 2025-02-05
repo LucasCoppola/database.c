@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "../../include/parser.h"
@@ -27,9 +28,7 @@ void *parse(const Token *tokens, int token_count) {
   } else if (strcmp(value, "DELETE") == 0) {
     return parser_row_delete(tokens, token_count);
   } else {
-    printf("Syntax Error: Unknown statement '%s'\n", value);
+    fprintf(stderr, "Syntax Error: Unknown statement '%s'\n", value);
     return NULL;
   }
 }
-
-ASTNode *parser_table_create(const Token *tokens, int token_count) {}

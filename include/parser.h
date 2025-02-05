@@ -1,6 +1,8 @@
 #ifndef PARSER_H
 #define PARSER_H
 
+#define MAX_COLUMNS 10
+
 typedef enum {
     NODE_CREATE_TABLE,
     NODE_DROP_TABLE,
@@ -11,7 +13,8 @@ typedef enum {
 
 typedef enum {
     TYPE_INT,
-    TYPE_TEXT
+    TYPE_TEXT,
+    TYPE_UNKNOWN
 } DataType;
 
 typedef struct {
@@ -45,15 +48,23 @@ typedef struct {
 
 #include "tokenizer.h"
 
+// parser.c
 void* parse(const Token* tokens, int token_count);
+void ast_free(ASTNode* node);
 
+// parse_tables.c
 ASTNode* parser_table_create(const Token* tokens, int token_count);
 ASTNode* parser_table_drop(const Token* tokens, int token_count);
+Column *parse_columns(const Token *tokens, int token_count, int *index, int *num_columns);
 
+// parse_rows.c
 ASTNode* parser_row_select(const Token* tokens, int token_count);
 ASTNode* parser_row_insert(const Token* tokens, int token_count);
 ASTNode* parser_row_delete(const Token* tokens, int token_count);
 
-void ast_free(ASTNode* node);
+// parser_utils.c
+ASTNode *create_ast_node(NodeType type);
+bool expect_token(const Token *tokens, int index, TokenType type, const char *value);
+DataType map_column_type(char *type);
 
 #endif
