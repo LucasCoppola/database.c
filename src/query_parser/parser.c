@@ -20,7 +20,7 @@ void *parse(const Token *tokens, int token_count) {
   if (strcmp(value, "CREATE") == 0) {
     return parser_table_create(tokens, token_count);
   } else if (strcmp(value, "DROP") == 0) {
-    return parser_table_drop(tokens, token_count);
+    return parser_table_drop(tokens);
   } else if (strcmp(value, "SELECT") == 0) {
     return parser_row_select(tokens, token_count);
   } else if (strcmp(value, "INSERT") == 0) {

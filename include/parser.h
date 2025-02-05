@@ -54,7 +54,7 @@ void ast_free(ASTNode* node);
 
 // parse_tables.c
 ASTNode* parser_table_create(const Token* tokens, int token_count);
-ASTNode* parser_table_drop(const Token* tokens, int token_count);
+ASTNode* parser_table_drop(const Token* tokens);
 Column *parse_columns(const Token *tokens, int token_count, int *index, int *num_columns);
 
 // parse_rows.c

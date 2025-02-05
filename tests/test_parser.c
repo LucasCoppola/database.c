@@ -55,6 +55,47 @@ void print_ast_node(const ASTNode *node) {
   }
 }
 
+void test_drop_table(const char *query, bool should_pass,
+                     const char *expected_table_name) {
+  printf("Testing query: %s\n", query);
+
+  TokenizerState *state = NULL;
+  TokenizerResult result = tokenizer_init(query, &state);
+  if (result != TOKENIZER_SUCCESS) {
+    fprintf(stderr, "Failed to initialize tokenizer.\n");
+    return;
+  }
+  tokenize_query(state);
+
+  ASTNode *node = parser_table_drop(state->tokens);
+
+  if (should_pass) {
+    if (!node) {
+      printf("  FAIL: Expected parsing to succeed, but it failed.\n");
+    } else {
+      if (strcmp(node->table_name, expected_table_name) != 0) {
+        printf("  FAIL: Expected table name '%s', got '%s'.\n",
+               expected_table_name, node->table_name);
+      } else {
+        printf(
+            "  PASS: Parsing succeeded and output matches expected values.\n");
+      }
+    }
+  } else {
+    if (node) {
+      printf("  FAIL: Expected parsing to fail, but it succeeded.\n");
+    } else {
+      printf("  PASS: Parsing failed as expected.\n");
+    }
+  }
+
+  if (node) {
+    free(node);
+  }
+  tokenizer_free(state);
+  printf("\n");
+}
+
 void test_create_table(const char *query, bool should_pass,
                        const char *expected_table_name,
                        const char **expected_columns,
@@ -135,6 +176,15 @@ int main() {
 
   const char *query5 = "CREATE TABLE empty ();";
   test_create_table(query5, false, NULL, NULL, 0);
+
+  const char *query6 = "DROP TABLE users;";
+  test_drop_table(query6, true, "users");
+
+  const char *query7 = "DROP TABLE;";
+  test_drop_table(query7, false, NULL);
+
+  const char *query8 = "DROP users;";
+  test_drop_table(query8, false, NULL);
 
   return 0;
 }

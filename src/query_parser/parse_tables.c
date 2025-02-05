@@ -94,3 +94,16 @@ Column *parse_columns(const Token *tokens, int token_count, int *index,
 
   return columns;
 }
+
+ASTNode *parser_table_drop(const Token *tokens) {
+  if (!expect_token(tokens, 0, TOKEN_KEYWORD, "DROP") ||
+      !expect_token(tokens, 1, TOKEN_KEYWORD, "TABLE") ||
+      tokens[2].type != TOKEN_IDENTIFIER) {
+    fprintf(stderr, "Syntax error: Expected DROP TABLE <name>\n");
+    return NULL;
+  }
+
+  ASTNode *node = create_ast_node(NODE_DROP_TABLE);
+  node->table_name = tokens[2].value;
+  return node;
+}
