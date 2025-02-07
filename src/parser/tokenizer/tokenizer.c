@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../../include/tokenizer.h"
+#include "../../../include/tokenizer.h"
 
 TokenizerResult tokenizer_init(const char *query, TokenizerState **state) {
   *state = (TokenizerState *)malloc(sizeof(TokenizerState));

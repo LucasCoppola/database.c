@@ -34,7 +34,7 @@ typedef struct {
 
 typedef struct {
     char** select_columns;
-    int num_select_columns;
+    int num_columns;
     bool select_all;
 } SelectRows; 
 
@@ -50,21 +50,23 @@ typedef struct {
 
 // parser.c
 void* parse(const Token* tokens, int token_count);
-void ast_free(ASTNode* node);
 
-// parse_tables.c
+// statements/
 ASTNode* parser_table_create(const Token* tokens, int token_count);
 ASTNode* parser_table_drop(const Token* tokens);
 Column *parse_columns(const Token *tokens, int token_count, int *index, int *num_columns);
 
-// parse_rows.c
 ASTNode* parser_row_select(const Token* tokens, int token_count);
 ASTNode* parser_row_insert(const Token* tokens, int token_count);
 ASTNode* parser_row_delete(const Token* tokens, int token_count);
 
 // parser_utils.c
-ASTNode *create_ast_node(NodeType type);
 bool expect_token(const Token *tokens, int index, TokenType type, const char *value);
 DataType map_column_type(char *type);
+
+// ast.c
+ASTNode *create_ast_node(NodeType type);
+void ast_free(ASTNode* node);
+
 
 #endif

@@ -1,21 +1,9 @@
 #include <stdbool.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include "../../include/parser.h"
 #include "../../include/tokenizer.h"
-
-ASTNode *create_ast_node(NodeType type) {
-  ASTNode *node = malloc(sizeof(ASTNode));
-  if (!node) {
-    fprintf(stderr, "Failed to allocate new ast node");
-    return NULL;
-  }
-
-  node->type = type;
-  return node;
-}
 
 bool expect_token(const Token *tokens, int index, TokenType type,
                   const char *value) {
