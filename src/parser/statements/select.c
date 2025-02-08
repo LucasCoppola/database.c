@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../../../include/ast.h"
 #include "../../../include/parser.h"
 #include "../../../include/tokenizer.h"
 
@@ -19,8 +20,6 @@ ASTNode *parser_row_select(const Token *tokens, int token_count) {
   }
 
   node->select_rows.select_columns = NULL;
-  node->select_rows.num_columns = 0;
-  node->select_rows.select_all = false;
   node->table_name = NULL;
 
   bool select_all = false;

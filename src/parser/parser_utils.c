@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "../../include/ast.h"
 #include "../../include/parser.h"
 #include "../../include/tokenizer.h"
 

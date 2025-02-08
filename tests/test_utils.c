@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../include/parser.h"
+#include "../include/ast.h"
 #include "../include/tokenizer.h"
 
 TokenizerState *setup_tokenizer(const char *query) {

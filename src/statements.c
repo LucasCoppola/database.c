@@ -4,7 +4,7 @@
 
 #include "../include/database.h"
 #include "../include/logger.h"
-#include "../include/statements.h"
+#include "../include/stmt.h"
 #include "../include/storage.h"
 
 void to_lowercase(char *str) {

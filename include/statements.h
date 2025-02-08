@@ -1,36 +1,25 @@
 #ifndef STATEMENTS_H
 #define STATEMENTS_H
 
-#include <stdio.h>
-#include "database.h"
+#include "ast.h"
+#include "tokenizer.h"
 
-typedef enum { 
-  PREPARE_SUCCESS,
-  PREPARE_UNRECOGNIZED_STATEMENT, 
-  PREPARE_SYNTAX_ERROR
-} PrepareResult;
+// create_table.c
+ASTNode* parser_table_create(const Token* tokens, int token_count);
+Column *parse_columns(const Token *tokens, int token_count, int *index, int *num_columns);
+bool parse_single_column(const Token *tokens, int *index, Column *column, int token_count);
+void free_columns(Column *columns, int num_columns);
 
-typedef enum { 
-  EXECUTE_SUCCESS, 
-  EXECUTE_FAILURE, 
-  EXECUTE_TABLE_FULL,
-} ExecuteResult;
+// drop_table.c
+ASTNode* parser_table_drop(const Token* tokens);
 
-typedef enum {
-    STATEMENT_CREATE_TABLE,
-    STATEMENT_DROP_TABLE,
-    STATEMENT_SELECT,
-    STATEMENT_INSERT,
-    STATEMENT_DELETE,
-} StatementType;
+// select.c
+ASTNode* parser_row_select(const Token* tokens, int token_count);
 
-typedef struct {
-  char table_name[MAX_NAME_LENGTH];
-  StatementType type;
-  Row row;  // Used for INSERT/DELETE operations
-} Statement;
+// insert.c
+ASTNode* parser_row_insert(const Token* tokens, int token_count);
 
-PrepareResult prepare_statement(char *command, Statement *stmt);
-ExecuteResult execute_statement(Database *db, Statement *stmt);
+// delete.c
+ASTNode* parser_row_delete(const Token* tokens, int token_count);
 
-#endif
+#endif 

@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../../include/parser.h"
+#include "../../include/statements.h"
 #include "../../include/tokenizer.h"
 
 void *parse(const Token *tokens, int token_count) {
@@ -24,7 +24,7 @@ void *parse(const Token *tokens, int token_count) {
   } else if (strcmp(value, "SELECT") == 0) {
     return parser_row_select(tokens, token_count);
   } else if (strcmp(value, "INSERT") == 0) {
-    // return parser_row_insert(tokens, token_count);
+    return parser_row_insert(tokens, token_count);
   } else if (strcmp(value, "DELETE") == 0) {
     // return parser_row_delete(tokens, token_count);
   } else {

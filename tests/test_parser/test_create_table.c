@@ -3,7 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../include/parser.h"
+#include "../include/ast.h"
+#include "../include/statements.h"
 #include "../include/tokenizer.h"
 #include "../test_utils.h"
 

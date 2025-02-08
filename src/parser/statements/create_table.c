@@ -3,7 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../../../include/ast.h"
 #include "../../../include/parser.h"
+#include "../../../include/statements.h"
 #include "../../../include/tokenizer.h"
 
 ASTNode *parser_table_create(const Token *tokens, int token_count) {
@@ -19,12 +21,19 @@ ASTNode *parser_table_create(const Token *tokens, int token_count) {
     return NULL;
   }
 
-  node->table_name = tokens[2].value;
+  node->table_name = strdup(tokens[2].value);
+  if (!node->table_name) {
+    perror("Failed to duplicate table name");
+    ast_free(node);
+    return NULL;
+  }
+
+  node->create_table.columns = NULL;
 
   if (!expect_token(tokens, 3, TOKEN_PUNCTUATION, "(")) {
     fprintf(stderr, "Syntax error: Expected '(' at position %d\n",
             tokens[3].position);
-    free(node);
+    ast_free(node);
     return NULL;
   }
 
@@ -32,7 +41,7 @@ ASTNode *parser_table_create(const Token *tokens, int token_count) {
   int num_columns = 0;
   Column *columns = parse_columns(tokens, token_count, &index, &num_columns);
   if (!columns) {
-    free(node);
+    ast_free(node);
     return NULL;
   }
 
@@ -52,34 +61,17 @@ Column *parse_columns(const Token *tokens, int token_count, int *index,
   *num_columns = 0;
 
   while (*index < token_count) {
-    if (tokens[*index].type != TOKEN_IDENTIFIER) {
-      fprintf(stderr, "Syntax error: Expected column name at position %d\n",
-              tokens[*index].position);
-      free(columns);
+    if (!parse_single_column(tokens, index, &columns[*num_columns],
+                             token_count)) {
+      free_columns(columns, *num_columns);
       return NULL;
     }
-
-    char *col_name = tokens[*index].value;
-    (*index)++;
-
-    if (*index >= token_count || tokens[*index].type != TOKEN_KEYWORD) {
-      fprintf(stderr, "Syntax error: Expected column type after '%s'\n",
-              col_name);
-      free(columns);
-      return NULL;
-    }
-
-    char *col_type = tokens[*index].value;
-    (*index)++;
-
-    columns[*num_columns].name = col_name;
-    columns[*num_columns].type = map_column_type(col_type);
     (*num_columns)++;
 
     if (*index >= token_count || tokens[*index].type != TOKEN_PUNCTUATION) {
       fprintf(stderr,
               "Syntax error: Expected ',' or ')' after column definition\n");
-      free(columns);
+      free_columns(columns, *num_columns);
       return NULL;
     }
 
@@ -91,10 +83,50 @@ Column *parse_columns(const Token *tokens, int token_count, int *index,
     } else {
       fprintf(stderr, "Syntax error: Expected ',' or ')' but found '%s'\n",
               tokens[*index].value);
-      free(columns);
+      free_columns(columns, *num_columns);
       return NULL;
     }
   }
 
   return columns;
+}
+
+bool parse_single_column(const Token *tokens, int *index, Column *column,
+                         int token_count) {
+  if (tokens[*index].type != TOKEN_IDENTIFIER) {
+    fprintf(stderr, "Syntax error: Expected column name at position %d\n",
+            tokens[*index].position);
+    return false;
+  }
+
+  column->name = strdup(tokens[*index].value);
+  if (!column->name) {
+    perror("Failed to duplicate column name");
+    return false;
+  }
+  (*index)++;
+
+  if (*index >= token_count || tokens[*index].type != TOKEN_KEYWORD) {
+    fprintf(stderr, "Syntax error: Expected column type after '%s'\n",
+            column->name);
+    free(column->name);
+    return false;
+  }
+
+  column->type = map_column_type(tokens[*index].value);
+  (*index)++;
+
+  return true;
+}
+
+void free_columns(Column *columns, int num_columns) {
+  if (!columns)
+    return;
+
+  for (int i = 0; i < num_columns; i++) {
+    if (columns[i].name) {
+      free(columns[i].name);
+    }
+  }
+  free(columns);
 }
