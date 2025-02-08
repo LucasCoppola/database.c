@@ -21,17 +21,26 @@ void ast_free(ASTNode *node) {
 
   switch (node->type) {
   case NODE_CREATE_TABLE:
-    free(node->create_table.columns);
+    if (node->create_table.columns) {
+      free(node->create_table.columns);
+    }
     break;
   case NODE_SELECT:
-    for (int i = 0; i < node->select_rows.num_columns; i++) {
-      free(node->select_rows.select_columns[i]);
+    if (node->select_rows.select_columns) {
+      for (int i = 0; i < node->select_rows.num_columns; i++) {
+        if (node->select_rows.select_columns[i]) {
+          free(node->select_rows.select_columns[i]);
+        }
+      }
+      free(node->select_rows.select_columns);
     }
-    free(node->select_rows.select_columns);
     break;
   default:
     break;
   }
 
+  if (node->table_name) {
+    free(node->table_name);
+  }
   free(node);
 }

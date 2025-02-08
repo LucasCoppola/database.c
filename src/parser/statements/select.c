@@ -14,6 +14,15 @@ ASTNode *parser_row_select(const Token *tokens, int token_count) {
   }
 
   ASTNode *node = create_ast_node(NODE_SELECT);
+  if (!node) {
+    return NULL;
+  }
+
+  node->select_rows.select_columns = NULL;
+  node->select_rows.num_columns = 0;
+  node->select_rows.select_all = false;
+  node->table_name = NULL;
+
   bool select_all = false;
   int num_columns = 0;
   int index = 1;
@@ -21,11 +30,11 @@ ASTNode *parser_row_select(const Token *tokens, int token_count) {
   if (expect_token(tokens, index, TOKEN_WILDCARD, "*")) {
     select_all = true;
     index++;
-  } else {
+  } else if (index < token_count && tokens[index].type == TOKEN_IDENTIFIER) {
     node->select_rows.select_columns = malloc(sizeof(char *));
     if (!node->select_rows.select_columns) {
       perror("Failed to allocate first col in ASTNode\n");
-      free(node);
+      ast_free(node);
       return NULL;
     }
 
@@ -42,8 +51,6 @@ ASTNode *parser_row_select(const Token *tokens, int token_count) {
 
       node->select_rows.select_columns[num_columns] =
           strdup(tokens[index].value);
-      node->select_rows.select_columns[num_columns] =
-          strdup(tokens[index].value);
       if (!node->select_rows.select_columns[num_columns]) {
         perror("Failed to duplicate column name");
         ast_free(node);
@@ -51,6 +58,8 @@ ASTNode *parser_row_select(const Token *tokens, int token_count) {
       }
 
       num_columns++;
+      // update after each loop so if it fails, it can free the cols
+      node->select_rows.num_columns = num_columns;
       index++;
 
       if (index < token_count &&
@@ -60,6 +69,10 @@ ASTNode *parser_row_select(const Token *tokens, int token_count) {
         break;
       }
     }
+  } else {
+    fprintf(stderr, "Syntax error: Expected column list after SELECT\n");
+    ast_free(node);
+    return NULL;
   }
 
   if (index >= token_count ||
@@ -76,7 +89,12 @@ ASTNode *parser_row_select(const Token *tokens, int token_count) {
     return NULL;
   }
 
-  node->table_name = tokens[index].value;
+  node->table_name = strdup(tokens[index].value);
+  if (!node->table_name) {
+    perror("Failed to duplicate table name");
+    ast_free(node);
+    return NULL;
+  }
   node->select_rows.num_columns = num_columns;
   node->select_rows.select_all = select_all;
   return node;

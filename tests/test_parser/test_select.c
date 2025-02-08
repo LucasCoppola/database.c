@@ -11,7 +11,6 @@ void test_select(const char *query, bool should_pass,
                  const char *expected_table_name, const char **expected_columns,
                  int expected_num_columns, bool expected_select_all) {
   printf("Testing query: %s\n", query);
-
   TokenizerState *state = setup_tokenizer(query);
   if (!state)
     return;
@@ -47,22 +46,17 @@ void test_select(const char *query, bool should_pass,
                  "values.\n");
         }
       }
+      ast_free(node);
     }
   } else {
     if (node) {
       printf("  FAIL: Expected parsing to fail, but it succeeded.\n");
+      ast_free(node);
     } else {
       printf("  PASS: Parsing failed as expected.\n");
     }
   }
 
-  if (node) {
-    for (int i = 0; i < node->select_rows.num_columns; i++) {
-      free(node->select_rows.select_columns[i]);
-    }
-    free(node->select_rows.select_columns);
-    free(node);
-  }
   teardown_tokenizer(state);
   printf("\n");
 }

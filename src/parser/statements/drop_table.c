@@ -15,6 +15,9 @@ ASTNode *parser_table_drop(const Token *tokens) {
   }
 
   ASTNode *node = create_ast_node(NODE_DROP_TABLE);
+  if (!node) {
+    return NULL;
+  }
   node->table_name = tokens[2].value;
   return node;
 }

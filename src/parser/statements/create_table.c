@@ -15,6 +15,10 @@ ASTNode *parser_table_create(const Token *tokens, int token_count) {
   }
 
   ASTNode *node = create_ast_node(NODE_CREATE_TABLE);
+  if (!node) {
+    return NULL;
+  }
+
   node->table_name = tokens[2].value;
 
   if (!expect_token(tokens, 3, TOKEN_PUNCTUATION, "(")) {
