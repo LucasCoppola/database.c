@@ -34,8 +34,6 @@ TokenizerResult tokenizer_init(const char *query, TokenizerState **state) {
 }
 
 TokenizerResult tokenize_query(TokenizerState *state) {
-  Token **tokens = &state->tokens;
-
   while (state->position < state->length) {
     char c = state->query[state->position];
 
@@ -126,7 +124,7 @@ TokenizerResult tokenize_query(TokenizerState *state) {
 }
 
 void tokenizer_free(TokenizerState *state) {
-  for (size_t i = 0; i < state->token_count; i++) {
+  for (int i = 0; i < state->token_count; i++) {
     free(state->tokens[i].value);
   }
   free(state->tokens);

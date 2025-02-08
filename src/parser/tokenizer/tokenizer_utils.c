@@ -12,7 +12,8 @@ const char *keywords[] = {"CREATE", "DROP",   "TABLE", "SELECT",  "INSERT",
                           "TEXT",   "BOOLEAN"};
 
 bool is_keyword(char *value) {
-  for (int i = 0; i < sizeof(keywords) / sizeof(keywords[0]); i++) {
+  int keywords_length = sizeof(keywords) / sizeof(keywords[0]);
+  for (int i = 0; i < keywords_length; i++) {
     if (strcasecmp(value, keywords[i]) == 0) {
       return true;
     }

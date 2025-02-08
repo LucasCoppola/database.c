@@ -3,48 +3,49 @@
 
 #include "../include/tokenizer.h"
 
-void print_tokens(TokenizerState *state) {
-  printf("Length: %d\n", state->length);
-  printf("Tokens:\n");
-  for (int i = 0; i < state->token_count; i++) {
-    Token *token = &state->tokens[i];
-    const char *type_str = token->type == TOKEN_KEYWORD       ? "KEYWORD"
-                           : token->type == TOKEN_IDENTIFIER  ? "IDENTIFIER"
-                           : token->type == TOKEN_LITERAL     ? "LITERAL"
-                           : token->type == TOKEN_OPERATOR    ? "OPERATOR"
-                           : token->type == TOKEN_PUNCTUATION ? "PUNCTUATION"
-                           : token->type == TOKEN_WILDCARD    ? "WILDCARD"
-                           : token->type == TOKEN_EOF         ? "EOF"
-                                                              : "UNKNOWN";
+bool test_query(const char *query, int query_num) {
+  TokenizerState *state = NULL;
+  TokenizerResult result = tokenizer_init(query, &state);
 
-    printf("  [%d] Type: %s, Value: '%s', Position: %d\n", i, type_str,
-           token->value, token->position);
+  if (result != TOKENIZER_SUCCESS) {
+    printf("Query %d: Failed to initialize tokenizer\n", query_num);
+    return false;
   }
+
+  result = tokenize_query(state);
+  tokenizer_free(state);
+
+  if (result != TOKENIZER_SUCCESS) {
+    printf("Query %d: Failed to tokenize\n", query_num);
+    return false;
+  }
+
+  printf("Query %d: Passed\n", query_num);
+  return true;
 }
 
 int main() {
-  const char *query1 =
-      "CREATE TABLE users (id INT, username TEXT, email TEXT);";
-  const char *query2 = "INSERT INTO users (id, username, email) VALUES (1, "
-                       "'alice', 'alice@example.com');";
-  const char *query3 = "INSERT INTO users (id, username, email) VALUES (2, "
-                       "'bob', 'bob@example.com');";
-  const char *query4 = "SELECT * FROM users;";
-  const char *query5 = "SELECT username, email FROM users;";
-  const char *query6 =
-      "UPDATE users SET email = 'alice@newdomain.com' WHERE id = 1;";
-  const char *query7 = "DELETE FROM users WHERE id = 2;";
+  const char *queries[] = {
+      "CREATE TABLE users (id INT, username TEXT, email TEXT);",
+      "INSERT INTO users (id, username, email) VALUES (1, 'alice', "
+      "'alice@example.com');",
+      "INSERT INTO users (id, username, email) VALUES (2, 'bob', "
+      "'bob@example.com');",
+      "SELECT * FROM users;",
+      "SELECT username, email FROM users;",
+      "UPDATE users SET email = 'alice@newdomain.com' WHERE id = 1;",
+      "DELETE FROM users WHERE id = 2;"};
 
-  TokenizerState *state = NULL;
-  TokenizerResult result = tokenizer_init(query1, &state);
-  if (result != TOKENIZER_SUCCESS) {
-    fprintf(stderr, "Failed to initialize tokenizer.\n");
-    return 1;
+  const int num_queries = sizeof(queries) / sizeof(queries[0]);
+  int failed_tests = 0;
+
+  for (int i = 0; i < num_queries; i++) {
+    if (!test_query(queries[i], i + 1)) {
+      failed_tests++;
+    }
   }
 
-  tokenize_query(state);
-  print_tokens(state);
-
-  tokenizer_free(state);
-  return 0;
+  printf("\nTest Summary: %d passed, %d failed\n", num_queries - failed_tests,
+         failed_tests);
+  return failed_tests > 0 ? 1 : 0;
 }
