@@ -22,14 +22,14 @@ void test_create_table(const char *query, bool should_pass,
 
   if (should_pass) {
     if (!node) {
-      printf("  FAIL: Expected parsing to succeed, but it failed.\n");
+      printf("   FAIL: Expected parsing to succeed, but it failed.\n");
     } else {
       if (strcmp(node->table_name, expected_table_name) != 0) {
-        printf("  FAIL: Expected table name '%s', got '%s'.\n",
+        printf("   FAIL: Expected table name '%s', got '%s'.\n",
                expected_table_name, node->table_name);
       } else if (node->create_table.num_columns != expected_num_columns) {
-        printf("  FAIL: Expected %d columns, got %d.\n", expected_num_columns,
-               node->create_table.num_columns);
+        printf("   FAIL: Expected %d columns, got %d.\n",
+               expected_num_columns, node->create_table.num_columns);
       } else {
         bool columns_match = true;
         for (int i = 0; i < expected_num_columns; i++) {
@@ -42,24 +42,23 @@ void test_create_table(const char *query, bool should_pass,
           }
         }
         if (!columns_match) {
-          printf("  FAIL: Columns do not match expected values.\n");
+          printf("   FAIL: Columns do not match expected values.\n");
         } else {
-          printf("  PASS: Parsing succeeded and output matches expected "
+          printf("   PASS: Parsing succeeded and output matches expected "
                  "values.\n");
         }
       }
     }
   } else {
     if (node) {
-      printf("  FAIL: Expected parsing to fail, but it succeeded.\n");
+      printf("   FAIL: Expected parsing to fail, but it succeeded.\n");
     } else {
-      printf("  PASS: Parsing failed as expected.\n");
+      printf("   PASS: Parsing failed as expected.\n");
     }
   }
 
   if (node) {
-    free(node->create_table.columns);
-    free(node);
+    ast_free(node);
   }
   teardown_tokenizer(state);
   printf("\n");

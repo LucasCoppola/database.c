@@ -20,16 +20,16 @@ void test_select(const char *query, bool should_pass,
 
   if (should_pass) {
     if (!node) {
-      printf("  FAIL: Expected parsing to succeed, but it failed.\n");
+      printf("   FAIL: Expected parsing to succeed, but it failed.\n");
     } else {
       if (strcmp(node->table_name, expected_table_name) != 0) {
-        printf("  FAIL: Expected table name '%s', got '%s'.\n",
+        printf("   FAIL: Expected table name '%s', got '%s'.\n",
                expected_table_name, node->table_name);
       } else if (node->select_rows.num_columns != expected_num_columns) {
-        printf("  FAIL: Expected %d columns, got %d.\n", expected_num_columns,
+        printf("   FAIL: Expected %d columns, got %d.\n", expected_num_columns,
                node->select_rows.num_columns);
       } else if (node->select_rows.select_all != expected_select_all) {
-        printf("  FAIL: Expected select_all=%d, got %d.\n", expected_select_all,
+        printf("   FAIL: Expected select_all=%d, got %d.\n", expected_select_all,
                node->select_rows.select_all);
       } else {
         bool columns_match = true;
@@ -41,9 +41,9 @@ void test_select(const char *query, bool should_pass,
           }
         }
         if (!columns_match) {
-          printf("  FAIL: Columns do not match expected values.\n");
+          printf("   FAIL: Columns do not match expected values.\n");
         } else {
-          printf("  PASS: Parsing succeeded and output matches expected "
+          printf("   PASS: Parsing succeeded and output matches expected "
                  "values.\n");
         }
       }
@@ -51,10 +51,10 @@ void test_select(const char *query, bool should_pass,
     }
   } else {
     if (node) {
-      printf("  FAIL: Expected parsing to fail, but it succeeded.\n");
+      printf("   FAIL: Expected parsing to fail, but it succeeded.\n");
       ast_free(node);
     } else {
-      printf("  PASS: Parsing failed as expected.\n");
+      printf("   PASS: Parsing failed as expected.\n");
     }
   }
 

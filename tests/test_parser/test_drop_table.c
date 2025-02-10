@@ -20,21 +20,21 @@ void test_drop_table(const char *query, bool should_pass,
 
   if (should_pass) {
     if (!node) {
-      printf("  FAIL: Expected parsing to succeed, but it failed.\n");
+      printf("   FAIL: Expected parsing to succeed, but it failed.\n");
     } else {
       if (strcmp(node->table_name, expected_table_name) != 0) {
-        printf("  FAIL: Expected table name '%s', got '%s'.\n",
+        printf("   FAIL: Expected table name '%s', got '%s'.\n",
                expected_table_name, node->table_name);
       } else {
         printf(
-            "  PASS: Parsing succeeded and output matches expected values.\n");
+            "   PASS: Parsing succeeded and output matches expected values.\n");
       }
     }
   } else {
     if (node) {
-      printf("  FAIL: Expected parsing to fail, but it succeeded.\n");
+      printf("   FAIL: Expected parsing to fail, but it succeeded.\n");
     } else {
-      printf("  PASS: Parsing failed as expected.\n");
+      printf("   PASS: Parsing failed as expected.\n");
     }
   }
 
