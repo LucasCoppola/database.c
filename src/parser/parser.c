@@ -25,8 +25,6 @@ void *parse(const Token *tokens, int token_count) {
     return parser_row_select(tokens, token_count);
   } else if (strcmp(value, "INSERT") == 0) {
     return parser_row_insert(tokens, token_count);
-  } else if (strcmp(value, "DELETE") == 0) {
-    // return parser_row_delete(tokens, token_count);
   } else {
     fprintf(stderr, "Syntax Error: Unknown statement '%s'\n", value);
     return NULL;
