@@ -2,10 +2,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../include/ast.h"
 #include "../include/database.h"
+#include "../include/executor.h"
 #include "../include/logger.h"
 #include "../include/meta_commands.h"
-#include "../include/statements.h"
+#include "../include/parser.h"
+#include "../include/tokenizer.h"
 
 #define MAX_INPUT_LENGTH 256
 
@@ -47,21 +50,28 @@ int main(int argc, char *argv[]) {
       continue;
     }
 
-    Statement stmt;
-    PrepareResult prepare_result = prepare_statement(input, &stmt);
-
-    if (prepare_result == PREPARE_SYNTAX_ERROR) {
-      printf("Error: in prepare, near '%s': syntax error\n", input);
+    TokenizerState *state = NULL;
+    TokenizerResult tokenizer_result = tokenizer_init(input, &state);
+    if (tokenizer_result != TOKENIZER_SUCCESS) {
+      fprintf(stderr, "Failed to initialize tokenizer.\n");
       continue;
     }
 
-    if (prepare_result == PREPARE_UNRECOGNIZED_STATEMENT) {
-      printf("Error: Unrecognized statement\n");
+    tokenize_query(state);
+    printf("Tokens:\n");
+    for (int i = 0; i < state->token_count; i++) {
+      printf("%s\n", state->tokens[i].value);
+    }
+
+    ASTNode *ast_node = parse(state->tokens, state->token_count);
+    if (ast_node == NULL) {
+      printf("Error: Parsing failed.\n");
+      tokenizer_free(state);
       continue;
     }
 
-    ExecuteResult result = execute_statement(db, &stmt);
-    switch (result) {
+    ExecuteResult execute_result = execute_ast(db, ast_node);
+    switch (execute_result) {
     case EXECUTE_SUCCESS:
       printf("Executed.\n");
       break;
@@ -72,6 +82,9 @@ int main(int argc, char *argv[]) {
       printf("Error: Execution failed.\n");
       break;
     }
+
+    ast_free(ast_node);
+    tokenizer_free(state);
   }
 
   database_free(db);
