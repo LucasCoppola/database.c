@@ -6,9 +6,8 @@
 
 // create_table.c
 ASTNode* parser_table_create(const Token* tokens, int token_count);
-Column *parse_columns(const Token *tokens, int token_count, int *index, int *num_columns);
-bool parse_single_column(const Token *tokens, int *index, Column *column, int token_count);
-void free_columns(Column *columns, int num_columns);
+Column *columns_parse(const Token *tokens, int token_count, int *index, int *num_columns);
+void columns_free(Column *columns, int num_columns);
 
 // drop_table.c
 ASTNode* parser_table_drop(const Token* tokens);
