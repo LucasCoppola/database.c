@@ -70,6 +70,13 @@ char *read_word(char *query, int *position) {
   strncpy(value, &query[start_pos], length);
 
   value[length] = '\0';
+
+  if (is_keyword(value)) {
+    for (int i = 0; value[i]; i++) {
+      value[i] = toupper(value[i]);
+    }
+  }
+
   return value;
 }
 
