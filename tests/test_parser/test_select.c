@@ -3,9 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../include/ast.h"
-#include "../include/statements.h"
-#include "../include/tokenizer.h"
+#include "parser/ast.h"
+#include "parser/statements.h"
+#include "parser/tokenizer.h"
+
 #include "../test_utils.h"
 
 void test_select(const char *query, bool should_pass,
@@ -26,11 +27,11 @@ void test_select(const char *query, bool should_pass,
         printf("   FAIL: Expected table name '%s', got '%s'.\n",
                expected_table_name, node->table_name);
       } else if (node->select_rows.num_columns != expected_num_columns) {
-        printf("   FAIL: Expected %d columns, got %d.\n", expected_num_columns,
-               node->select_rows.num_columns);
+        printf("   FAIL: Expected %d columns, got %d.\n",
+               expected_num_columns, node->select_rows.num_columns);
       } else if (node->select_rows.select_all != expected_select_all) {
-        printf("   FAIL: Expected select_all=%d, got %d.\n", expected_select_all,
-               node->select_rows.select_all);
+        printf("   FAIL: Expected select_all=%d, got %d.\n",
+               expected_select_all, node->select_rows.select_all);
       } else {
         bool columns_match = true;
         for (int i = 0; i < expected_num_columns; i++) {

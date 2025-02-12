@@ -2,8 +2,10 @@
 #include <string.h>
 #include <strings.h>
 
-#include "../../include/database.h"
-#include "../../include/storage.h"
+#include "core/row.h"
+#include "core/table.h"
+#include "storage/pager.h"
+#include "storage/table_header.h"
 
 const uint32_t ID_SIZE = size_of_attribute(Row, id);
 const uint32_t USERNAME_SIZE = size_of_attribute(Row, username);

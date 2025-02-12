@@ -3,10 +3,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "database.h"
-#include "hashmap.h"
+#include "core/database.h"
+#include "core/table.h"
+#include "utils/hashmap.h"
 
-// Helper function to create a dummy table for testing
 Table *create_dummy_table(const char *name, uint32_t id) {
   Table *table = malloc(sizeof(Table));
   strncpy(table->name, name, MAX_NAME_LENGTH - 1);

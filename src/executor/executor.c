@@ -1,10 +1,9 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "../../include/parser/ast.h"
-
-#include "../../include/database.h"
-#include "../../include/executor.h"
+#include "core/database.h"
+#include "executor/executor.h"
+#include "parser/ast.h"
 
 ExecuteResult execute_ast(Database *db, ASTNode *node) {
   if (!node) {

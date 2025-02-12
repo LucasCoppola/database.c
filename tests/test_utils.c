@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../include/ast.h"
-#include "../include/tokenizer.h"
+#include "core/table.h"
+#include "parser/tokenizer.h"
 
 TokenizerState *setup_tokenizer(const char *query) {
   TokenizerState *state = NULL;

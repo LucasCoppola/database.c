@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "../include/tokenizer.h"
+#include "parser/tokenizer.h"
 
 bool test_query(const char *query, int query_num) {
   TokenizerState *state = NULL;

@@ -4,10 +4,12 @@
 #include <string.h>
 #include <strings.h>
 
-#include "../include/database.h"
-#include "../include/hashmap.h"
-#include "../include/logger.h"
-#include "../include/storage.h"
+#include "core/database.h"
+
+#include "storage/pager.h"
+#include "storage/table_header.h"
+#include "utils/hashmap.h"
+#include "utils/logger.h"
 
 DatabaseResult database_open(Database **out_db, const char *filename) {
   Database *db = malloc(sizeof(Database));

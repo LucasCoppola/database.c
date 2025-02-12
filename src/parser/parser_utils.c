@@ -2,9 +2,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../../include/parser/ast.h"
-#include "../../include/parser/parser.h"
-#include "../../include/parser/tokenizer.h"
+#include "parser/ast.h"
+#include "parser/parser.h"
+#include "parser/tokenizer.h"
 
 bool expect_token(const Token *tokens, int index, TokenType type,
                   const char *value) {

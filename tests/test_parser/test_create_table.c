@@ -3,9 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../include/ast.h"
-#include "../include/statements.h"
-#include "../include/tokenizer.h"
+#include "parser/ast.h"
+#include "parser/statements.h"
+#include "parser/tokenizer.h"
+
 #include "../test_utils.h"
 
 void test_create_table(const char *query, bool should_pass,

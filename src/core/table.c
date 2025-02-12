@@ -5,9 +5,12 @@
 #include <strings.h>
 #include <unistd.h>
 
-#include "../include/database.h"
-#include "../include/hashmap.h"
-#include "../include/logger.h"
+#include "core/database.h"
+#include "core/table.h"
+
+#include "storage/pager.h"
+#include "utils/hashmap.h"
+#include "utils/logger.h"
 
 TableResult table_create(Database *db, char *name, Table **out_table) {
   if (db == NULL) {

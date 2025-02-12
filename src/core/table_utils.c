@@ -4,9 +4,13 @@
 #include <strings.h>
 #include <unistd.h>
 
-#include "../include/database.h"
-#include "../include/hashmap.h"
-#include "../include/storage.h"
+#include "core/database.h"
+#include "core/row.h"
+#include "core/table.h"
+
+#include "storage/cursor.h"
+#include "storage/pager.h"
+#include "utils/hashmap.h"
 
 TableResult table_initialize(Table *table, char *name, Database *db) {
   strncpy(table->name, name, MAX_NAME_LENGTH - 1);

@@ -4,8 +4,9 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "../../include/database.h"
-#include "../../include/storage.h"
+#include "core/database.h"
+#include "storage/pager.h"
+#include "storage/table_header.h"
 
 PagerResult pager_header_read(Pager *pager) {
   if ((size_t)pager->file_length < sizeof(uint32_t)) {

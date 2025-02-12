@@ -3,9 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../include/ast.h"
-#include "../include/statements.h"
-#include "../include/tokenizer.h"
+#include "parser/ast.h"
+#include "parser/statements.h"
+#include "parser/tokenizer.h"
+
 #include "../test_utils.h"
 
 void test_drop_table(const char *query, bool should_pass,
@@ -26,8 +27,8 @@ void test_drop_table(const char *query, bool should_pass,
         printf("   FAIL: Expected table name '%s', got '%s'.\n",
                expected_table_name, node->table_name);
       } else {
-        printf(
-            "   PASS: Parsing succeeded and output matches expected values.\n");
+        printf("   PASS: Parsing succeeded and output matches expected "
+               "values.\n");
       }
     }
   } else {

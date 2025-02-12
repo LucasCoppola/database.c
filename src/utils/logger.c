@@ -1,10 +1,14 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../include/database.h"
-#include "../include/hashmap.h"
-#include "../include/logger.h"
-#include "../include/storage.h"
+#include "core/database.h"
+
+#include "storage/pager.h"
+#include "utils/hashmap.h"
+#include "utils/logger.h"
+
+#include "core/row.h"
+#include "core/table.h"
 
 void log_error(const ErrorInfo *error) {
   fprintf(stderr, "Error in %s: %s.\n", error->context, error->message);

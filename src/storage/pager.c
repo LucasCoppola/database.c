@@ -1,11 +1,15 @@
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
-#include "../../include/database.h"
-#include "../../include/storage.h"
+#include "core/database.h"
+#include "core/table.h"
+
+#include "storage/pager.h"
+#include "storage/table_header.h"
 
 PagerResult pager_init(const char *filename, Pager **out_pager) {
   int fd = open(filename, O_RDWR | O_CREAT, S_IWUSR | S_IRUSR);

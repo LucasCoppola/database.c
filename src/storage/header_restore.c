@@ -5,10 +5,12 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "../../include/database.h"
-#include "../../include/hashmap.h"
-#include "../../include/logger.h"
-#include "../../include/storage.h"
+#include "storage/pager.h"
+#include "storage/table_header.h"
+
+#include "core/table.h"
+#include "utils/hashmap.h"
+#include "utils/logger.h"
 
 void header_tables_restore(Pager *pager, HashMap *map) {
   lseek(pager->file_descriptor, 0, SEEK_SET);

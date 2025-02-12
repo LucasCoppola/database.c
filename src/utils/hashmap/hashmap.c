@@ -4,9 +4,9 @@
 #include <string.h>
 #include <strings.h>
 
-#include "../include/database.h"
-#include "../include/hashmap.h"
-#include "../include/logger.h"
+#include "core/database.h"
+#include "utils/hashmap.h"
+#include "utils/logger.h"
 
 HashMapResult hashmap_initialize(size_t capacity, HashMap **out_map) {
   *out_map = malloc(sizeof(HashMap));

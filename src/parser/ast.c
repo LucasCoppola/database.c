@@ -2,7 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../../include/parser/ast.h"
+#include "core/table.h"
+#include "parser/ast.h"
 
 ASTNode *create_ast_node(NodeType type) {
   ASTNode *node = malloc(sizeof(ASTNode));

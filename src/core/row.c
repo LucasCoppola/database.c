@@ -3,10 +3,13 @@
 #include <string.h>
 #include <strings.h>
 
-#include "../include/database.h"
-#include "../include/hashmap.h"
-#include "../include/logger.h"
-#include "../include/storage.h"
+#include "core/row.h"
+#include "core/table.h"
+
+#include "storage/cursor.h"
+#include "storage/pager.h"
+#include "utils/hashmap.h"
+#include "utils/logger.h"
 
 RowResult insert_row(Table *table, Row *row) {
   if (table == NULL) {

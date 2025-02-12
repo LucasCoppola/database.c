@@ -1,6 +1,6 @@
 #include <stdbool.h>
 
-#include "../include/hashmap.h"
+#include "utils/hashmap.h"
 
 HashMapIterator *hashmap_iterator_init(HashMap *map) {
   if (map == NULL) {

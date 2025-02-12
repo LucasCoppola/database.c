@@ -4,10 +4,14 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "../../include/database.h"
-#include "../../include/hashmap.h"
-#include "../../include/logger.h"
-#include "../../include/storage.h"
+#include "core/database.h"
+#include "core/table.h"
+
+#include "storage/pager.h"
+#include "storage/table_header.h"
+
+#include "utils/hashmap.h"
+#include "utils/logger.h"
 
 void header_tables_store(Database *db) {
   header_tables_count_write(db->pager, db->pager->num_tables);

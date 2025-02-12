@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <strings.h>
 
-#include "../include/database.h"
-#include "../include/meta_commands.h"
+#include "core/database.h"
+#include "meta_commands.h"
 
 void help() {
   printf("Available commands:\n");

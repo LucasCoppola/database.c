@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../../../include/parser/tokenizer.h"
+#include "parser/tokenizer.h"
 
 const char *keywords[] = {"CREATE", "DROP",   "TABLE", "SELECT",  "INSERT",
                           "DELETE", "FROM",   "WHERE", "INTO",    "VALUES",

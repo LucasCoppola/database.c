@@ -3,9 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../../../include/parser/ast.h"
-#include "../../../include/parser/parser.h"
-#include "../../../include/parser/tokenizer.h"
+#include "parser/ast.h"
+#include "parser/parser.h"
+#include "parser/tokenizer.h"
 
 ASTNode *parser_row_select(const Token *tokens, int token_count) {
   if (!expect_token(tokens, 0, TOKEN_KEYWORD, "SELECT")) {

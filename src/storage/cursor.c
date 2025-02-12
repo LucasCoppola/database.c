@@ -1,22 +1,33 @@
-#include "../../include/database.h"
-#include "../../include/logger.h"
-#include "../../include/storage.h"
+#include <stdlib.h>
+
+#include "storage/pager.h"
+
+#include "core/table.h"
+#include "storage/cursor.h"
+#include "utils/logger.h"
+
+static void cursor_init(Cursor *cursor, Table *table, uint32_t row_num,
+                        bool end_of_table) {
+  cursor->table = table;
+  cursor->row_num = row_num;
+  cursor->end_of_table = end_of_table;
+}
 
 Cursor *table_start(Table *table) {
   Cursor *cursor = malloc(sizeof(Cursor));
-  cursor->table = table;
-  cursor->row_num = 0;
-  cursor->end_of_table = (table->num_rows == 0);
-
+  if (cursor == NULL) {
+    return NULL;
+  }
+  cursor_init(cursor, table, 0, (table->num_rows == 0));
   return cursor;
 }
 
 Cursor *table_end(Table *table) {
   Cursor *cursor = malloc(sizeof(Cursor));
-  cursor->table = table;
-  cursor->row_num = table->num_rows;
-  cursor->end_of_table = true;
-
+  if (cursor == NULL) {
+    return NULL;
+  }
+  cursor_init(cursor, table, table->num_rows, true);
   return cursor;
 }
 
