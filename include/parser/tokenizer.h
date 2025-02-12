@@ -19,7 +19,7 @@ typedef enum {
     TOKEN_EOF          // End of input
 } TokenType;
 
-typedef struct {
+typedef struct Token {
     char *value;  
     TokenType type;  
     int position;      

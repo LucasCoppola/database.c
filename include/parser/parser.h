@@ -2,6 +2,7 @@
 #define PARSER_H
 
 #include "tokenizer.h"
+#include "core/table.h"
 
 // parser.c
 void* parse(const Token* tokens, int token_count);

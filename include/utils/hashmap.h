@@ -4,10 +4,9 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-// Forward declaration of Table to avoid circular dependency
 typedef struct Table Table;
 
-typedef enum {
+typedef enum HashMapResult {
   HASHMAP_SUCCESS,
   HASHMAP_ALLOCATION_FAILURE,
   BUCKETS_ALLOCATION_FAILURE,
@@ -29,7 +28,7 @@ typedef struct Bucket {
   struct Bucket *next;
 } Bucket;
 
-typedef struct {
+typedef struct HashMap {
   size_t capacity;
   size_t size;
   Bucket **buckets;

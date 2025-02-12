@@ -1,6 +1,8 @@
 #ifndef EXECUTOR_H
 #define EXECUTOR_H
 
+typedef struct ASTNode ASTNode;
+
 typedef enum { 
   EXECUTE_SUCCESS, 
   EXECUTE_FAILURE, 

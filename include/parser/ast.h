@@ -5,6 +5,8 @@
 
 #define MAX_COLUMNS 10
 
+typedef struct Column Column;
+
 typedef enum {
     NODE_CREATE_TABLE,
     NODE_DROP_TABLE,
@@ -12,17 +14,6 @@ typedef enum {
     NODE_INSERT,
     NODE_DELETE
 } NodeType;
-
-typedef enum {
-    TYPE_INT,
-    TYPE_TEXT,
-    TYPE_UNKNOWN
-} DataType;
-
-typedef struct {
-    char* name;
-    DataType type;
-} Column;
 
 typedef struct {
     Column* columns;
@@ -40,7 +31,7 @@ typedef struct {
     bool select_all;
 } SelectRows;
 
-typedef struct {
+typedef struct ASTNode {
     NodeType type;
     char* table_name;
     CreateTable create_table;

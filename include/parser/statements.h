@@ -1,8 +1,9 @@
 #ifndef STATEMENTS_H
 #define STATEMENTS_H
 
-#include "ast.h"
-#include "tokenizer.h"
+typedef struct ASTNode ASTNode;
+typedef struct Token Token;
+typedef struct Column Column;
 
 // create_table.c
 ASTNode* parser_table_create(const Token* tokens, int token_count);

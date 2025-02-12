@@ -4,7 +4,7 @@
 #define META_CMD_HELP ".help"
 #define META_CMD_EXIT  ".exit"
 
-#include <stdio.h>
+typedef struct Database Database;
 
 void process_meta_command(char *command, Database *db);
 
