@@ -3,10 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../../../include/ast.h"
-#include "../../../include/parser.h"
-#include "../../../include/statements.h"
-#include "../../../include/tokenizer.h"
+#include "../../../include/parser/ast.h"
+#include "../../../include/parser/parser.h"
+#include "../../../include/parser/statements.h"
+#include "../../../include/parser/tokenizer.h"
 
 ASTNode *parser_table_create(const Token *tokens, int token_count) {
   if (!expect_token(tokens, 0, TOKEN_KEYWORD, "CREATE") ||

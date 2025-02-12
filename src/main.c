@@ -2,13 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../include/ast.h"
+#include "../include/parser/ast.h"
+#include "../include/parser/parser.h"
+#include "../include/parser/tokenizer.h"
+
 #include "../include/database.h"
 #include "../include/executor.h"
 #include "../include/logger.h"
 #include "../include/meta_commands.h"
-#include "../include/parser.h"
-#include "../include/tokenizer.h"
 
 #define MAX_INPUT_LENGTH 256
 

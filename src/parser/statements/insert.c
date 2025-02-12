@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../../../include/ast.h"
-#include "../../../include/parser.h"
+#include "../../../include/parser/ast.h"
+#include "../../../include/parser/parser.h"
 
 ASTNode *parser_row_insert(const Token *tokens, int token_count) {
   // INSERT INTO table_name VALUES (value1, value2, value3);

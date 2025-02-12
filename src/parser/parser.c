@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../../include/statements.h"
-#include "../../include/tokenizer.h"
+#include "../../include/parser/statements.h"
+#include "../../include/parser/tokenizer.h"
 
 void *parse(const Token *tokens, int token_count) {
   if (token_count == 0)

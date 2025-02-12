@@ -1,10 +1,11 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "../../../include/ast.h"
+#include "../../../include/parser/ast.h"
+
 #include "../../../include/database.h"
 #include "../../../include/executor.h"
-#include "logger.h"
+#include "../../../include/logger.h"
 
 ExecuteResult execute_create_table(Database *db, ASTNode *node) {
   char *table_name = node->table_name;
