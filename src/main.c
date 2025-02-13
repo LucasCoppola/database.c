@@ -61,10 +61,10 @@ int main(int argc, char *argv[]) {
     }
 
     tokenize_query(state);
-    printf("Tokens:\n");
-    for (int i = 0; i < state->token_count; i++) {
-      printf("%s\n", state->tokens[i].value);
-    }
+    // printf("Tokens:\n");
+    // for (int i = 0; i < state->token_count; i++) {
+    //   printf("%s\n", state->tokens[i].value);
+    // }
 
     ASTNode *ast_node = parse(state->tokens, state->token_count);
     if (ast_node == NULL) {

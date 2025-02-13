@@ -11,6 +11,7 @@
 
 typedef struct Database Database;  
 typedef struct Pager Pager;
+typedef struct ASTNode ASTNode;
 
 typedef enum TableResult {
     TABLE_SUCCESS,
@@ -37,18 +38,21 @@ typedef struct Table {
     uint32_t next_id; 
     uint32_t num_rows;
     uint32_t page_offset;
+    uint32_t num_columns;
     char name[MAX_NAME_LENGTH];
     Pager *pager;
+    Column *columns;
     void* pages[TABLE_MAX_PAGES];  
 } Table;
 
 // table.c
-TableResult table_create(Database* db, char* name, Table **out_table);
+TableResult table_create(Database* db, ASTNode *node, Table **out_table);
 TableResult table_find(Database* db, char* name, Table **out_table);
 TableResult table_drop(Database *db, char *name);
 
 // table_utils.c
 TableResult table_initialize(Table *table, char *name, Database *db);
+TableResult table_columns_set(Table *out_table, Column *columns, uint32_t num_cols);
 off_t table_position(Database *db);
 uint32_t table_pages_count(Table *table);
 

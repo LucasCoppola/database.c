@@ -8,20 +8,23 @@
 #include "core/database.h"
 #include "core/table.h"
 
+#include "parser/ast.h"
+#include "parser/statements.h"
 #include "storage/pager.h"
 #include "utils/hashmap.h"
 #include "utils/logger.h"
 
-TableResult table_create(Database *db, char *name, Table **out_table) {
+TableResult table_create(Database *db, ASTNode *node, Table **out_table) {
   if (db == NULL) {
     return TABLE_INVALID_DB;
   }
 
-  if (hashmap_get(db->tables, name, NULL) == HASHMAP_SUCCESS) {
+  char *table_name = node->table_name;
+  if (hashmap_get(db->tables, table_name, NULL) == HASHMAP_SUCCESS) {
     return TABLE_ALREADY_EXISTS;
   }
 
-  if (strlen(name) >= MAX_NAME_LENGTH) {
+  if (strlen(table_name) >= MAX_NAME_LENGTH) {
     return TABLE_NAME_TOO_LONG;
   }
 
@@ -30,16 +33,26 @@ TableResult table_create(Database *db, char *name, Table **out_table) {
     return TABLE_ALLOC_ERROR;
   }
 
-  TableResult result = table_initialize(table, name, db);
-  if (result != TABLE_SUCCESS) {
+  TableResult init_result = table_initialize(table, table_name, db);
+  if (init_result != TABLE_SUCCESS) {
     free(table);
-    return result;
+    return init_result;
   }
 
-  HashMapResult map_result = hashmap_set(db->tables, name, table);
+  Column *columns = node->create_table.columns;
+  int num_columns = node->create_table.num_columns;
+  TableResult set_cols_result = table_columns_set(table, columns, num_columns);
+  if (set_cols_result != TABLE_SUCCESS) {
+    free(table);
+    columns_free(columns, num_columns);
+    return set_cols_result;
+  }
+
+  HashMapResult map_result = hashmap_set(db->tables, table_name, table);
   if (map_result != HASHMAP_SUCCESS) {
     LOG_ERROR("hashmap", map_result);
     free(table);
+    columns_free(columns, num_columns);
     return TABLE_HASHMAP_SET_ERROR;
   }
 

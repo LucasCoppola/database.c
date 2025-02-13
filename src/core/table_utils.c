@@ -17,11 +17,40 @@ TableResult table_initialize(Table *table, char *name, Database *db) {
   table->name[MAX_NAME_LENGTH - 1] = '\0';
   table->next_id = 1;
   table->num_rows = 0;
-  table->pager = db->pager;
-  table->page_offset = table_position(db);
-  memset(table->pages, 0, sizeof(void *) * TABLE_MAX_PAGES);
 
+  table->pager = db->pager;
   table->pager->num_tables++;
+  table->page_offset = table_position(db);
+
+  table->num_columns = 0;
+  table->columns = NULL;
+
+  memset(table->pages, 0, sizeof(void *) * TABLE_MAX_PAGES);
+  return TABLE_SUCCESS;
+}
+
+TableResult table_columns_set(Table *out_table, Column *columns,
+                              uint32_t num_cols) {
+  out_table->num_columns = num_cols;
+  out_table->columns = malloc(sizeof(Column) * num_cols);
+  if (out_table->columns == NULL) {
+    return TABLE_ALLOC_ERROR;
+  }
+
+  for (uint32_t i = 0; i < num_cols; i++) {
+    out_table->columns[i].name = strdup(columns[i].name);
+    if (out_table->columns[i].name == NULL) {
+      // Clean up previously allocated memory
+      for (uint32_t j = 0; j < i; j++) {
+        free(out_table->columns[j].name);
+      }
+      free(out_table->columns);
+      out_table->columns = NULL;
+      return TABLE_ALLOC_ERROR;
+    }
+    out_table->columns[i].type = columns[i].type;
+  }
+
   return TABLE_SUCCESS;
 }
 
