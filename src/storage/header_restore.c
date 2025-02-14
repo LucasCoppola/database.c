@@ -45,7 +45,29 @@ void header_table_initialize(TableHeader *header, Pager *pager, HashMap *map) {
   table->num_rows = header->num_rows;
   table->next_id = header->next_id;
   table->page_offset = header->page_offset;
+  table->num_columns = header->num_columns;
   strncpy(table->name, header->table_name, MAX_NAME_LENGTH);
+
+  table->columns = malloc(sizeof(Column) * header->num_columns);
+  if (!table->columns) {
+    printf("Failed to allocate cols while restoring header\n");
+    free(table);
+    return;
+  }
+
+  for (uint32_t i = 0; i < header->num_columns; i++) {
+    table->columns[i].name = strdup(header->columns[i].name);
+    if (!table->columns[i].name) {
+      // free previously allocated memory
+      for (uint32_t j = 0; j < i; j++) {
+        free(table->columns[j].name);
+      }
+      free(table->columns);
+      free(table);
+      return;
+    }
+    table->columns[i].type = header->columns[i].type;
+  }
 
   HashMapResult result = hashmap_set(map, table->name, table);
   if (result != HASHMAP_SUCCESS) {
@@ -60,6 +82,18 @@ void header_table_initialize(TableHeader *header, Pager *pager, HashMap *map) {
       LOG_ERROR("pager", result);
       return;
     }
+  }
+
+  // print table
+  printf("Table: %s\n", table->name);
+  printf("Num rows: %d\n", table->num_rows);
+  printf("Next id: %d\n", table->next_id);
+  printf("Page offset: %d\n", table->page_offset);
+  printf("Num columns: %d\n", table->num_columns);
+
+  for (uint32_t i = 0; i < table->num_columns; i++) {
+    printf("Column name: %s\n", table->columns[i].name);
+    printf("Column type: %d\n", table->columns[i].type);
   }
 }
 

@@ -13,12 +13,18 @@ typedef struct Pager Pager;
 typedef struct Table Table;
 
 #define MAX_NAME_LENGTH 64
+#define MAX_COLUMNS 10
 
 typedef struct {
     uint32_t next_id;
     uint32_t num_rows;
     uint32_t page_offset;
+    uint32_t num_columns;
     char table_name[MAX_NAME_LENGTH];
+    struct {
+        char name[MAX_NAME_LENGTH];
+        uint32_t type;
+    } columns[MAX_COLUMNS];
 } TableHeader;
 
 #define HEADER_SIZE (sizeof(TableHeader))

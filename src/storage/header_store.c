@@ -1,6 +1,7 @@
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -43,6 +44,23 @@ void header_table_write(Pager *pager, Table *table, size_t idx) {
   header.num_rows = table->num_rows;
   header.next_id = table->next_id;
   header.page_offset = table->page_offset;
+  header.num_columns = table->num_columns;
+
+  for (uint32_t i = 0; i < table->num_columns; i++) {
+    strncpy(header.columns[i].name, table->columns[i].name, MAX_NAME_LENGTH);
+    header.columns[i].type = table->columns[i].type;
+  }
+
+  printf("table name: %s\n", header.table_name);
+  printf("num rows: %d\n", header.num_rows);
+  printf("next id: %d\n", header.next_id);
+  printf("page offset: %d\n", header.page_offset);
+  printf("num columns: %d\n", header.num_columns);
+
+  for (uint32_t i = 0; i < header.num_columns; i++) {
+    printf("column name: %s\n", header.columns[i].name);
+    printf("column type: %d\n", header.columns[i].type);
+  }
 
   off_t header_position = sizeof(uint32_t) + (idx * HEADER_SIZE);
   lseek(pager->file_descriptor, header_position, SEEK_SET);

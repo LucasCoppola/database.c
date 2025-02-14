@@ -3,8 +3,6 @@
 
 #include <stdbool.h>
 
-#define MAX_COLUMNS 10
-
 typedef struct Column Column;
 
 typedef enum {
