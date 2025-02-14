@@ -39,15 +39,11 @@ TableResult table_columns_set(Table *out_table, Column *columns,
 
   for (uint32_t i = 0; i < num_cols; i++) {
     out_table->columns[i].name = strdup(columns[i].name);
-    if (out_table->columns[i].name == NULL) {
-      // Clean up previously allocated memory
-      for (uint32_t j = 0; j < i; j++) {
-        free(out_table->columns[j].name);
-      }
-      free(out_table->columns);
-      out_table->columns = NULL;
+    if (!out_table->columns[i].name) {
+      table_free(out_table);
       return TABLE_ALLOC_ERROR;
     }
+
     out_table->columns[i].type = columns[i].type;
   }
 

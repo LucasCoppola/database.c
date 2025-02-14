@@ -5,6 +5,7 @@
 #include <strings.h>
 
 #include "core/database.h"
+#include "core/table.h"
 
 #include "storage/pager.h"
 #include "storage/table_header.h"
@@ -47,6 +48,17 @@ void database_close(Database *db) {
     return;
 
   header_tables_store(db);
+
+  HashMapIterator *iterator = hashmap_iterator_init(db->tables);
+  while (hashmap_iterator_has_next(iterator)) {
+    Bucket *bucket = hashmap_iterator_next(iterator);
+    if (bucket && bucket->value) {
+      Table *table = bucket->value;
+      table_free(table);
+    }
+  }
+
+  hashmap_iterator_free(iterator);
   pager_close(db->pager);
   database_free(db);
 }

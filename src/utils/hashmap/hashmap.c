@@ -120,7 +120,6 @@ HashMapResult hashmap_free(HashMap *map) {
     Bucket *bucket = map->buckets[i];
     while (bucket != NULL) {
       Bucket *next = bucket->next;
-      free(bucket->value);
       free(bucket->key);
       free(bucket);
       bucket = next;

@@ -35,7 +35,7 @@ TableResult table_create(Database *db, ASTNode *node, Table **out_table) {
 
   TableResult init_result = table_initialize(table, table_name, db);
   if (init_result != TABLE_SUCCESS) {
-    free(table);
+    table_free(table);
     return init_result;
   }
 
@@ -43,16 +43,14 @@ TableResult table_create(Database *db, ASTNode *node, Table **out_table) {
   int num_columns = node->create_table.num_columns;
   TableResult set_cols_result = table_columns_set(table, columns, num_columns);
   if (set_cols_result != TABLE_SUCCESS) {
-    free(table);
-    columns_free(columns, num_columns);
+    table_free(table);
     return set_cols_result;
   }
 
   HashMapResult map_result = hashmap_set(db->tables, table_name, table);
   if (map_result != HASHMAP_SUCCESS) {
     LOG_ERROR("hashmap", map_result);
-    free(table);
-    columns_free(columns, num_columns);
+    table_free(table);
     return TABLE_HASHMAP_SET_ERROR;
   }
 
@@ -80,11 +78,35 @@ TableResult table_drop(Database *db, char *name) {
     return TABLE_INVALID_DB;
   }
 
-  if (hashmap_delete(db->tables, name) == HASHMAP_SUCCESS) {
-    db->pager->num_tables--;
-    return TABLE_SUCCESS;
+  Table *table = NULL;
+  if (hashmap_get(db->tables, name, &table) == HASHMAP_SUCCESS) {
+    if (hashmap_delete(db->tables, name) == HASHMAP_SUCCESS) {
+      db->pager->num_tables--;
+      table_free(table);
+      return TABLE_SUCCESS;
+    }
   }
 
   printf("Table '%s' not found\n", name);
   return TABLE_NOT_FOUND;
+}
+
+void table_free(Table *table) {
+  if (!table)
+    return;
+
+  if (table->columns) {
+    for (uint32_t i = 0; i < table->num_columns; i++) {
+      free(table->columns[i].name);
+    }
+    free(table->columns);
+  }
+
+  for (uint32_t i = 0; i < TABLE_MAX_PAGES; i++) {
+    if (table->pages[i]) {
+      free(table->pages[i]);
+    }
+  }
+
+  free(table);
 }
