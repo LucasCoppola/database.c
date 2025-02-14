@@ -9,7 +9,7 @@
 
 #include "storage/pager.h"
 #include "storage/table_header.h"
-#include "utils/hashmap.h"
+#include "core/hashmap.h"
 #include "utils/logger.h"
 
 DatabaseResult database_open(Database **out_db, const char *filename) {

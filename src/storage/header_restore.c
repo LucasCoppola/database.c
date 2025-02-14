@@ -9,7 +9,7 @@
 #include "storage/table_header.h"
 
 #include "core/table.h"
-#include "utils/hashmap.h"
+#include "core/hashmap.h"
 #include "utils/logger.h"
 
 void header_tables_restore(Pager *pager, HashMap *map) {

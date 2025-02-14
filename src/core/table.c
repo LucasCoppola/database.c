@@ -11,7 +11,7 @@
 #include "parser/ast.h"
 #include "parser/statements.h"
 #include "storage/pager.h"
-#include "utils/hashmap.h"
+#include "core/hashmap.h"
 #include "utils/logger.h"
 
 TableResult table_create(Database *db, ASTNode *node, Table **out_table) {

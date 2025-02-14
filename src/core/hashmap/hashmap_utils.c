@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "utils/hashmap.h"
+#include "core/hashmap.h"
 
 size_t hash(const char *key, size_t capacity) {
   size_t hash = 5381;

@@ -4,7 +4,7 @@
 #include "core/database.h"
 
 #include "storage/pager.h"
-#include "utils/hashmap.h"
+#include "core/hashmap.h"
 #include "utils/logger.h"
 
 #include "core/row.h"

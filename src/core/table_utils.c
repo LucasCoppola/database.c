@@ -10,7 +10,7 @@
 
 #include "storage/cursor.h"
 #include "storage/pager.h"
-#include "utils/hashmap.h"
+#include "core/hashmap.h"
 
 TableResult table_initialize(Table *table, char *name, Database *db) {
   strncpy(table->name, name, MAX_NAME_LENGTH - 1);

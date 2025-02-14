@@ -8,7 +8,7 @@
 
 #include "storage/cursor.h"
 #include "storage/pager.h"
-#include "utils/hashmap.h"
+#include "core/hashmap.h"
 #include "utils/logger.h"
 
 RowResult insert_row(Table *table, Row *row) {

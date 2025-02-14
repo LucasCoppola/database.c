@@ -11,7 +11,7 @@
 #include "storage/pager.h"
 #include "storage/table_header.h"
 
-#include "utils/hashmap.h"
+#include "core/hashmap.h"
 #include "utils/logger.h"
 
 void header_tables_store(Database *db) {
