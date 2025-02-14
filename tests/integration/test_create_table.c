@@ -9,7 +9,7 @@
 #include "parser/statements.h"
 #include "parser/tokenizer.h"
 
-#include "../test_utils.h"
+#include "../unit/utils/test_utils.h"
 
 static const char *TEST_DB = "test_create_table.db";
 

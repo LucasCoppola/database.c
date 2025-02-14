@@ -1,10 +1,10 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "test_create_table.c"
-#include "test_drop_table.c"
-#include "test_insert.c"
-#include "test_select.c"
+#include "statements/test_create_table.c"
+#include "statements/test_drop_table.c"
+#include "statements/test_insert.c"
+#include "statements/test_select.c"
 
 int main() {
   printf("Running CREATE TABLE tests...\n");

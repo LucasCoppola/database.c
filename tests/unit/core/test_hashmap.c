@@ -4,8 +4,8 @@
 #include <string.h>
 
 #include "core/database.h"
+#include "core/hashmap.h"
 #include "core/table.h"
-#include "utils/hashmap.h"
 
 Table *create_dummy_table(const char *name, uint32_t id) {
   Table *table = malloc(sizeof(Table));
@@ -15,6 +15,26 @@ Table *create_dummy_table(const char *name, uint32_t id) {
   table->num_rows = 0;
   memset(table->pages, 0, sizeof(void *) * TABLE_MAX_PAGES);
   return table;
+}
+
+void test_hashmap_free(HashMap *map) {
+  if (map == NULL) {
+    return;
+  }
+
+  for (size_t i = 0; i < map->capacity; i++) {
+    Bucket *bucket = map->buckets[i];
+    while (bucket != NULL) {
+      Bucket *next = bucket->next;
+      free(bucket->value);
+      free(bucket->key);
+      free(bucket);
+      bucket = next;
+    }
+  }
+
+  free(map->buckets);
+  free(map);
 }
 
 void test_hashmap_initialization() {
@@ -27,7 +47,7 @@ void test_hashmap_initialization() {
   assert(map->size == 0);
   assert(map->buckets != NULL);
 
-  hashmap_free(map);
+  test_hashmap_free(map);
   printf("✓ Initialization test passed\n");
 }
 
@@ -56,7 +76,7 @@ void test_hashmap_set_and_get() {
   assert(hashmap_set(map, "products", table2) == HASHMAP_SUCCESS);
   assert(map->size == 2);
 
-  hashmap_free(map);
+  test_hashmap_free(map);
   printf("✓ Set and Get test passed\n");
 }
 
@@ -74,7 +94,7 @@ void test_hashmap_delete() {
   // Test deleting non-existent key
   assert(hashmap_delete(map, "nonexistent") == HASHMAP_KEY_NOT_FOUND);
 
-  hashmap_free(map);
+  test_hashmap_free(map);
   printf("✓ Delete test passed\n");
 }
 
@@ -102,7 +122,7 @@ void test_hashmap_resize() {
     assert(retrieved_table->next_id == i);
   }
 
-  hashmap_free(map);
+  test_hashmap_free(map);
   printf("✓ Resize test passed\n");
 }
 
@@ -122,7 +142,7 @@ void test_hashmap_collisions() {
   assert(hashmap_get(map, "users", &retrieved1) == HASHMAP_SUCCESS);
   assert(hashmap_get(map, "settings", &retrieved2) == HASHMAP_SUCCESS);
 
-  hashmap_free(map);
+  test_hashmap_free(map);
   printf("✓ Collision test passed\n");
 }
 
@@ -151,7 +171,7 @@ void test_memory_leaks() {
   hashmap_set(map, "test", table1);
   hashmap_set(map, "test", table2); // Should free table1
 
-  hashmap_free(map);
+  test_hashmap_free(map);
   printf("✓ Memory leak test completed\n");
 }
 
@@ -176,7 +196,7 @@ void test_stress() {
     assert(hashmap_get(map, key, &retrieved_table) == HASHMAP_SUCCESS);
   }
 
-  hashmap_free(map);
+  test_hashmap_free(map);
   printf("✓ Stress test passed\n");
 }
 

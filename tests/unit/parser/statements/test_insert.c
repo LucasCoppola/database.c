@@ -7,7 +7,7 @@
 #include "parser/statements.h"
 #include "parser/tokenizer.h"
 
-#include "../test_utils.h"
+#include "../../utils/test_utils.h"
 
 void test_insert(const char *query, bool should_pass,
                  const char *expected_table_name, const char **expected_values,
