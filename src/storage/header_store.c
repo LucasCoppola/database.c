@@ -30,7 +30,7 @@ void header_tables_write(Database *db) {
     header_table_write(db->pager, table, i);
     PagerResult result = pager_pages_flush(db->pager, table);
     if (result != PAGER_SUCCESS) {
-      LOG_ERROR("pager", result);
+      LOG_ERROR("pager", "flush", result);
       return;
     }
   }
@@ -49,17 +49,6 @@ void header_table_write(Pager *pager, Table *table, size_t idx) {
   for (uint32_t i = 0; i < table->num_columns; i++) {
     strncpy(header.columns[i].name, table->columns[i].name, MAX_NAME_LENGTH);
     header.columns[i].type = table->columns[i].type;
-  }
-
-  printf("table name: %s\n", header.table_name);
-  printf("num rows: %d\n", header.num_rows);
-  printf("next id: %d\n", header.next_id);
-  printf("page offset: %d\n", header.page_offset);
-  printf("num columns: %d\n", header.num_columns);
-
-  for (uint32_t i = 0; i < header.num_columns; i++) {
-    printf("column name: %s\n", header.columns[i].name);
-    printf("column type: %d\n", header.columns[i].type);
   }
 
   off_t header_position = sizeof(uint32_t) + (idx * HEADER_SIZE);

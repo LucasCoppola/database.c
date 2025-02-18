@@ -6,7 +6,6 @@ typedef struct ASTNode ASTNode;
 typedef enum { 
   EXECUTE_SUCCESS, 
   EXECUTE_FAILURE, 
-  EXECUTE_TABLE_FULL,
 } ExecuteResult;
 
 ExecuteResult execute_ast(Database *db, ASTNode *node);

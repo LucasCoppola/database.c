@@ -34,7 +34,7 @@ HashMapResult hashmap_set(HashMap *map, char *key, Table *value) {
   if (loadFactor > 0.7) {
     HashMapResult resize_result = hashmap_resize(map);
     if (resize_result != HASHMAP_SUCCESS) {
-      LOG_ERROR("hashmap", HASHMAP_RESIZE_FAILURE);
+      LOG_ERROR("hashmap", "resize", HASHMAP_RESIZE_FAILURE);
       return HASHMAP_RESIZE_FAILURE;
     }
   }

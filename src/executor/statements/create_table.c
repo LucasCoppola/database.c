@@ -12,7 +12,7 @@ ExecuteResult execute_create_table(Database *db, ASTNode *node) {
   Table *out_table = NULL;
   TableResult table_result = table_create(db, node, &out_table);
   if (table_result != TABLE_SUCCESS) {
-    LOG_ERROR("table", table_result);
+    LOG_ERROR("table", "create", table_result);
     return EXECUTE_FAILURE;
   }
 

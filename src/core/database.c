@@ -7,9 +7,9 @@
 #include "core/database.h"
 #include "core/table.h"
 
+#include "core/hashmap.h"
 #include "storage/pager.h"
 #include "storage/table_header.h"
-#include "core/hashmap.h"
 #include "utils/logger.h"
 
 DatabaseResult database_open(Database **out_db, const char *filename) {
@@ -21,7 +21,7 @@ DatabaseResult database_open(Database **out_db, const char *filename) {
   Pager *pager = NULL;
   PagerResult pager_result = pager_init(filename, &pager);
   if (pager_result != PAGER_SUCCESS) {
-    LOG_ERROR("pager", pager_result);
+    LOG_ERROR("pager", "init", pager_result);
     free(db);
     return DATABASE_PAGER_INIT_ERROR;
   }
@@ -29,7 +29,7 @@ DatabaseResult database_open(Database **out_db, const char *filename) {
   HashMap *map = NULL;
   HashMapResult map_result = hashmap_initialize(10, &map);
   if (map_result != HASHMAP_SUCCESS) {
-    LOG_ERROR("hashmap", map_result);
+    LOG_ERROR("hashmap", "init", map_result);
     free(pager);
     free(db);
     return DATABASE_HASHMAP_INIT_ERROR;

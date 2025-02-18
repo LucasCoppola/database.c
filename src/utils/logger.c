@@ -3,16 +3,18 @@
 
 #include "core/database.h"
 
-#include "storage/pager.h"
 #include "core/hashmap.h"
+#include "storage/pager.h"
 #include "utils/logger.h"
 
 #include "core/row.h"
 #include "core/table.h"
 
-void log_error(const ErrorInfo *error) {
-  fprintf(stderr, "Error in %s: %s.\n", error->context, error->message);
-}
+static struct {
+  Error current;
+  char formatted[MAX_ERROR_LENGTH];
+  bool has_error;
+} ErrorState = {0};
 
 const char *get_error_message(const char *context, int code) {
   if (context == NULL) {
@@ -40,6 +42,19 @@ const char *get_error_message(const char *context, int code) {
   }
 
   return "Unknown error context";
+}
+
+void error_report(const Error *error) {
+  ErrorState.current = *error;
+  ErrorState.has_error = true;
+
+  const char *error_msg = get_error_message(error->component, error->code);
+
+  snprintf(ErrorState.formatted, MAX_ERROR_LENGTH,
+           "[%s:%d] %s::%s failed: %s (code %d)", error->file, error->line,
+           error->component, error->operation, error_msg, error->code);
+
+  fprintf(stderr, "%s\n", ErrorState.formatted);
 }
 
 const char *database_error_string(DatabaseResult result) {

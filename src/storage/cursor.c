@@ -39,7 +39,7 @@ void *cursor_value(Cursor *cursor) {
   PagerResult result =
       pager_page_load(cursor->table->pager, page_num, cursor->table, &page);
   if (result != PAGER_SUCCESS || page == NULL) {
-    LOG_ERROR("pager", result);
+    LOG_ERROR("pager", "load", result);
     return NULL;
   }
 

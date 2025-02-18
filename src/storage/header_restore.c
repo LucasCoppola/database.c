@@ -8,8 +8,8 @@
 #include "storage/pager.h"
 #include "storage/table_header.h"
 
-#include "core/table.h"
 #include "core/hashmap.h"
+#include "core/table.h"
 #include "utils/logger.h"
 
 void header_tables_restore(Pager *pager, HashMap *map) {
@@ -66,7 +66,7 @@ void header_table_initialize(TableHeader *header, Pager *pager, HashMap *map) {
 
   HashMapResult result = hashmap_set(map, table->name, table);
   if (result != HASHMAP_SUCCESS) {
-    LOG_ERROR("hashmap", result);
+    LOG_ERROR("hashmap", "set", result);
     table_free(table);
     return;
   }
@@ -75,22 +75,10 @@ void header_table_initialize(TableHeader *header, Pager *pager, HashMap *map) {
     void *page = NULL;
     PagerResult result = pager_page_load(pager, i, table, &page);
     if (result != PAGER_SUCCESS) {
-      LOG_ERROR("pager", result);
+      LOG_ERROR("pager", "load", result);
       table_free(table);
       return;
     }
-  }
-
-  // print table
-  printf("Table: %s\n", table->name);
-  printf("Num rows: %d\n", table->num_rows);
-  printf("Next id: %d\n", table->next_id);
-  printf("Page offset: %d\n", table->page_offset);
-  printf("Num columns: %d\n", table->num_columns);
-
-  for (uint32_t i = 0; i < table->num_columns; i++) {
-    printf("Column name: %s\n", table->columns[i].name);
-    printf("Column type: %d\n", table->columns[i].type);
   }
 }
 

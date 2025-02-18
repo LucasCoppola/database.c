@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
 
   DatabaseResult db_result = database_open(&db, filename);
   if (db_result != DATABASE_SUCCESS) {
-    LOG_ERROR("database", db_result);
+    LOG_ERROR("database", "open", db_result);
     return 1;
   }
 
@@ -61,10 +61,6 @@ int main(int argc, char *argv[]) {
     }
 
     tokenize_query(state);
-    // printf("Tokens:\n");
-    // for (int i = 0; i < state->token_count; i++) {
-    //   printf("%s\n", state->tokens[i].value);
-    // }
 
     ASTNode *ast_node = parse(state->tokens, state->token_count);
     if (ast_node == NULL) {
@@ -78,11 +74,8 @@ int main(int argc, char *argv[]) {
     case EXECUTE_SUCCESS:
       printf("Executed.\n");
       break;
-    case EXECUTE_TABLE_FULL:
-      printf("Error: Table full.\n");
-      break;
     case EXECUTE_FAILURE:
-      printf("Error: Execution failed.\n");
+      printf("Execution failed.\n");
       break;
     }
 

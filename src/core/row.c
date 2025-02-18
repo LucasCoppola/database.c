@@ -6,9 +6,9 @@
 #include "core/row.h"
 #include "core/table.h"
 
+#include "core/hashmap.h"
 #include "storage/cursor.h"
 #include "storage/pager.h"
-#include "core/hashmap.h"
 #include "utils/logger.h"
 
 RowResult insert_row(Table *table, Row *row) {
@@ -32,7 +32,7 @@ RowResult insert_row(Table *table, Row *row) {
   if (row_offset == 0) {
     PagerResult result = pager_page_alloc(page_num, table);
     if (result != PAGER_SUCCESS) {
-      LOG_ERROR("pager", result);
+      LOG_ERROR("pager", "allocation", result);
       return ROW_ALLOC_PAGE_ERROR;
     }
   }
@@ -40,7 +40,7 @@ RowResult insert_row(Table *table, Row *row) {
   PagerResult result = pager_page_load(table->pager, page_num, table, &page);
   if (result != PAGER_SUCCESS) {
     free(cursor);
-    LOG_ERROR("pager", result);
+    LOG_ERROR("pager", "load", result);
     return ROW_GET_PAGE_ERROR;
   }
 
@@ -54,7 +54,7 @@ RowResult insert_row(Table *table, Row *row) {
 
   PagerResult pager_result = pager_page_flush(table->pager, page_num, table);
   if (pager_result != PAGER_SUCCESS) {
-    LOG_ERROR("pager", pager_result);
+    LOG_ERROR("pager", "flush", pager_result);
     return ROW_FLUSH_PAGE_ERROR;
   }
 

@@ -8,10 +8,10 @@
 #include "core/database.h"
 #include "core/table.h"
 
+#include "core/hashmap.h"
 #include "parser/ast.h"
 #include "parser/statements.h"
 #include "storage/pager.h"
-#include "core/hashmap.h"
 #include "utils/logger.h"
 
 TableResult table_create(Database *db, ASTNode *node, Table **out_table) {
@@ -20,7 +20,8 @@ TableResult table_create(Database *db, ASTNode *node, Table **out_table) {
   }
 
   char *table_name = node->table_name;
-  if (hashmap_get(db->tables, table_name, NULL) == HASHMAP_SUCCESS) {
+  Table *tmp_table = NULL;
+  if (hashmap_get(db->tables, table_name, &tmp_table) == HASHMAP_SUCCESS) {
     return TABLE_ALREADY_EXISTS;
   }
 
@@ -49,7 +50,7 @@ TableResult table_create(Database *db, ASTNode *node, Table **out_table) {
 
   HashMapResult map_result = hashmap_set(db->tables, table_name, table);
   if (map_result != HASHMAP_SUCCESS) {
-    LOG_ERROR("hashmap", map_result);
+    LOG_ERROR("hashmap", "set", map_result);
     table_free(table);
     return TABLE_HASHMAP_SET_ERROR;
   }
