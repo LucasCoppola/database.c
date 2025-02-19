@@ -4,8 +4,10 @@
 #include "tokenizer.h"
 #include "core/table.h"
 
+typedef struct ASTNode ASTNode;
+
 // parser.c
-void* parse(const Token* tokens, int token_count);
+ASTNode* parse(const Token* tokens, int token_count);
 
 // parser_utils.c
 bool expect_token(const Token *tokens, int index, TokenType type, const char *value);

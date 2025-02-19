@@ -5,13 +5,14 @@
 
 #include "parser/statements.h"
 #include "parser/tokenizer.h"
+#include "utils/parser_logger.h"
 
-void *parse(const Token *tokens, int token_count) {
+ASTNode *parse(const Token *tokens, int token_count) {
   if (token_count == 0)
     return NULL;
 
   if (tokens[0].type != TOKEN_KEYWORD) {
-    printf("Syntax Error: Expected keyword at start of statement\n");
+    PARSER_LOG_ERROR(tokens[0].position, PARSER_UNEXPECTED_TOKEN, NULL, NULL);
     return NULL;
   }
 
@@ -26,7 +27,7 @@ void *parse(const Token *tokens, int token_count) {
   } else if (strcmp(value, "INSERT") == 0) {
     return parser_row_insert(tokens, token_count);
   } else {
-    fprintf(stderr, "Syntax Error: Unknown statement '%s'\n", value);
+    PARSER_LOG_ERROR(tokens[0].position, PARSER_INVALID_KEYWORD, NULL, NULL);
     return NULL;
   }
 }
