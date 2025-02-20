@@ -90,6 +90,7 @@ void test_hashmap_delete() {
   // Test successful deletion
   assert(hashmap_delete(map, "users") == HASHMAP_SUCCESS);
   assert(map->size == 0);
+  free(table);
 
   // Test deleting non-existent key
   assert(hashmap_delete(map, "nonexistent") == HASHMAP_KEY_NOT_FOUND);
