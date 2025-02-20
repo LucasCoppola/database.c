@@ -14,19 +14,14 @@ ExecuteResult execute_ast(Database *db, ASTNode *node) {
   switch (node->type) {
   case NODE_CREATE_TABLE:
     return execute_create_table(db, node);
-    break;
+  case NODE_DROP_TABLE:
+    return execute_drop_table(db, node);
   // case NODE_INSERT:
-  //   execute_insert(node);
-  //   break;
+  //   return execute_insert(node);
   // case NODE_SELECT:
-  //   execute_select(node);
-  //   break;
-  // case NODE_DROP_TABLE:
-  //   execute_drop_table(node);
-  //   break;
+  //   return execute_select(node);
   // case NODE_DELETE:
-  //   execute_delete(node);
-  //   break;
+  //   return execute_delete(node);
   default:
     fprintf(stderr, "Error: Unknown node type %d\n", node->type);
     return EXECUTE_FAILURE;

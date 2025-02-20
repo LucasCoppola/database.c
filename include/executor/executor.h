@@ -11,5 +11,6 @@ typedef enum {
 ExecuteResult execute_ast(Database *db, ASTNode *node);
 
 ExecuteResult execute_create_table(Database *db, ASTNode *node);
+ExecuteResult execute_drop_table(Database *db, ASTNode *node);
 
 #endif

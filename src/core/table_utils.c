@@ -8,9 +8,9 @@
 #include "core/row.h"
 #include "core/table.h"
 
+#include "core/hashmap.h"
 #include "storage/cursor.h"
 #include "storage/pager.h"
-#include "core/hashmap.h"
 
 TableResult table_initialize(Table *table, char *name, Database *db) {
   strncpy(table->name, name, MAX_NAME_LENGTH - 1);

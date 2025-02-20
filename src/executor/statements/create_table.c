@@ -18,3 +18,13 @@ ExecuteResult execute_create_table(Database *db, ASTNode *node) {
 
   return EXECUTE_SUCCESS;
 }
+
+ExecuteResult execute_drop_table(Database *db, ASTNode *node) {
+  TableResult table_result = table_drop(db, node);
+  if (table_result != TABLE_SUCCESS) {
+    LOG_ERROR("table", "drop", table_result);
+    return EXECUTE_FAILURE;
+  }
+
+  return EXECUTE_SUCCESS;
+}

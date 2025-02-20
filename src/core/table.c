@@ -52,7 +52,7 @@ TableResult table_create(Database *db, ASTNode *node, Table **out_table) {
   if (map_result != HASHMAP_SUCCESS) {
     LOG_ERROR("hashmap", "set", map_result);
     table_free(table);
-    return TABLE_HASHMAP_SET_ERROR;
+    return TABLE_CREATE_ERROR;
   }
 
   *out_table = table;
@@ -74,22 +74,28 @@ TableResult table_find(Database *db, char *name, Table **out_table) {
   return TABLE_NOT_FOUND;
 }
 
-TableResult table_drop(Database *db, char *name) {
+TableResult table_drop(Database *db, ASTNode *node) {
   if (db == NULL) {
     return TABLE_INVALID_DB;
   }
 
+  char *table_name = node->table_name;
   Table *table = NULL;
-  if (hashmap_get(db->tables, name, &table) == HASHMAP_SUCCESS) {
-    if (hashmap_delete(db->tables, name) == HASHMAP_SUCCESS) {
-      db->pager->num_tables--;
-      table_free(table);
-      return TABLE_SUCCESS;
-    }
+  HashMapResult get_result = hashmap_get(db->tables, table_name, &table);
+  if (get_result != HASHMAP_SUCCESS) {
+    LOG_ERROR("hashmap", "get", get_result);
+    return TABLE_NOT_FOUND;
   }
 
-  printf("Table '%s' not found\n", name);
-  return TABLE_NOT_FOUND;
+  table_free(table);
+  HashMapResult delete_result = hashmap_delete(db->tables, table_name);
+  if (delete_result != HASHMAP_SUCCESS) {
+    LOG_ERROR("hashmap", "delete", delete_result);
+    return TABLE_DELETE_ERROR;
+  }
+
+  db->pager->num_tables--;
+  return TABLE_SUCCESS;
 }
 
 void table_free(Table *table) {

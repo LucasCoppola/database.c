@@ -16,11 +16,12 @@ typedef struct ASTNode ASTNode;
 typedef enum TableResult {
     TABLE_SUCCESS,
     TABLE_NOT_FOUND,
-    TABLE_ALLOC_ERROR,
     TABLE_NAME_TOO_LONG,
     TABLE_INVALID_DB,
     TABLE_ALREADY_EXISTS,
-    TABLE_HASHMAP_SET_ERROR
+    TABLE_ALLOC_ERROR,
+    TABLE_CREATE_ERROR,
+    TABLE_DELETE_ERROR,
 } TableResult;
 
 typedef enum {
@@ -48,7 +49,7 @@ typedef struct Table {
 // table.c
 TableResult table_create(Database* db, ASTNode *node, Table **out_table);
 TableResult table_find(Database* db, char* name, Table **out_table);
-TableResult table_drop(Database *db, char *name);
+TableResult table_drop(Database* db, ASTNode *node);
 void table_free(Table *table);
 
 // table_utils.c
