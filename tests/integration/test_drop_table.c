@@ -17,14 +17,12 @@ static const char *TEST_DB = "test_drop_table.db";
 void test_drop_table_success() {
   printf("Test: Dropping an existing table\n");
 
-  // Setup
   remove(TEST_DB);
   Database *db = NULL;
   DatabaseResult db_result = database_open(&db, TEST_DB);
   assert(db_result == DATABASE_SUCCESS && "Failed to open database");
   assert(db != NULL && "Database pointer is NULL");
 
-  // Create a table to drop
   const char *create_query = "CREATE TABLE users (id INT, name TEXT);";
   TokenizerState *create_state = setup_tokenizer(create_query);
   ASTNode *create_node =
@@ -35,7 +33,6 @@ void test_drop_table_success() {
   assert(create_result == TABLE_SUCCESS && "Failed to create table");
   assert(table != NULL && "Table pointer is NULL");
 
-  // Drop the table
   const char *drop_query = "DROP TABLE users;";
   TokenizerState *drop_state = setup_tokenizer(drop_query);
   ASTNode *drop_node = parser_table_drop(drop_state->tokens);
@@ -43,15 +40,19 @@ void test_drop_table_success() {
   ExecuteResult exec_result = execute_drop_table(db, drop_node);
   assert(exec_result == EXECUTE_SUCCESS && "Failed to execute DROP TABLE");
 
-  // Verify that the table is dropped
+  ASTNode *out_node = NULL;
+  ASTNodeResult ast_result = create_ast_node(NODE_DROP_TABLE, &out_node);
+  assert(ast_result == AST_SUCCESS && "Failed to create AST Node");
+  out_node->table_name = strdup("users");
+
   Table *dropped_table = NULL;
-  TableResult find_result = table_find(db, "users", &dropped_table);
+  TableResult find_result = table_find(db, out_node, &dropped_table);
   assert(find_result == TABLE_NOT_FOUND &&
          "Table should not be found after drop");
 
-  // Cleanup
   ast_free(create_node);
   ast_free(drop_node);
+  ast_free(out_node);
   teardown_tokenizer(create_state);
   teardown_tokenizer(drop_state);
   database_close(db);
@@ -63,14 +64,12 @@ void test_drop_table_success() {
 void test_drop_table_nonexistent() {
   printf("Test: Dropping a non-existent table\n");
 
-  // Setup
   remove(TEST_DB);
   Database *db = NULL;
   DatabaseResult db_result = database_open(&db, TEST_DB);
   assert(db_result == DATABASE_SUCCESS && "Failed to open database");
   assert(db != NULL && "Database pointer is NULL");
 
-  // Attempt to drop a non-existent table
   const char *drop_query = "DROP TABLE nonexistent_table;";
   TokenizerState *drop_state = setup_tokenizer(drop_query);
   ASTNode *drop_node = parser_table_drop(drop_state->tokens);
@@ -79,7 +78,6 @@ void test_drop_table_nonexistent() {
   assert(exec_result == EXECUTE_FAILURE &&
          "Dropping a non-existent table should fail");
 
-  // Cleanup
   ast_free(drop_node);
   teardown_tokenizer(drop_state);
   database_close(db);

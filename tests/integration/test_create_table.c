@@ -16,34 +16,28 @@ static const char *TEST_DB = "test_create_table.db";
 void test_create_table_with_columns() {
   printf("Test: Creating table with columns\n");
 
-  // Setup
   remove(TEST_DB);
   Database *db = NULL;
   DatabaseResult db_result = database_open(&db, TEST_DB);
   assert(db_result == DATABASE_SUCCESS && "Failed to open database");
   assert(db != NULL && "Database pointer is NULL");
 
-  // Create a table with columns
   const char *query = "CREATE TABLE users (id INT, name TEXT);";
   TokenizerState *state = setup_tokenizer(query);
   assert(state != NULL && "Failed to setup tokenizer");
 
-  // Parse the CREATE TABLE statement
   ASTNode *node = parser_table_create(state->tokens, state->token_count);
   assert(node != NULL && "Failed to parse CREATE TABLE statement");
 
-  // Execute the CREATE TABLE statement
   Table *table = NULL;
   TableResult result = table_create(db, node, &table);
   assert(result == TABLE_SUCCESS && "Failed to create table");
   assert(table != NULL && "Table pointer is NULL");
 
-  // Verify table properties
   assert(strcmp(table->name, "users") == 0 && "Table name mismatch");
   assert(table->num_columns == 2 && "Wrong number of columns");
   assert(table->num_rows == 0 && "Table should be empty");
 
-  // Verify column properties
   assert(strcmp(table->columns[0].name, "id") == 0 &&
          "First column name mismatch");
   assert(table->columns[0].type == TYPE_INT && "First column type mismatch");
@@ -51,25 +45,28 @@ void test_create_table_with_columns() {
          "Second column name mismatch");
   assert(table->columns[1].type == TYPE_TEXT && "Second column type mismatch");
 
-  // Test persistence by closing and reopening
   database_close(db);
   db_result = database_open(&db, TEST_DB);
   assert(db_result == DATABASE_SUCCESS && "Failed to reopen database");
 
-  // Find the table after reopening
+  ASTNode *out_node = NULL;
+  ASTNodeResult ast_result = create_ast_node(NODE_CREATE_TABLE, &out_node);
+  assert(ast_result == AST_SUCCESS && "Failed to create AST Node");
+  out_node->table_name = strdup("users");
+  out_node->create_table.columns = NULL;
+  out_node->create_table.num_columns = 0;
+
   Table *loaded_table = NULL;
-  TableResult find_result = table_find(db, "users", &loaded_table);
+  TableResult find_result = table_find(db, out_node, &loaded_table);
   assert(find_result == TABLE_SUCCESS && "Failed to find table after reload");
   assert(loaded_table != NULL && "Loaded table pointer is NULL");
 
-  // Verify loaded table properties
   assert(strcmp(loaded_table->name, "users") == 0 &&
          "Loaded table name mismatch");
   assert(loaded_table->num_columns == 2 &&
          "Wrong number of columns after reload");
   assert(loaded_table->num_rows == 0 && "Loaded table should be empty");
 
-  // Verify loaded column properties
   assert(strcmp(loaded_table->columns[0].name, "id") == 0 &&
          "Loaded first column name mismatch");
   assert(loaded_table->columns[0].type == TYPE_INT &&
@@ -79,8 +76,8 @@ void test_create_table_with_columns() {
   assert(loaded_table->columns[1].type == TYPE_TEXT &&
          "Loaded second column type mismatch");
 
-  // Cleanup
   ast_free(node);
+  ast_free(out_node);
   teardown_tokenizer(state);
   database_close(db);
   remove(TEST_DB);
@@ -91,29 +88,24 @@ void test_create_table_with_columns() {
 void test_create_table_already_exists() {
   printf("Test: Attempting to create a table that already exists\n");
 
-  // Setup
   remove(TEST_DB);
   Database *db = NULL;
   DatabaseResult db_result = database_open(&db, TEST_DB);
   assert(db_result == DATABASE_SUCCESS && "Failed to open database");
   assert(db != NULL && "Database pointer is NULL");
 
-  // Create a table with columns
   const char *query = "CREATE TABLE users (id INT, name TEXT);";
   TokenizerState *state = setup_tokenizer(query);
   assert(state != NULL && "Failed to setup tokenizer");
 
-  // Parse the CREATE TABLE statement
   ASTNode *node = parser_table_create(state->tokens, state->token_count);
   assert(node != NULL && "Failed to parse CREATE TABLE statement");
 
-  // Execute the CREATE TABLE statement
   Table *table = NULL;
   TableResult result = table_create(db, node, &table);
   assert(result == TABLE_SUCCESS && "Failed to create table");
   assert(table != NULL && "Table pointer is NULL");
 
-  // Attempt to create the same table again
   TokenizerState *state_duplicate = setup_tokenizer(query);
   assert(state_duplicate != NULL &&
          "Failed to setup tokenizer for duplicate table");
@@ -127,13 +119,11 @@ void test_create_table_already_exists() {
   TableResult result_duplicate =
       table_create(db, node_duplicate, &table_duplicate);
 
-  // Verify that the second attempt to create the table fails
   assert(result_duplicate == TABLE_ALREADY_EXISTS &&
          "Expected TABLE_ERROR_ALREADY_EXISTS when creating a duplicate table");
   assert(table_duplicate == NULL &&
          "Table pointer should be NULL for duplicate table creation");
 
-  // Cleanup
   ast_free(node);
   ast_free(node_duplicate);
   teardown_tokenizer(state);
@@ -147,23 +137,19 @@ void test_create_table_already_exists() {
 void test_create_table_invalid_column_type() {
   printf("Test: Creating table with invalid column type\n");
 
-  // Setup
   remove(TEST_DB);
   Database *db = NULL;
   DatabaseResult db_result = database_open(&db, TEST_DB);
   assert(db_result == DATABASE_SUCCESS && "Failed to open database");
   assert(db != NULL && "Database pointer is NULL");
 
-  // Create a table with invalid column type
   const char *query = "CREATE TABLE users (id FLOAT, name TEXT);";
   TokenizerState *state = setup_tokenizer(query);
   assert(state != NULL && "Failed to setup tokenizer");
 
-  // Parse the CREATE TABLE statement
   ASTNode *node = parser_table_create(state->tokens, state->token_count);
   assert(node == NULL && "Parser should fail for invalid column type");
 
-  // Cleanup
   teardown_tokenizer(state);
   database_close(db);
   remove(TEST_DB);
@@ -174,14 +160,12 @@ void test_create_table_invalid_column_type() {
 void test_create_table_max_name_length() {
   printf("Test: Creating table with maximum name length\n");
 
-  // Setup
   remove(TEST_DB);
   Database *db = NULL;
   DatabaseResult db_result = database_open(&db, TEST_DB);
   assert(db_result == DATABASE_SUCCESS && "Failed to open database");
   assert(db != NULL && "Database pointer is NULL");
 
-  // Create a table with a very long name
   char long_name[MAX_NAME_LENGTH * 2];
   memset(long_name, 'a', MAX_NAME_LENGTH + 10);
   long_name[MAX_NAME_LENGTH + 10] = '\0';
@@ -192,18 +176,15 @@ void test_create_table_max_name_length() {
   TokenizerState *state = setup_tokenizer(query);
   assert(state != NULL && "Failed to setup tokenizer");
 
-  // Parse the CREATE TABLE statement
   ASTNode *node = parser_table_create(state->tokens, state->token_count);
   assert(node != NULL && "Failed to parse CREATE TABLE statement");
 
-  // Execute the CREATE TABLE statement - should fail
   Table *table = NULL;
   TableResult result = table_create(db, node, &table);
   assert(result == TABLE_NAME_TOO_LONG &&
          "Should fail for too long table name");
   assert(table == NULL && "Table should not be created");
 
-  // Cleanup
   ast_free(node);
   teardown_tokenizer(state);
   database_close(db);
@@ -215,23 +196,19 @@ void test_create_table_max_name_length() {
 void test_create_table_no_columns() {
   printf("Test: Creating table with no columns\n");
 
-  // Setup
   remove(TEST_DB);
   Database *db = NULL;
   DatabaseResult db_result = database_open(&db, TEST_DB);
   assert(db_result == DATABASE_SUCCESS && "Failed to open database");
   assert(db != NULL && "Database pointer is NULL");
 
-  // Try to create a table with no columns
   const char *query = "CREATE TABLE empty ();";
   TokenizerState *state = setup_tokenizer(query);
   assert(state != NULL && "Failed to setup tokenizer");
 
-  // Parse the CREATE TABLE statement
   ASTNode *node = parser_table_create(state->tokens, state->token_count);
   assert(node == NULL && "Parser should fail for empty columns list");
 
-  // Cleanup
   teardown_tokenizer(state);
   database_close(db);
   remove(TEST_DB);
