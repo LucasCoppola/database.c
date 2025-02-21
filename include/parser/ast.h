@@ -5,6 +5,11 @@
 
 typedef struct Column Column;
 
+typedef enum ASTNodeResult {
+    AST_SUCCESS,
+    AST_ALLOC_ERROR
+} ASTNodeResult;
+
 typedef enum {
     NODE_CREATE_TABLE,
     NODE_DROP_TABLE,
@@ -37,7 +42,7 @@ typedef struct ASTNode {
     SelectRows select_rows;
 } ASTNode;
 
-ASTNode *create_ast_node(NodeType type);
+ASTNodeResult create_ast_node(NodeType type, ASTNode **out_node);
 void ast_free(ASTNode* node);
 
 #endif 

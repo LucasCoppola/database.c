@@ -4,6 +4,7 @@
 #include "core/database.h"
 
 #include "core/hashmap.h"
+#include "parser/ast.h"
 #include "storage/pager.h"
 #include "utils/logger.h"
 
@@ -39,6 +40,10 @@ const char *get_error_message(const char *context, int code) {
 
   if (strcmp(context, "pager") == 0) {
     return pager_error_string(code);
+  }
+
+  if (strcmp(context, "ast") == 0) {
+    return ast_error_string(code);
   }
 
   return "Unknown error context";
@@ -145,5 +150,14 @@ const char *pager_error_string(PagerResult result) {
     return "Invalid page";
   default:
     return "Unrecognized pager error";
+  }
+}
+
+const char *ast_error_string(ASTNodeResult result) {
+  switch (result) {
+  case AST_ALLOC_ERROR:
+    return "Failed to allocate memory for AST node";
+  default:
+    return "Unrecognized AST node error";
   }
 }

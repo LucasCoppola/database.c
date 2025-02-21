@@ -1,19 +1,18 @@
 #include <stdbool.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 #include "core/table.h"
 #include "parser/ast.h"
 
-ASTNode *create_ast_node(NodeType type) {
+ASTNodeResult create_ast_node(NodeType type, ASTNode **out_node) {
   ASTNode *node = malloc(sizeof(ASTNode));
   if (!node) {
-    fprintf(stderr, "Failed to allocate new ast node");
-    return NULL;
+    return AST_ALLOC_ERROR;
   }
 
   node->type = type;
-  return node;
+  *out_node = node;
+  return AST_SUCCESS;
 }
 
 void ast_free(ASTNode *node) {

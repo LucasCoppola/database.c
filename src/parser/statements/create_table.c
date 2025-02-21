@@ -7,6 +7,7 @@
 #include "parser/parser.h"
 #include "parser/statements.h"
 #include "parser/tokenizer.h"
+#include "utils/logger.h"
 #include "utils/parser_logger.h"
 
 ASTNode *parser_table_create(const Token *tokens, int token_count) {
@@ -26,9 +27,10 @@ ASTNode *parser_table_create(const Token *tokens, int token_count) {
     return NULL;
   }
 
-  ASTNode *node = create_ast_node(NODE_CREATE_TABLE);
-  if (!node) {
-    printf("Failed to create ast node\n");
+  ASTNode *node = NULL;
+  ASTNodeResult ast_result = create_ast_node(NODE_CREATE_TABLE, &node);
+  if (ast_result != AST_SUCCESS) {
+    LOG_ERROR("ast", "create", ast_result);
     return NULL;
   }
 

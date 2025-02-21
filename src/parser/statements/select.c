@@ -6,6 +6,7 @@
 #include "parser/ast.h"
 #include "parser/parser.h"
 #include "parser/tokenizer.h"
+#include "utils/logger.h"
 
 ASTNode *parser_row_select(const Token *tokens, int token_count) {
   if (!expect_token(tokens, 0, TOKEN_KEYWORD, "SELECT")) {
@@ -14,8 +15,10 @@ ASTNode *parser_row_select(const Token *tokens, int token_count) {
     return NULL;
   }
 
-  ASTNode *node = create_ast_node(NODE_SELECT);
-  if (!node) {
+  ASTNode *node = NULL;
+  ASTNodeResult ast_result = create_ast_node(NODE_SELECT, &node);
+  if (ast_result != AST_SUCCESS) {
+    LOG_ERROR("ast", "create", ast_result);
     return NULL;
   }
 

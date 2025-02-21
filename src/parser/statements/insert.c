@@ -5,6 +5,7 @@
 
 #include "parser/ast.h"
 #include "parser/parser.h"
+#include "utils/logger.h"
 
 ASTNode *parser_row_insert(const Token *tokens, int token_count) {
   // INSERT INTO table_name VALUES (value1, value2, value3);
@@ -15,8 +16,10 @@ ASTNode *parser_row_insert(const Token *tokens, int token_count) {
     return NULL;
   }
 
-  ASTNode *node = create_ast_node(NODE_INSERT);
-  if (!node) {
+  ASTNode *node = NULL;
+  ASTNodeResult ast_result = create_ast_node(NODE_INSERT, &node);
+  if (ast_result != AST_SUCCESS) {
+    LOG_ERROR("ast", "create", ast_result);
     return NULL;
   }
 

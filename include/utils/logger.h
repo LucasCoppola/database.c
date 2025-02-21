@@ -10,22 +10,25 @@ typedef enum TableResult TableResult;
 typedef enum RowResult RowResult;
 typedef enum PagerResult PagerResult;
 typedef enum HashMapResult HashMapResult;
+typedef enum ASTNodeResult ASTNodeResult;
 
 typedef struct {
-    const char* file;
     int line;       
+    int code;
+    const char* file;
     const char* component;
     const char* operation;
-    int code;
 } Error;
 
 void error_report(const Error *error);
 const char* get_error_message(const char* context, int code);
+
 const char* hashmap_error_string(HashMapResult result);
 const char* table_error_string(TableResult result);
 const char* database_error_string(DatabaseResult result);
 const char* row_error_string(RowResult result);
 const char* pager_error_string(PagerResult result);
+const char* ast_error_string(ASTNodeResult result);
 
 #define LOG_ERROR(comp, op, err_code) do { \
     Error error = { \

@@ -98,6 +98,7 @@ HashMapResult hashmap_delete(HashMap *map, char *key) {
         prev->next = bucket->next;
       }
       free(bucket->key);
+      // free the value/table in the table function
       free(bucket);
       map->size--;
       return HASHMAP_SUCCESS;
@@ -120,6 +121,7 @@ HashMapResult hashmap_free(HashMap *map) {
     while (bucket != NULL) {
       Bucket *next = bucket->next;
       free(bucket->key);
+      // free the value/table in the table function
       free(bucket);
       bucket = next;
     }
