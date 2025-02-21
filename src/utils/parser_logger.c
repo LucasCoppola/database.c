@@ -23,6 +23,8 @@ const char *parser_error_string(ParserErrorCode code) {
     return "Invalid keyword";
   case PARSER_INVALID_TYPE:
     return "Invalid column type";
+  case PARSER_INVALID_LITERAL:
+    return "Invalid literal";
   case PARSER_MISSING_DELIMITER:
     return "Missing delimiter";
   default:
