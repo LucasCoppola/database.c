@@ -48,7 +48,7 @@ typedef struct Table {
 
 // table.c
 TableResult table_create(Database* db, ASTNode *node, Table **out_table);
-TableResult table_find(Database* db, char* name, Table **out_table);
+TableResult table_find(Database* db, ASTNode *node, Table **out_table);
 TableResult table_drop(Database* db, ASTNode *node);
 void table_free(Table *table);
 

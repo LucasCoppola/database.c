@@ -16,11 +16,6 @@ RowResult insert_row(Table *table, Row *row) {
     return ROW_INVALID_TABLE;
   }
 
-  if (strlen(row->username) >= MAX_NAME_LENGTH ||
-      strlen(row->email) >= MAX_NAME_LENGTH) {
-    return ROW_NAME_TOO_LONG;
-  }
-
   Cursor *cursor = table_end(table);
   uint32_t page_num = table->num_rows / ROWS_PER_PAGE;
   uint32_t row_offset = table->num_rows % ROWS_PER_PAGE;
@@ -71,7 +66,7 @@ RowResult select_rows(Table *table) {
   Row row;
   while (!cursor->end_of_table) {
     deserialize_row(cursor_value(cursor), &row);
-    printf("(%d, %s, %s)\n", row.id, row.username, row.email);
+    printf("(%d, %s)\n", row.id, row.name);
     cursor_advance(cursor);
   }
 

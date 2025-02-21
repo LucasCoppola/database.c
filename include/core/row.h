@@ -9,7 +9,6 @@ typedef struct Table Table;
 
 typedef enum RowResult {
     ROW_SUCCESS,
-    ROW_NAME_TOO_LONG,
     ROW_INVALID_TABLE,
     ROW_NOT_FOUND,
     ROW_ALLOC_PAGE_ERROR,
@@ -19,9 +18,13 @@ typedef enum RowResult {
 
 typedef struct Row {
     uint32_t id;
-    char username[MAX_NAME_LENGTH];
-    char email[MAX_NAME_LENGTH];
+    char name[MAX_NAME_LENGTH];
 } Row;
+
+// row.c
+RowResult insert_row(Table *table, Row *row);
+RowResult select_rows(Table *table);
+RowResult delete_row(Table *table, uint32_t row_id);
 
 // row_storage.c
 void serialize_row(Row *source, void *destination); 

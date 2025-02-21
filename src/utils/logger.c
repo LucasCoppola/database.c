@@ -124,8 +124,6 @@ const char *row_error_string(RowResult result) {
   switch (result) {
   case ROW_INVALID_TABLE:
     return "Invalid table";
-  case ROW_NAME_TOO_LONG:
-    return "Name is too long";
   case ROW_NOT_FOUND:
     return "Row not found";
   case ROW_ALLOC_PAGE_ERROR:

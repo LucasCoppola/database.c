@@ -59,18 +59,19 @@ TableResult table_create(Database *db, ASTNode *node, Table **out_table) {
   return TABLE_SUCCESS;
 }
 
-TableResult table_find(Database *db, char *name, Table **out_table) {
+TableResult table_find(Database *db, ASTNode *node, Table **out_table) {
   if (db == NULL) {
     return TABLE_INVALID_DB;
   }
 
+  char *table_name = node->table_name;
   Table *table = NULL;
-  if (hashmap_get(db->tables, name, &table) == HASHMAP_SUCCESS) {
+  if (hashmap_get(db->tables, table_name, &table) == HASHMAP_SUCCESS) {
     *out_table = table;
     return TABLE_SUCCESS;
   }
 
-  printf("Table '%s' not found\n", name);
+  printf("Table '%s' not found\n", table_name);
   return TABLE_NOT_FOUND;
 }
 
