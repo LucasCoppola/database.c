@@ -54,17 +54,27 @@ int main(int argc, char *argv[]) {
     }
 
     TokenizerState *state = NULL;
-    TokenizerResult tokenizer_result = tokenizer_init(input, &state);
-    if (tokenizer_result != TOKENIZER_SUCCESS) {
-      fprintf(stderr, "Failed to initialize tokenizer.\n");
+    TokenizerResult tokenizer_init_result = tokenizer_init(input, &state);
+    if (tokenizer_init_result != TOKENIZER_SUCCESS) {
+      LOG_ERROR("tokenizer", "init", tokenizer_init_result);
       continue;
     }
 
-    tokenize_query(state);
+    TokenizerResult tokenize_query_result = tokenize_query(state);
+    if (tokenize_query_result != TOKENIZER_SUCCESS) {
+      if (tokenize_query_result == TOKENIZER_UNTERMINATED_STATEMENT) {
+        fprintf(stderr,
+                "Syntax Error: Unterminated statement at position %d.\n",
+                state->position);
+      } else {
+        LOG_ERROR("tokenizer", "tokenize_query", tokenize_query_result);
+      }
+      tokenizer_free(state);
+      continue;
+    }
 
     ASTNode *ast_node = parse(state->tokens, state->token_count);
     if (ast_node == NULL) {
-      printf("Error: Parsing failed.\n");
       tokenizer_free(state);
       continue;
     }

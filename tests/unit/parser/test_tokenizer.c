@@ -2,21 +2,22 @@
 #include <stdio.h>
 
 #include "parser/tokenizer.h"
+#include "utils/logger.h"
 
 bool test_query(const char *query, int query_num) {
   TokenizerState *state = NULL;
-  TokenizerResult result = tokenizer_init(query, &state);
+  TokenizerResult init_result = tokenizer_init(query, &state);
 
-  if (result != TOKENIZER_SUCCESS) {
-    printf("Query %d: Failed to initialize tokenizer\n", query_num);
+  if (init_result != TOKENIZER_SUCCESS) {
+    LOG_ERROR("tokenizer", "init", init_result);
     return false;
   }
 
-  result = tokenize_query(state);
+  TokenizerResult result = tokenize_query(state);
   tokenizer_free(state);
 
   if (result != TOKENIZER_SUCCESS) {
-    printf("Query %d: Failed to tokenize\n", query_num);
+    LOG_ERROR("tokenizer", "tokenize_query", result);
     return false;
   }
 

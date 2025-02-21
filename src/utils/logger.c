@@ -5,6 +5,7 @@
 
 #include "core/hashmap.h"
 #include "parser/ast.h"
+#include "parser/tokenizer.h"
 #include "storage/pager.h"
 #include "utils/logger.h"
 
@@ -44,6 +45,10 @@ const char *get_error_message(const char *context, int code) {
 
   if (strcmp(context, "ast") == 0) {
     return ast_error_string(code);
+  }
+
+  if (strcmp(context, "tokenizer") == 0) {
+    return tokenizer_error_string(code);
   }
 
   return "Unknown error context";
@@ -159,5 +164,24 @@ const char *ast_error_string(ASTNodeResult result) {
     return "Failed to allocate memory for AST node";
   default:
     return "Unrecognized AST node error";
+  }
+}
+
+const char *tokenizer_error_string(TokenizerResult result) {
+  switch (result) {
+  case TOKENIZER_STATE_ALLOC_ERROR:
+    return "Failed to allocate memory for tokenizer state";
+  case TOKENIZER_QUERY_ALLOC_ERROR:
+    return "Failed to allocate memory for query string";
+  case TOKENIZER_TOKENS_ALLOC_ERROR:
+    return "Failed to allocate memory for tokens";
+  case TOKENIZER_READ_WORD_ERROR:
+    return "Failed to read word";
+  case TOKENIZER_READ_NUMBER_ERROR:
+    return "Failed to read number";
+  case TOKENIZER_READ_STRING_ERROR:
+    return "Failed to read string";
+  default:
+    return "Unrecognized tokenizer error";
   }
 }

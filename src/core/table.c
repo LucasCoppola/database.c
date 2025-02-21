@@ -81,9 +81,7 @@ TableResult table_drop(Database *db, ASTNode *node) {
 
   char *table_name = node->table_name;
   Table *table = NULL;
-  HashMapResult get_result = hashmap_get(db->tables, table_name, &table);
-  if (get_result != HASHMAP_SUCCESS) {
-    LOG_ERROR("hashmap", "get", get_result);
+  if (hashmap_get(db->tables, table_name, &table) != HASHMAP_SUCCESS) {
     return TABLE_NOT_FOUND;
   }
 

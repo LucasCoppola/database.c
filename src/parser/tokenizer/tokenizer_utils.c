@@ -64,7 +64,6 @@ char *read_word(char *query, int *position) {
 
   char *value = malloc(length + 1);
   if (!value) {
-    perror("Failed to allocate memory for word");
     return NULL;
   }
   strncpy(value, &query[start_pos], length);

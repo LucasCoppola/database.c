@@ -11,6 +11,7 @@ typedef enum RowResult RowResult;
 typedef enum PagerResult PagerResult;
 typedef enum HashMapResult HashMapResult;
 typedef enum ASTNodeResult ASTNodeResult;
+typedef enum TokenizerResult TokenizerResult;
 
 typedef struct {
     int line;       
@@ -29,6 +30,7 @@ const char* database_error_string(DatabaseResult result);
 const char* row_error_string(RowResult result);
 const char* pager_error_string(PagerResult result);
 const char* ast_error_string(ASTNodeResult result);
+const char* tokenizer_error_string(TokenizerResult result);
 
 #define LOG_ERROR(comp, op, err_code) do { \
     Error error = { \

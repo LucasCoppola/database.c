@@ -40,7 +40,7 @@ void test_drop_table(const char *query, bool should_pass,
   }
 
   if (node) {
-    free(node);
+    ast_free(node);
   }
   teardown_tokenizer(state);
   printf("\n");
