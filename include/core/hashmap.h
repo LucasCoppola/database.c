@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#define HASHMAP_CAPACITY 10
+
 typedef struct Table Table;
 
 typedef enum HashMapResult {

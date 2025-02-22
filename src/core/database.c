@@ -27,7 +27,7 @@ DatabaseResult database_open(Database **out_db, const char *filename) {
   }
 
   HashMap *map = NULL;
-  HashMapResult map_result = hashmap_initialize(10, &map);
+  HashMapResult map_result = hashmap_initialize(HASHMAP_CAPACITY, &map);
   if (map_result != HASHMAP_SUCCESS) {
     LOG_ERROR("hashmap", "init", map_result);
     free(pager);
