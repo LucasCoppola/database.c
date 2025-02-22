@@ -20,8 +20,6 @@ ExecuteResult execute_ast(Database *db, ASTNode *node) {
     return execute_insert_rows(db, node);
   case NODE_SELECT:
     return execute_select_rows(db, node);
-  // case NODE_DELETE:
-  //   return execute_delete_rows(node);
   default:
     fprintf(stderr, "Error: Unknown node type %d\n", node->type);
     return EXECUTE_FAILURE;
