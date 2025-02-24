@@ -5,9 +5,9 @@
 #include <string.h>
 
 #include "core/database.h"
-#include "core/row.h"
 #include "core/table.h"
 
+#include "core/row.h"
 #include "executor/executor.h"
 #include "parser/ast.h"
 #include "storage/cursor.h"
@@ -40,43 +40,29 @@ ExecuteResult execute_drop_table(Database *db, ASTNode *node) {
 }
 
 ExecuteResult execute_insert_rows(Database *db, ASTNode *node) {
-  Table *out_table = NULL;
-  TableResult table_result = table_find(db, node, &out_table);
+  Table *table = NULL;
+  TableResult table_result = table_find(db, node, &table);
 
   if (table_result != TABLE_SUCCESS) {
     LOG_ERROR("table", "find", table_result);
     return EXECUTE_FAILURE;
   }
 
-  if (out_table->num_rows >= TABLE_MAX_ROWS) {
-    return EXECUTE_FAILURE;
-  }
-
-  Row *row = malloc(sizeof(Row));
-  if (!row) {
-    printf("Failed to allocate row.\n");
+  if (table->num_rows >= TABLE_MAX_ROWS) {
     return EXECUTE_FAILURE;
   }
 
   if (strlen(node->insert_rows.values[1]) >= MAX_NAME_LENGTH) {
     printf("Name too long.\n");
-    free(row);
     return EXECUTE_FAILURE;
   }
-  strncpy(row->name, node->insert_rows.values[1], MAX_NAME_LENGTH);
-  row->name[MAX_NAME_LENGTH - 1] = '\0';
 
-  uint32_t id = atoi(node->insert_rows.values[0]);
-  row->id = id;
-
-  RowResult row_result = insert_row(out_table, row);
+  RowResult row_result = insert_row(table, node);
   if (row_result != ROW_SUCCESS) {
     LOG_ERROR("row", "insert", row_result);
-    free(row);
     return EXECUTE_FAILURE;
   }
 
-  free(row);
   return EXECUTE_SUCCESS;
 }
 

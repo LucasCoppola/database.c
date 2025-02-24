@@ -2,15 +2,14 @@
 #include <string.h>
 
 #include "core/database.h"
+#include "core/table.h"
 
 #include "core/hashmap.h"
+#include "core/row.h"
 #include "parser/ast.h"
 #include "parser/tokenizer.h"
 #include "storage/pager.h"
 #include "utils/logger.h"
-
-#include "core/row.h"
-#include "core/table.h"
 
 static struct {
   Error current;

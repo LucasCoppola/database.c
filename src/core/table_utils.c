@@ -5,10 +5,10 @@
 #include <unistd.h>
 
 #include "core/database.h"
-#include "core/row.h"
 #include "core/table.h"
 
 #include "core/hashmap.h"
+#include "core/row.h"
 #include "storage/cursor.h"
 #include "storage/pager.h"
 

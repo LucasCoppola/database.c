@@ -40,10 +40,12 @@ void test_create_table_with_columns() {
 
   assert(strcmp(table->columns[0].name, "id") == 0 &&
          "First column name mismatch");
-  assert(table->columns[0].type == TYPE_INT && "First column type mismatch");
+  assert(table->columns[0].type == COLUMN_TYPE_INT &&
+         "First column type mismatch");
   assert(strcmp(table->columns[1].name, "name") == 0 &&
          "Second column name mismatch");
-  assert(table->columns[1].type == TYPE_TEXT && "Second column type mismatch");
+  assert(table->columns[1].type == COLUMN_TYPE_TEXT &&
+         "Second column type mismatch");
 
   database_close(db);
   db_result = database_open(&db, TEST_DB);
@@ -69,11 +71,11 @@ void test_create_table_with_columns() {
 
   assert(strcmp(loaded_table->columns[0].name, "id") == 0 &&
          "Loaded first column name mismatch");
-  assert(loaded_table->columns[0].type == TYPE_INT &&
+  assert(loaded_table->columns[0].type == COLUMN_TYPE_INT &&
          "Loaded first column type mismatch");
   assert(strcmp(loaded_table->columns[1].name, "name") == 0 &&
          "Loaded second column name mismatch");
-  assert(loaded_table->columns[1].type == TYPE_TEXT &&
+  assert(loaded_table->columns[1].type == COLUMN_TYPE_TEXT &&
          "Loaded second column type mismatch");
 
   ast_free(node);

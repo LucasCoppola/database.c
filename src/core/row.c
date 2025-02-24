@@ -1,53 +1,80 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <strings.h>
 
-#include "core/row.h"
 #include "core/table.h"
 
 #include "core/hashmap.h"
+#include "core/row.h"
+#include "parser/ast.h"
 #include "storage/cursor.h"
 #include "storage/pager.h"
 #include "utils/logger.h"
 
-RowResult insert_row(Table *table, Row *row) {
-  if (table == NULL) {
+RowResult insert_row(Table *out_table, ASTNode *node) {
+  if (out_table == NULL) {
     return ROW_INVALID_TABLE;
   }
 
-  Cursor *cursor = table_end(table);
-  uint32_t page_num = table->num_rows / ROWS_PER_PAGE;
-  uint32_t row_offset = table->num_rows % ROWS_PER_PAGE;
-  void *page = NULL;
+  Row *row = malloc(sizeof(Row));
+  if (!row) {
+    fprintf(stderr, "Failed to allocate row.\n");
+    return ROW_ALLOC_ERROR;
+  }
 
-  printf("Inserting row into table %s at page %u, row offset %u\n", table->name,
-         page_num, row_offset);
+  row->id = out_table->next_id++;
+  row->num_columns = out_table->num_columns;
+  row->values = malloc(row->num_columns * sizeof(Value));
+  if (!row->values) {
+    fprintf(stderr, "Failed to allocate row values.\n");
+    free(row);
+    return ROW_VALUES_ALLOC_ERROR;
+  }
+
+  for (uint32_t i = 0; i < row->num_columns; i++) {
+    printf("Value %d: %s, type: %d\n", i, node->insert_rows.values[i],
+           out_table->columns[i].type);
+    row->values[i] =
+        convert_value(node->insert_rows.values[i], out_table->columns[i].type);
+  }
+
+  Cursor *cursor = table_end(out_table);
+  uint32_t page_num = out_table->num_rows / ROWS_PER_PAGE;
+  uint32_t row_offset = out_table->num_rows % ROWS_PER_PAGE;
+
+  printf("Inserting row into table %s at page %u, row offset %u\n",
+         out_table->name, page_num, row_offset);
 
   if (row_offset == 0) {
-    PagerResult result = pager_page_alloc(page_num, table);
+    PagerResult result = pager_page_alloc(page_num, out_table);
     if (result != PAGER_SUCCESS) {
+      free(cursor);
+      free(row->values);
+      free(row);
       LOG_ERROR("pager", "allocation", result);
       return ROW_ALLOC_PAGE_ERROR;
     }
   }
 
-  PagerResult result = pager_page_load(table->pager, page_num, table, &page);
+  void *page = NULL;
+  PagerResult result =
+      pager_page_load(out_table->pager, page_num, out_table, &page);
   if (result != PAGER_SUCCESS) {
     free(cursor);
     LOG_ERROR("pager", "load", result);
     return ROW_GET_PAGE_ERROR;
   }
 
-  row->id = table->next_id++;
+  row->id = out_table->next_id++;
   void *row_location = cursor_value(cursor);
-  printf("Writing row at offset %ld within page\n",
-         (char *)row_location - (char *)page);
 
-  serialize_row(row, row_location);
-  table->num_rows++;
+  serialize_row(row, out_table, row_location);
+  out_table->num_rows++;
 
-  PagerResult pager_result = pager_page_flush(table->pager, page_num, table);
+  PagerResult pager_result =
+      pager_page_flush(out_table->pager, page_num, out_table);
   if (pager_result != PAGER_SUCCESS) {
     LOG_ERROR("pager", "flush", pager_result);
     return ROW_FLUSH_PAGE_ERROR;
@@ -65,8 +92,8 @@ RowResult select_rows(Table *table) {
 
   Row row;
   while (!cursor->end_of_table) {
-    deserialize_row(cursor_value(cursor), &row);
-    printf("(%d, %s)\n", row.id, row.name);
+    deserialize_row(cursor_value(cursor), &row, table);
+    printf("(%d, %s)\n", row.values[0].int_value, row.values[0].string_value);
     cursor_advance(cursor);
   }
 
@@ -84,7 +111,7 @@ RowResult delete_row(Table *table, uint32_t row_id) {
   int found = 0;
 
   while (!cursor->end_of_table) {
-    deserialize_row(cursor_value(cursor), &row);
+    deserialize_row(cursor_value(cursor), &row, table);
     if (row.id == row_id) {
       found = 1;
     }

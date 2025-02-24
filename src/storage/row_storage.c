@@ -1,38 +1,97 @@
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <strings.h>
 
-#include "core/row.h"
 #include "core/table.h"
+
+#include "core/row.h"
 #include "storage/pager.h"
 #include "storage/table_header.h"
 
-const uint32_t ID_SIZE = size_of_attribute(Row, id);
-const uint32_t USERNAME_SIZE = size_of_attribute(Row, name);
+void serialize_row(Row *row, Table *table, void *destination) {
+  uint8_t *ptr = (uint8_t *)destination;
 
-const uint32_t ID_OFFSET = 0;
-const uint32_t USERNAME_OFFSET = ID_OFFSET + ID_SIZE;
-const uint32_t ROW_SIZE = ID_SIZE + USERNAME_SIZE;
+  uint32_t row_size = sizeof(row->row_size);
+  for (uint32_t i = 0; i < table->num_columns; i++) {
+    Value *value = &row->values[i];
 
-const uint32_t ROWS_PER_PAGE = PAGE_SIZE / ROW_SIZE;
-const uint32_t TABLE_MAX_ROWS = ROWS_PER_PAGE * TABLE_MAX_PAGES;
-
-void serialize_row(Row *source, void *destination) {
-  if (source == NULL || destination == NULL) {
-    return;
+    row_size += sizeof(value->type);
+    switch (value->type) {
+    case COLUMN_TYPE_INT:
+      row_size += sizeof(value->int_value);
+      break;
+    case COLUMN_TYPE_TEXT:
+      row_size += sizeof(uint32_t);
+      row_size += strlen(value->string_value) + 1;
+      break;
+    default:
+      fprintf(stderr, "Unknown columun type in serialize_row\n");
+    }
   }
 
-  memcpy(destination + ID_OFFSET, &(source->id), ID_SIZE);
-  memcpy(destination + USERNAME_OFFSET, source->name, USERNAME_SIZE);
+  // Write row_size field
+  row->row_size = row_size;
+  memcpy(ptr, &row->row_size, sizeof(row->row_size));
+  ptr += sizeof(row->row_size);
+
+  for (uint32_t i = 0; i < table->num_columns; i++) {
+    Value *value = &row->values[i];
+
+    memcpy(ptr, &value->type, sizeof(value->type));
+    ptr += sizeof(value->type);
+
+    switch (value->type) {
+    case COLUMN_TYPE_INT:
+      memcpy(ptr, &value->int_value, sizeof(value->int_value));
+      ptr += sizeof(value->int_value);
+      break;
+    case COLUMN_TYPE_TEXT: {
+      uint32_t str_len = strlen(value->string_value);
+      memcpy(ptr, &str_len, sizeof(str_len));
+      ptr += sizeof(str_len);
+      memcpy(ptr, value->string_value, str_len + 1);
+      ptr += str_len + 1;
+      break;
+    }
+    default:
+      fprintf(stderr, "Unknown columun type in serialize_row\n");
+    }
+  }
 }
 
-void deserialize_row(void *source, Row *destination) {
-  if (source == NULL || destination == NULL) {
-    return;
+void deserialize_row(void *source, Row *row, Table *table) {
+  uint8_t *ptr = (uint8_t *)source;
+
+  memcpy(&row->row_size, ptr, sizeof(row->row_size));
+  ptr += sizeof(row->row_size);
+
+  row->values = malloc(table->num_columns * sizeof(Value));
+
+  for (uint32_t i = 0; i < table->num_columns; i++) {
+    Value *value = &row->values[i];
+
+    memcpy(&value->type, ptr, sizeof(value->type));
+    ptr += sizeof(value->type);
+
+    switch (value->type) {
+    case COLUMN_TYPE_INT:
+      memcpy(&value->int_value, ptr, sizeof(value->int_value));
+      ptr += sizeof(value->int_value);
+      break;
+    case COLUMN_TYPE_TEXT: {
+      uint32_t str_len;
+      memcpy(&str_len, ptr, sizeof(str_len));
+      ptr += sizeof(str_len);
+
+      value->string_value = malloc(str_len + 1);
+      memcpy(value->string_value, ptr, str_len + 1);
+      ptr += str_len + 1;
+      break;
+    }
+    default:
+      fprintf(stderr, "Unknown columun type in deserialize_row\n");
+    }
   }
-
-  memcpy(&(destination->id), source + ID_OFFSET, ID_SIZE);
-  memcpy(destination->name, source + USERNAME_OFFSET, USERNAME_SIZE);
-
-  destination->name[USERNAME_SIZE - 1] = '\0';
 }

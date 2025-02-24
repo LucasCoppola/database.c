@@ -5,8 +5,6 @@
 #include <stdbool.h>
 #include <unistd.h>
 
-#define size_of_attribute(Struct, Attribute) sizeof(((Struct *)0)->Attribute)
-
 typedef struct Database Database;  
 typedef struct HashMap HashMap;
 typedef struct Pager Pager;

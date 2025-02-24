@@ -42,8 +42,8 @@ void print_test_result(const char *test_name, bool passed) {
 
 DataType parse_data_type(const char *type) {
   if (strcmp(type, "INT") == 0)
-    return TYPE_INT;
+    return COLUMN_TYPE_INT;
   if (strcmp(type, "TEXT") == 0)
-    return TYPE_TEXT;
+    return COLUMN_TYPE_TEXT;
   return -1;
 }

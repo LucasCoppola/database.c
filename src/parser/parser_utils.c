@@ -12,11 +12,11 @@ bool expect_token(const Token *tokens, int index, TokenType type,
 
 DataType map_column_type(char *type) {
   if (strcmp(type, "INT") == 0 || strcmp(type, "INTEGER") == 0) {
-    return TYPE_INT;
+    return COLUMN_TYPE_INT;
   } else if (strcmp(type, "TEXT") == 0) {
-    return TYPE_TEXT;
+    return COLUMN_TYPE_TEXT;
   } else {
     printf("Unkown column type %s\n", type);
-    return TYPE_UNKNOWN;
+    return COLUMN_TYPE_UNKNOWN;
   }
 }

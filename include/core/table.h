@@ -7,7 +7,7 @@
 #include "storage/table_header.h"
 
 #define TABLE_MAX_PAGES 100
-#define MAX_TABLES 50
+#define MAX_TABLES 10
 
 typedef struct Database Database;  
 typedef struct Pager Pager;
@@ -24,10 +24,10 @@ typedef enum TableResult {
     TABLE_DELETE_ERROR,
 } TableResult;
 
-typedef enum {
-    TYPE_INT,
-    TYPE_TEXT,
-    TYPE_UNKNOWN
+typedef enum DataType {
+    COLUMN_TYPE_INT,
+    COLUMN_TYPE_TEXT,
+    COLUMN_TYPE_UNKNOWN
 } DataType;
 
 typedef struct Column {
