@@ -31,7 +31,7 @@ typedef struct {
 typedef struct Row {
     uint32_t id;
     uint32_t num_columns;
-    uint32_t row_size;
+    uint32_t size;
     Value *values; // Array of values, one per column
 } Row;
 
@@ -39,8 +39,12 @@ typedef struct Row {
 RowResult insert_row(Table *table, ASTNode *node);
 RowResult select_rows(Table *table);
 RowResult delete_row(Table *table, uint32_t row_id);
+void row_free(Row *row);
 
 // row_utils.c
+uint32_t calculate_row_size(Table *table);
+uint32_t calculate_rows_per_page(Table *table);
+uint32_t calculate_max_rows(Table *table);
 Value convert_value(const char *value_str, DataType type);
 
 // row_storage.c

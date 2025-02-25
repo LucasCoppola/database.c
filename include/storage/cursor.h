@@ -16,8 +16,4 @@ Cursor *table_end(Table *table);
 void *cursor_value(Cursor *cursor);
 void cursor_advance(Cursor *cursor); 
 
-extern const uint32_t TABLE_MAX_ROWS;  
-extern const uint32_t ROWS_PER_PAGE;  
-extern const uint32_t ROW_SIZE;  
-
 #endif

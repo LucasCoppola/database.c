@@ -9,7 +9,6 @@
 
 #include "core/hashmap.h"
 #include "core/row.h"
-#include "storage/cursor.h"
 #include "storage/pager.h"
 
 TableResult table_initialize(Table *table, char *name, Database *db) {
@@ -69,6 +68,7 @@ off_t table_position(Database *db) {
 }
 
 uint32_t table_pages_count(Table *table) {
-  uint32_t num_pages = (table->num_rows + ROWS_PER_PAGE - 1) / ROWS_PER_PAGE;
+  uint32_t rows_per_page = calculate_rows_per_page(table);
+  uint32_t num_pages = (table->num_rows + rows_per_page - 1) / rows_per_page;
   return num_pages == 0 ? 1 : num_pages;
 }

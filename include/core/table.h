@@ -7,6 +7,7 @@
 #include "storage/table_header.h"
 
 #define TABLE_MAX_PAGES 100
+#define TABLE_MAX_ROWS 8500
 #define MAX_TABLES 10
 
 typedef struct Database Database;  

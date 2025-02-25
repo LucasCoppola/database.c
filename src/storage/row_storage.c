@@ -13,36 +13,21 @@
 void serialize_row(Row *row, Table *table, void *destination) {
   uint8_t *ptr = (uint8_t *)destination;
 
-  uint32_t row_size = sizeof(row->row_size);
-  for (uint32_t i = 0; i < table->num_columns; i++) {
-    Value *value = &row->values[i];
+  memcpy(ptr, &row->id, sizeof(row->id));
+  ptr += sizeof(row->id);
 
-    row_size += sizeof(value->type);
-    switch (value->type) {
-    case COLUMN_TYPE_INT:
-      row_size += sizeof(value->int_value);
-      break;
-    case COLUMN_TYPE_TEXT:
-      row_size += sizeof(uint32_t);
-      row_size += strlen(value->string_value) + 1;
-      break;
-    default:
-      fprintf(stderr, "Unknown columun type in serialize_row\n");
-    }
-  }
-
-  // Write row_size field
-  row->row_size = row_size;
-  memcpy(ptr, &row->row_size, sizeof(row->row_size));
-  ptr += sizeof(row->row_size);
+  row->size = calculate_row_size(table);
+  memcpy(ptr, &row->size, sizeof(row->size));
+  ptr += sizeof(row->size);
 
   for (uint32_t i = 0; i < table->num_columns; i++) {
+    Column *column = &table->columns[i];
     Value *value = &row->values[i];
 
     memcpy(ptr, &value->type, sizeof(value->type));
     ptr += sizeof(value->type);
 
-    switch (value->type) {
+    switch (column->type) {
     case COLUMN_TYPE_INT:
       memcpy(ptr, &value->int_value, sizeof(value->int_value));
       ptr += sizeof(value->int_value);
@@ -64,18 +49,23 @@ void serialize_row(Row *row, Table *table, void *destination) {
 void deserialize_row(void *source, Row *row, Table *table) {
   uint8_t *ptr = (uint8_t *)source;
 
-  memcpy(&row->row_size, ptr, sizeof(row->row_size));
-  ptr += sizeof(row->row_size);
+  memcpy(&row->id, ptr, sizeof(row->id));
+  ptr += sizeof(row->id);
 
+  memcpy(&row->size, ptr, sizeof(row->size));
+  ptr += sizeof(row->size);
+
+  row->num_columns = table->num_columns;
   row->values = malloc(table->num_columns * sizeof(Value));
 
   for (uint32_t i = 0; i < table->num_columns; i++) {
+    Column *column = &table->columns[i];
     Value *value = &row->values[i];
 
     memcpy(&value->type, ptr, sizeof(value->type));
     ptr += sizeof(value->type);
 
-    switch (value->type) {
+    switch (column->type) {
     case COLUMN_TYPE_INT:
       memcpy(&value->int_value, ptr, sizeof(value->int_value));
       ptr += sizeof(value->int_value);

@@ -10,7 +10,6 @@
 #include "core/row.h"
 #include "executor/executor.h"
 #include "parser/ast.h"
-#include "storage/cursor.h"
 #include "utils/logger.h"
 
 ExecuteResult execute_create_table(Database *db, ASTNode *node) {

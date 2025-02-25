@@ -1,9 +1,10 @@
 #include <stdlib.h>
 
-#include "storage/pager.h"
-
 #include "core/table.h"
+
+#include "core/row.h"
 #include "storage/cursor.h"
+#include "storage/pager.h"
 #include "utils/logger.h"
 
 static void cursor_init(Cursor *cursor, Table *table, uint32_t row_num,
@@ -32,8 +33,11 @@ Cursor *table_end(Table *table) {
 }
 
 void *cursor_value(Cursor *cursor) {
+  uint32_t rows_per_page = calculate_rows_per_page(cursor->table);
+  uint32_t row_size = calculate_row_size(cursor->table);
+
   uint32_t row_num = cursor->row_num;
-  uint32_t page_num = row_num / ROWS_PER_PAGE;
+  uint32_t page_num = row_num / rows_per_page;
 
   void *page = NULL;
   PagerResult result =
@@ -43,8 +47,8 @@ void *cursor_value(Cursor *cursor) {
     return NULL;
   }
 
-  uint32_t row_offset = row_num % ROWS_PER_PAGE;
-  uint32_t byte_offset = row_offset * ROW_SIZE;
+  uint32_t row_offset = row_num % rows_per_page;
+  uint32_t byte_offset = row_offset * row_size;
   return page + byte_offset;
 }
 

@@ -41,8 +41,9 @@ RowResult insert_row(Table *out_table, ASTNode *node) {
   }
 
   Cursor *cursor = table_end(out_table);
-  uint32_t page_num = out_table->num_rows / ROWS_PER_PAGE;
-  uint32_t row_offset = out_table->num_rows % ROWS_PER_PAGE;
+  uint32_t rows_per_page = calculate_rows_per_page(out_table);
+  uint32_t page_num = out_table->num_rows / rows_per_page;
+  uint32_t row_offset = out_table->num_rows % rows_per_page;
 
   printf("Inserting row into table %s at page %u, row offset %u\n",
          out_table->name, page_num, row_offset);
@@ -51,8 +52,7 @@ RowResult insert_row(Table *out_table, ASTNode *node) {
     PagerResult result = pager_page_alloc(page_num, out_table);
     if (result != PAGER_SUCCESS) {
       free(cursor);
-      free(row->values);
-      free(row);
+      row_free(row);
       LOG_ERROR("pager", "allocation", result);
       return ROW_ALLOC_PAGE_ERROR;
     }
@@ -67,9 +67,7 @@ RowResult insert_row(Table *out_table, ASTNode *node) {
     return ROW_GET_PAGE_ERROR;
   }
 
-  row->id = out_table->next_id++;
   void *row_location = cursor_value(cursor);
-
   serialize_row(row, out_table, row_location);
   out_table->num_rows++;
 
@@ -84,19 +82,47 @@ RowResult insert_row(Table *out_table, ASTNode *node) {
   return ROW_SUCCESS;
 }
 
+void print_row(Row row) {
+  printf("Row: \n");
+  printf("  id: %d\n", row.id);
+  printf("  num_columns: %d\n", row.num_columns);
+  printf("  row_size: %d\n", row.size);
+  printf("  Values: \n");
+  for (uint32_t i = 0; i < row.num_columns; i++) {
+    printf("    Column %d: ", i);
+    switch (row.values[i].type) {
+    case COLUMN_TYPE_INT:
+      printf("%d\n", row.values[i].int_value);
+      break;
+    case COLUMN_TYPE_TEXT:
+      printf("%s\n", row.values[i].string_value);
+      break;
+    default:
+      printf("Unknown type\n");
+    }
+  }
+}
+
 RowResult select_rows(Table *table) {
   if (table == NULL) {
     return ROW_INVALID_TABLE;
   }
+
   Cursor *cursor = table_start(table);
 
   Row row;
+  row.values = malloc(table->num_columns * sizeof(Value));
+  if (!row.values) {
+    free(cursor);
+    return ROW_VALUES_ALLOC_ERROR;
+  }
   while (!cursor->end_of_table) {
     deserialize_row(cursor_value(cursor), &row, table);
-    printf("(%d, %s)\n", row.values[0].int_value, row.values[0].string_value);
+    print_row(row);
     cursor_advance(cursor);
   }
 
+  free(row.values);
   free(cursor);
   return ROW_SUCCESS;
 }
@@ -133,4 +159,9 @@ RowResult delete_row(Table *table, uint32_t row_id) {
 
   free(cursor);
   return ROW_NOT_FOUND;
+}
+
+void row_free(Row *row) {
+  free(row->values);
+  free(row);
 }
