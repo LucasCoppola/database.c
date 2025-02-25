@@ -4,18 +4,29 @@
 #include <string.h>
 
 #include "core/database.h"
-#include "core/row.h"
 #include "core/table.h"
-#include "executor/executor.h"
+
 #include "parser/ast.h"
 #include "parser/statements.h"
 #include "parser/tokenizer.h"
 
-#include "../unit/utils/test_utils.h"
+#include "core/row.h"
+#include "executor/executor.h"
 #include "storage/cursor.h"
 #include "utils/logger.h"
 
+#include "../unit/utils/test_utils.h"
+
 static const char *TEST_DB = "test_insert_row.db";
+
+void test_row_free(Row row) {
+  for (uint32_t i = 0; i < row.num_columns; i++) {
+    if (row.values[i].type == COLUMN_TYPE_TEXT) {
+      free(row.values[i].string_value);
+    }
+  }
+  free(row.values);
+}
 
 void test_insert_row() {
   printf("Test: Inserting a row into a table\n");
@@ -58,10 +69,11 @@ void test_insert_row() {
 
   Row row;
   void *row_location = cursor_value(cursor);
-  deserialize_row(row_location, &row);
+  deserialize_row(row_location, &row, table);
 
   assert(row.id == 1 && "Row ID mismatch");
-  assert(strcmp(row.name, "Alice") == 0 && "Row name mismatch");
+  assert(strcmp(row.values[1].string_value, "Alice") == 0 &&
+         "Row name mismatch");
 
   database_close(db);
   db_result = database_open(&db, TEST_DB);
@@ -86,11 +98,14 @@ void test_insert_row() {
 
   Row loaded_row;
   void *loaded_row_location = cursor_value(loaded_cursor);
-  deserialize_row(loaded_row_location, &loaded_row);
+  deserialize_row(loaded_row_location, &loaded_row, loaded_table);
 
   assert(loaded_row.id == 1 && "Loaded row ID mismatch");
-  assert(strcmp(loaded_row.name, "Alice") == 0 && "Loaded row name mismatch");
+  assert(strcmp(loaded_row.values[1].string_value, "Alice") == 0 &&
+         "Loaded row name mismatch");
 
+  test_row_free(loaded_row);
+  test_row_free(row);
   ast_free(create_node);
   ast_free(insert_node);
   ast_free(out_node);
