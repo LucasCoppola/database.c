@@ -63,6 +63,7 @@ RowResult insert_row(Table *out_table, ASTNode *node) {
       pager_page_load(out_table->pager, page_num, out_table, &page);
   if (result != PAGER_SUCCESS) {
     free(cursor);
+    row_free(row);
     LOG_ERROR("pager", "load", result);
     return ROW_GET_PAGE_ERROR;
   }
@@ -75,9 +76,12 @@ RowResult insert_row(Table *out_table, ASTNode *node) {
       pager_page_flush(out_table->pager, page_num, out_table);
   if (pager_result != PAGER_SUCCESS) {
     LOG_ERROR("pager", "flush", pager_result);
+    row_free(row);
+    free(cursor);
     return ROW_FLUSH_PAGE_ERROR;
   }
 
+  row_free(row);
   free(cursor);
   return ROW_SUCCESS;
 }
@@ -162,6 +166,11 @@ RowResult delete_row(Table *table, uint32_t row_id) {
 }
 
 void row_free(Row *row) {
+  for (uint32_t i = 0; i < row->num_columns; i++) {
+    if (row->values[i].type == COLUMN_TYPE_TEXT) {
+      free(row->values[i].string_value);
+    }
+  }
   free(row->values);
   free(row);
 }

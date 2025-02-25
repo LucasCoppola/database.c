@@ -21,13 +21,12 @@ void serialize_row(Row *row, Table *table, void *destination) {
   ptr += sizeof(row->size);
 
   for (uint32_t i = 0; i < table->num_columns; i++) {
-    Column *column = &table->columns[i];
     Value *value = &row->values[i];
 
     memcpy(ptr, &value->type, sizeof(value->type));
     ptr += sizeof(value->type);
 
-    switch (column->type) {
+    switch (value->type) {
     case COLUMN_TYPE_INT:
       memcpy(ptr, &value->int_value, sizeof(value->int_value));
       ptr += sizeof(value->int_value);
@@ -59,13 +58,12 @@ void deserialize_row(void *source, Row *row, Table *table) {
   row->values = malloc(table->num_columns * sizeof(Value));
 
   for (uint32_t i = 0; i < table->num_columns; i++) {
-    Column *column = &table->columns[i];
     Value *value = &row->values[i];
 
     memcpy(&value->type, ptr, sizeof(value->type));
     ptr += sizeof(value->type);
 
-    switch (column->type) {
+    switch (value->type) {
     case COLUMN_TYPE_INT:
       memcpy(&value->int_value, ptr, sizeof(value->int_value));
       ptr += sizeof(value->int_value);
