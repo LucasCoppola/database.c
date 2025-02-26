@@ -86,14 +86,14 @@ TableResult table_drop(Database *db, ASTNode *node) {
     return TABLE_NOT_FOUND;
   }
 
-  table_free(table);
-  HashMapResult delete_result = hashmap_delete(db->tables, table_name);
+  HashMapResult delete_result = hashmap_delete(db->tables, table->name);
   if (delete_result != HASHMAP_SUCCESS) {
     LOG_ERROR("hashmap", "delete", delete_result);
     return TABLE_DELETE_ERROR;
   }
 
   db->pager->num_tables--;
+  table_free(table);
   return TABLE_SUCCESS;
 }
 

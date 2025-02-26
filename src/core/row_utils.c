@@ -54,3 +54,23 @@ Value convert_value(const char *value_str, DataType type) {
 
   return value;
 }
+
+void print_row(Row row) {
+  printf("(");
+  for (uint32_t i = 0; i < row.num_columns; i++) {
+    switch (row.values[i].type) {
+    case COLUMN_TYPE_INT:
+      printf("%d", row.values[i].int_value);
+      break;
+    case COLUMN_TYPE_TEXT:
+      printf("%s", row.values[i].string_value);
+      break;
+    default:
+      printf("Unknown type");
+    }
+    if (i < row.num_columns - 1) {
+      printf(", ");
+    }
+  }
+  printf(")\n");
+}

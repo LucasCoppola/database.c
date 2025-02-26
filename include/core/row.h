@@ -37,15 +37,16 @@ typedef struct Row {
 
 // row.c
 RowResult insert_row(Table *table, ASTNode *node);
-RowResult select_rows(Table *table);
+RowResult select_row(Table *table);
 RowResult delete_row(Table *table, uint32_t row_id);
-void row_free(Row *row);
+void free_row(Row *row);
 
 // row_utils.c
 uint32_t calculate_row_size(Table *table);
 uint32_t calculate_rows_per_page(Table *table);
 uint32_t calculate_max_rows(Table *table);
 Value convert_value(const char *value_str, DataType type);
+void print_row(Row row);
 
 // row_storage.c
 void serialize_row(Row *row, Table *table, void *destination); 

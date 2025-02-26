@@ -30,7 +30,6 @@ TableResult table_initialize(Table *table, char *name, Database *db) {
 
 TableResult table_columns_set(Table *out_table, Column *columns,
                               uint32_t num_cols) {
-  out_table->num_columns = num_cols;
   out_table->columns = malloc(sizeof(Column) * num_cols);
   if (out_table->columns == NULL) {
     return TABLE_ALLOC_ERROR;
@@ -39,13 +38,12 @@ TableResult table_columns_set(Table *out_table, Column *columns,
   for (uint32_t i = 0; i < num_cols; i++) {
     out_table->columns[i].name = strdup(columns[i].name);
     if (!out_table->columns[i].name) {
-      table_free(out_table);
       return TABLE_ALLOC_ERROR;
     }
-
     out_table->columns[i].type = columns[i].type;
   }
 
+  out_table->num_columns = num_cols;
   return TABLE_SUCCESS;
 }
 

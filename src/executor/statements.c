@@ -51,11 +51,6 @@ ExecuteResult execute_insert_rows(Database *db, ASTNode *node) {
     return EXECUTE_FAILURE;
   }
 
-  if (strlen(node->insert_rows.values[1]) >= MAX_NAME_LENGTH) {
-    printf("Name too long.\n");
-    return EXECUTE_FAILURE;
-  }
-
   RowResult row_result = insert_row(table, node);
   if (row_result != ROW_SUCCESS) {
     LOG_ERROR("row", "insert", row_result);
@@ -74,7 +69,7 @@ ExecuteResult execute_select_rows(Database *db, ASTNode *node) {
     return EXECUTE_FAILURE;
   }
 
-  RowResult row_result = select_rows(out_table);
+  RowResult row_result = select_row(out_table);
   if (row_result != ROW_SUCCESS) {
     LOG_ERROR("row", "select", row_result);
     return EXECUTE_FAILURE;

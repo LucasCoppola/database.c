@@ -13,29 +13,38 @@
 #include "storage/pager.h"
 #include "utils/logger.h"
 
+RowResult initialize_row(Table *table, Row **row) {
+  *row = malloc(sizeof(Row));
+  if (!*row) {
+    fprintf(stderr, "Failed to allocate row.\n");
+    return ROW_ALLOC_ERROR;
+  }
+
+  (*row)->id = table->next_id++;
+  (*row)->num_columns = table->num_columns;
+  (*row)->values = malloc((*row)->num_columns * sizeof(Value));
+  if (!(*row)->values) {
+    fprintf(stderr, "Failed to allocate row values.\n");
+    free(*row);
+    return ROW_VALUES_ALLOC_ERROR;
+  }
+
+  return ROW_SUCCESS;
+}
+
 RowResult insert_row(Table *out_table, ASTNode *node) {
   if (out_table == NULL) {
     return ROW_INVALID_TABLE;
   }
 
-  Row *row = malloc(sizeof(Row));
-  if (!row) {
-    fprintf(stderr, "Failed to allocate row.\n");
-    return ROW_ALLOC_ERROR;
-  }
-
-  row->id = out_table->next_id++;
-  row->num_columns = out_table->num_columns;
-  row->values = malloc(row->num_columns * sizeof(Value));
-  if (!row->values) {
-    fprintf(stderr, "Failed to allocate row values.\n");
-    free(row);
-    return ROW_VALUES_ALLOC_ERROR;
+  Row *row = NULL;
+  RowResult init_result = initialize_row(out_table, &row);
+  if (init_result != ROW_SUCCESS) {
+    LOG_ERROR("row", "initialize", init_result);
+    return init_result;
   }
 
   for (uint32_t i = 0; i < row->num_columns; i++) {
-    printf("Value %d: %s, type: %d\n", i, node->insert_rows.values[i],
-           out_table->columns[i].type);
     row->values[i] =
         convert_value(node->insert_rows.values[i], out_table->columns[i].type);
   }
@@ -45,14 +54,11 @@ RowResult insert_row(Table *out_table, ASTNode *node) {
   uint32_t page_num = out_table->num_rows / rows_per_page;
   uint32_t row_offset = out_table->num_rows % rows_per_page;
 
-  printf("Inserting row into table %s at page %u, row offset %u\n",
-         out_table->name, page_num, row_offset);
-
   if (row_offset == 0) {
     PagerResult result = pager_page_alloc(page_num, out_table);
     if (result != PAGER_SUCCESS) {
       free(cursor);
-      row_free(row);
+      free_row(row);
       LOG_ERROR("pager", "allocation", result);
       return ROW_ALLOC_PAGE_ERROR;
     }
@@ -63,7 +69,7 @@ RowResult insert_row(Table *out_table, ASTNode *node) {
       pager_page_load(out_table->pager, page_num, out_table, &page);
   if (result != PAGER_SUCCESS) {
     free(cursor);
-    row_free(row);
+    free_row(row);
     LOG_ERROR("pager", "load", result);
     return ROW_GET_PAGE_ERROR;
   }
@@ -76,44 +82,22 @@ RowResult insert_row(Table *out_table, ASTNode *node) {
       pager_page_flush(out_table->pager, page_num, out_table);
   if (pager_result != PAGER_SUCCESS) {
     LOG_ERROR("pager", "flush", pager_result);
-    row_free(row);
+    free_row(row);
     free(cursor);
     return ROW_FLUSH_PAGE_ERROR;
   }
 
-  row_free(row);
+  free_row(row);
   free(cursor);
   return ROW_SUCCESS;
 }
 
-void print_row(Row row) {
-  printf("Row: \n");
-  printf("  id: %d\n", row.id);
-  printf("  num_columns: %d\n", row.num_columns);
-  printf("  row_size: %d\n", row.size);
-  printf("  Values: \n");
-  for (uint32_t i = 0; i < row.num_columns; i++) {
-    printf("    Column %d: ", i);
-    switch (row.values[i].type) {
-    case COLUMN_TYPE_INT:
-      printf("%d\n", row.values[i].int_value);
-      break;
-    case COLUMN_TYPE_TEXT:
-      printf("%s\n", row.values[i].string_value);
-      break;
-    default:
-      printf("Unknown type\n");
-    }
-  }
-}
-
-RowResult select_rows(Table *table) {
+RowResult select_row(Table *table) {
   if (table == NULL) {
     return ROW_INVALID_TABLE;
   }
 
   Cursor *cursor = table_start(table);
-
   Row row;
   row.values = malloc(table->num_columns * sizeof(Value));
   if (!row.values) {
@@ -165,7 +149,7 @@ RowResult delete_row(Table *table, uint32_t row_id) {
   return ROW_NOT_FOUND;
 }
 
-void row_free(Row *row) {
+void free_row(Row *row) {
   for (uint32_t i = 0; i < row->num_columns; i++) {
     if (row->values[i].type == COLUMN_TYPE_TEXT) {
       free(row->values[i].string_value);
