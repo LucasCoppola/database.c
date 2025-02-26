@@ -92,21 +92,23 @@ RowResult insert_row(Table *out_table, ASTNode *node) {
   return ROW_SUCCESS;
 }
 
-RowResult select_row(Table *table) {
+RowResult select_row(Table *table, ASTNode *node) {
   if (table == NULL) {
     return ROW_INVALID_TABLE;
   }
 
   Cursor *cursor = table_start(table);
+
   Row row;
   row.values = malloc(table->num_columns * sizeof(Value));
   if (!row.values) {
     free(cursor);
     return ROW_VALUES_ALLOC_ERROR;
   }
+
   while (!cursor->end_of_table) {
     deserialize_row(cursor_value(cursor), &row, table);
-    print_row(row);
+    print_row(row, node, table);
     cursor_advance(cursor);
   }
 

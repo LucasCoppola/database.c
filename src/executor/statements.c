@@ -69,7 +69,7 @@ ExecuteResult execute_select_rows(Database *db, ASTNode *node) {
     return EXECUTE_FAILURE;
   }
 
-  RowResult row_result = select_row(out_table);
+  RowResult row_result = select_row(out_table, node);
   if (row_result != ROW_SUCCESS) {
     LOG_ERROR("row", "select", row_result);
     return EXECUTE_FAILURE;

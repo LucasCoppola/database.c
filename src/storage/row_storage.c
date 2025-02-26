@@ -21,7 +21,6 @@ void serialize_row(Row *row, Table *table, void *destination) {
   ptr += sizeof(row->size);
 
   printf("Row %d, size %d\n", row->id, row->size);
-  print_row(*row);
 
   for (uint32_t i = 0; i < table->num_columns; i++) {
     Value *value = &row->values[i];

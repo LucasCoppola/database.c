@@ -5,6 +5,7 @@
 #include "core/table.h"
 
 #include "core/row.h"
+#include "parser/ast.h"
 #include "storage/pager.h"
 
 uint32_t calculate_row_size(Table *table) {
@@ -55,22 +56,51 @@ Value convert_value(const char *value_str, DataType type) {
   return value;
 }
 
-void print_row(Row row) {
+void print_value(Value value, DataType type) {
+  switch (type) {
+  case COLUMN_TYPE_INT:
+    printf("%d", value.int_value);
+    break;
+  case COLUMN_TYPE_TEXT:
+    printf("%s", value.string_value);
+    break;
+  default:
+    printf("Unknown type");
+  }
+}
+
+void print_row(Row row, ASTNode *node, Table *table) {
   printf("(");
-  for (uint32_t i = 0; i < row.num_columns; i++) {
-    switch (row.values[i].type) {
-    case COLUMN_TYPE_INT:
-      printf("%d", row.values[i].int_value);
-      break;
-    case COLUMN_TYPE_TEXT:
-      printf("%s", row.values[i].string_value);
-      break;
-    default:
-      printf("Unknown type");
+
+  if (node->select_rows.select_all) {
+    for (uint32_t i = 0; i < row.num_columns; i++) {
+      print_value(row.values[i], table->columns[i].type);
+      if (i < row.num_columns - 1) {
+        printf(", ");
+      }
     }
-    if (i < row.num_columns - 1) {
-      printf(", ");
+  } else {
+    for (int i = 0; i < node->select_rows.num_columns; i++) {
+      int col_index = -1;
+      for (uint32_t j = 0; j < table->num_columns; j++) {
+        if (strcmp(node->select_rows.select_columns[i],
+                   table->columns[j].name) == 0) {
+          col_index = j;
+          break;
+        }
+      }
+
+      if (col_index == -1) {
+        printf("No such column: '%s'", node->select_rows.select_columns[i]);
+      } else {
+        print_value(row.values[col_index], table->columns[col_index].type);
+      }
+
+      if (i < node->select_rows.num_columns - 1) {
+        printf(", ");
+      }
     }
   }
+
   printf(")\n");
 }
