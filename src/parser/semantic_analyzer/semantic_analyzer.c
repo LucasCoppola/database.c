@@ -1,13 +1,14 @@
-#include "parser/semantic_analyzer.h"
 #include "core/database.h"
+#include "core/table.h"
+
 #include "parser/ast.h"
+#include "parser/semantic_analyzer.h"
 #include "utils/semantic_logger.h"
 
 SemanticResult semantic_analyze(Database *db, ASTNode *node) {
   switch (node->type) {
   case NODE_CREATE_TABLE:
-    // return semantic_analyze_create_table(db, node);
-    break;
+    return semantic_analyze_create_table(db, node);
   case NODE_DROP_TABLE:
     return semantic_analyze_drop_table(db, node);
   case NODE_INSERT:
@@ -22,20 +23,29 @@ SemanticResult semantic_analyze(Database *db, ASTNode *node) {
   return SEMANTIC_SUCCESS;
 }
 
-// SemanticResult semantic_analyze_create_table(Database *db, ASTNode *node) {
-// 1. non-existent table
-// 2. non-existent column name
-// 3. valid column type
+SemanticResult semantic_analyze_create_table(Database *db, ASTNode *node) {
+  bool table_exists = semantic_validate_table_exists(db, node->table_name);
+  if (table_exists) {
+    SEMANTIC_LOG_ERROR(SEMANTIC_DUPLICATE_TABLE, node->table_name, NULL);
+    return SEMANTIC_DUPLICATE_TABLE;
+  }
 
-// return SEMANTIC_SUCCESS;
-// }
+  char *out_column = NULL;
+  bool is_column_unique = semantic_validate_columns_unique(
+      node->create_table.columns, node->create_table.num_columns, &out_column);
+  if (!is_column_unique) {
+    SEMANTIC_LOG_ERROR(SEMANTIC_DUPLICATE_COLUMN, out_column, NULL);
+    return SEMANTIC_DUPLICATE_COLUMN;
+  }
+
+  return SEMANTIC_SUCCESS;
+}
 
 SemanticResult semantic_analyze_drop_table(Database *db, ASTNode *node) {
-  SemanticResult table_result =
-      semantic_validate_table_existance(db, node->table_name);
-  if (table_result != SEMANTIC_SUCCESS) {
-    SEMANTIC_LOG_ERROR(table_result, node->table_name, NULL);
-    return table_result;
+  bool table_exists = semantic_validate_table_exists(db, node->table_name);
+  if (!table_exists) {
+    SEMANTIC_LOG_ERROR(SEMANTIC_TABLE_NOT_FOUND, node->table_name, NULL);
+    return SEMANTIC_TABLE_NOT_FOUND;
   }
 
   return SEMANTIC_SUCCESS;

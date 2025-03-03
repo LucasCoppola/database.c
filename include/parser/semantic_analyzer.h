@@ -1,9 +1,12 @@
 #ifndef SEMANTIC_ANALYZER_H
 #define SEMANTIC_ANALYZER_H
 
+#include <stdbool.h>
+
 typedef struct ASTNode ASTNode;
 typedef struct Database Database;
 typedef struct Value Value;
+typedef struct Column Column;
 typedef enum DataType DataType;
 
 typedef enum {
@@ -22,10 +25,8 @@ SemanticResult semantic_analyze_drop_table(Database *db, ASTNode *node);
 SemanticResult semantic_analyze_insert(Database *db, ASTNode *node);
 SemanticResult semantic_analyze_select(Database *db, ASTNode *node);
 
-SemanticResult semantic_validate_table_existance(Database *db, char *table_name);
-SemanticResult semantic_validate_columns_existance(Database *db, char *table_name, char **columns, int column_count);
+bool semantic_validate_table_exists(Database *db, char *table_name);
+bool semantic_validate_columns_unique(Column *columns, int column_count, char **out_column);
 SemanticResult semantic_validate_data_types(Database *db, char *table_name, char *column_name, DataType value_type);
-SemanticResult semantic_validate_no_duplicate_tables(Database *db, char *table_name);
-SemanticResult semantic_validate_no_duplicate_columns(char **columns, int column_count);
 
 #endif

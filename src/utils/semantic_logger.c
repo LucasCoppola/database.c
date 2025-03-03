@@ -20,8 +20,7 @@ void semantic_error_report(const SemanticError *error) {
             error->expected ? error->expected : "unknown");
     break;
   case SEMANTIC_DUPLICATE_TABLE:
-    fprintf(stderr,
-            "Semantic Error: Cannot create table - '%s' already exists\n",
+    fprintf(stderr, "Semantic Error: Table '%s' already exists\n",
             error->found ? error->found : "unknown");
     break;
   case SEMANTIC_DUPLICATE_COLUMN:
