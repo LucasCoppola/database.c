@@ -59,7 +59,7 @@ void test_create_table_with_columns() {
   out_node->create_table.num_columns = 0;
 
   Table *loaded_table = NULL;
-  TableResult find_result = table_find(db, out_node, &loaded_table);
+  TableResult find_result = table_find(db, out_node->table_name, &loaded_table);
   assert(find_result == TABLE_SUCCESS && "Failed to find table after reload");
   assert(loaded_table != NULL && "Loaded table pointer is NULL");
 

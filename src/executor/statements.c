@@ -24,7 +24,7 @@ ExecuteResult execute_create_table(Database *db, ASTNode *node) {
 }
 
 ExecuteResult execute_drop_table(Database *db, ASTNode *node) {
-  TableResult table_result = table_drop(db, node);
+  TableResult table_result = table_drop(db, node->table_name);
   if (table_result == TABLE_NOT_FOUND) {
     printf("Table not found.\n");
     return EXECUTE_FAILURE;
@@ -40,7 +40,7 @@ ExecuteResult execute_drop_table(Database *db, ASTNode *node) {
 
 ExecuteResult execute_insert_rows(Database *db, ASTNode *node) {
   Table *table = NULL;
-  TableResult table_result = table_find(db, node, &table);
+  TableResult table_result = table_find(db, node->table_name, &table);
 
   if (table_result != TABLE_SUCCESS) {
     LOG_ERROR("table", "find", table_result);
@@ -62,7 +62,7 @@ ExecuteResult execute_insert_rows(Database *db, ASTNode *node) {
 
 ExecuteResult execute_select_rows(Database *db, ASTNode *node) {
   Table *out_table = NULL;
-  TableResult table_result = table_find(db, node, &out_table);
+  TableResult table_result = table_find(db, node->table_name, &out_table);
 
   if (table_result != TABLE_SUCCESS) {
     LOG_ERROR("table", "find", table_result);

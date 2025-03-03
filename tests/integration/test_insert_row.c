@@ -87,7 +87,7 @@ void test_insert_row() {
   out_node->insert_rows.num_values = 0;
 
   Table *loaded_table = NULL;
-  TableResult find_result = table_find(db, out_node, &loaded_table);
+  TableResult find_result = table_find(db, out_node->table_name, &loaded_table);
   assert(find_result == TABLE_SUCCESS && "Failed to find table after reload");
   assert(loaded_table != NULL && "Loaded table pointer is NULL");
 

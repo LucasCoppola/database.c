@@ -46,7 +46,8 @@ void test_drop_table_success() {
   out_node->table_name = strdup("users");
 
   Table *dropped_table = NULL;
-  TableResult find_result = table_find(db, out_node, &dropped_table);
+  TableResult find_result =
+      table_find(db, out_node->table_name, &dropped_table);
   assert(find_result == TABLE_NOT_FOUND &&
          "Table should not be found after drop");
 
