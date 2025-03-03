@@ -70,7 +70,6 @@ TableResult table_find(Database *db, char *table_name, Table **out_table) {
     return TABLE_SUCCESS;
   }
 
-  printf("Table '%s' not found\n", table_name);
   return TABLE_NOT_FOUND;
 }
 

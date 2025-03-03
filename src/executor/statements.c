@@ -25,11 +25,6 @@ ExecuteResult execute_create_table(Database *db, ASTNode *node) {
 
 ExecuteResult execute_drop_table(Database *db, ASTNode *node) {
   TableResult table_result = table_drop(db, node->table_name);
-  if (table_result == TABLE_NOT_FOUND) {
-    printf("Table not found.\n");
-    return EXECUTE_FAILURE;
-  }
-
   if (table_result != TABLE_SUCCESS) {
     LOG_ERROR("table", "drop", table_result);
     return EXECUTE_FAILURE;

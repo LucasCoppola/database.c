@@ -7,6 +7,7 @@
 
 #include "parser/ast.h"
 #include "parser/parser.h"
+#include "parser/semantic_analyzer.h"
 #include "parser/tokenizer.h"
 
 #include "executor/executor.h"
@@ -76,6 +77,13 @@ int main(int argc, char *argv[]) {
     ASTNode *ast_node = parse(state->tokens, state->token_count);
     if (ast_node == NULL) {
       tokenizer_free(state);
+      continue;
+    }
+
+    SemanticResult semantic_result = semantic_analyze(db, ast_node);
+    if (semantic_result != SEMANTIC_SUCCESS) {
+      tokenizer_free(state);
+      ast_free(ast_node);
       continue;
     }
 

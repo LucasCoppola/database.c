@@ -20,7 +20,7 @@ typedef enum RowResult {
     ROW_FLUSH_PAGE_ERROR,
 } RowResult;
 
-typedef struct {
+typedef struct Value {
     DataType type;
     union {
         uint32_t int_value;
