@@ -13,13 +13,14 @@ typedef enum TokenizerResult {
 } TokenizerResult;
 
 typedef enum {
-    TOKEN_KEYWORD,     // Reserved SQL keywords like SELECT, INSERT
-    TOKEN_IDENTIFIER,  // Table/column names
-    TOKEN_LITERAL,     // String, number, or boolean values
-    TOKEN_OPERATOR,    // Operators like =, >, <
-    TOKEN_PUNCTUATION, // Symbols like commas, parentheses
-    TOKEN_WILDCARD,    // *
-    TOKEN_EOF          // End of input
+    TOKEN_KEYWORD,        // Reserved SQL keywords like SELECT, INSERT
+    TOKEN_IDENTIFIER,     // Table/column names
+    TOKEN_STRING_LITERAL, 
+    TOKEN_NUMERIC_LITERAL,
+    TOKEN_OPERATOR,       // Operators like =, >, <
+    TOKEN_PUNCTUATION,    // Symbols like commas, parentheses
+    TOKEN_WILDCARD,       // *
+    TOKEN_EOF             // End of input
 } TokenType;
 
 typedef struct Token {

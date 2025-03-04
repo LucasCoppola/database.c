@@ -8,6 +8,7 @@
 #include "parser/tokenizer.h"
 
 #include "../../utils/test_utils.h"
+#include "core/row.h"
 
 void test_insert(const char *query, bool should_pass,
                  const char *expected_table_name, const char **expected_values,
@@ -34,7 +35,15 @@ void test_insert(const char *query, bool should_pass,
       } else {
         bool values_match = true;
         for (int i = 0; i < expected_num_values; i++) {
-          if (strcmp(node->insert_rows.values[i], expected_values[i]) != 0) {
+          char actual_value[32];
+          if (node->insert_rows.values[i].type == COLUMN_TYPE_TEXT) {
+            strncpy(actual_value, node->insert_rows.values[i].string_value, 32);
+          } else if (node->insert_rows.values[i].type == COLUMN_TYPE_INT) {
+            snprintf(actual_value, 32, "%d",
+                     node->insert_rows.values[i].int_value);
+          }
+
+          if (strcmp(actual_value, expected_values[i]) != 0) {
             values_match = false;
             break;
           }

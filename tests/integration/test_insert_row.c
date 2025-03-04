@@ -21,7 +21,7 @@ static const char *TEST_DB = "test_insert_row.db";
 
 void test_row_free(Row row) {
   for (uint32_t i = 0; i < row.num_columns; i++) {
-    if (row.values[i].type == COLUMN_TYPE_TEXT) {
+    if (row.values[i].type == COLUMN_TYPE_TEXT && row.values[i].string_value) {
       free(row.values[i].string_value);
     }
   }

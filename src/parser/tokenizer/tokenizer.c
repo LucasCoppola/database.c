@@ -65,7 +65,7 @@ TokenizerResult tokenize_query(TokenizerState *state) {
         return TOKENIZER_READ_NUMBER_ERROR;
       }
 
-      add_token(state, number, TOKEN_LITERAL, start_pos);
+      add_token(state, number, TOKEN_NUMERIC_LITERAL, start_pos);
       free(number);
       continue;
     }
@@ -78,7 +78,7 @@ TokenizerResult tokenize_query(TokenizerState *state) {
         return TOKENIZER_READ_STRING_ERROR;
       }
 
-      add_token(state, string, TOKEN_LITERAL, start_pos);
+      add_token(state, string, TOKEN_STRING_LITERAL, start_pos);
       free(string);
       continue;
     }

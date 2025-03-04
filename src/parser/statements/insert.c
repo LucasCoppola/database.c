@@ -8,6 +8,8 @@
 #include "utils/logger.h"
 #include "utils/parser_logger.h"
 
+#include "core/row.h"
+
 // INSERT INTO table_name VALUES (value1, value2, value3);
 ASTNode *parser_row_insert(const Token *tokens, int token_count) {
   if (!expect_token(tokens, 0, TOKEN_KEYWORD, "INSERT")) {
@@ -35,7 +37,7 @@ ASTNode *parser_row_insert(const Token *tokens, int token_count) {
 
   node->table_name = strdup(tokens[2].value);
   if (!node->table_name) {
-    perror("Failed to duplicate table name");
+    fprintf(stderr, "Failed to duplicate table name");
     ast_free(node);
     return NULL;
   }
@@ -61,28 +63,38 @@ ASTNode *parser_row_insert(const Token *tokens, int token_count) {
   int index = 5;
 
   while (index < token_count) {
-    if (tokens[index].type != TOKEN_LITERAL) {
+    if (tokens[index].type != TOKEN_STRING_LITERAL &&
+        tokens[index].type != TOKEN_NUMERIC_LITERAL) {
       PARSER_LOG_ERROR(tokens[index].position, PARSER_INVALID_LITERAL,
                        tokens[index].value, "column_value");
       ast_free(node);
       return NULL;
     }
 
-    char **temp =
-        realloc(node->insert_rows.values, (num_values + 1) * sizeof(char *));
+    Value *temp =
+        realloc(node->insert_rows.values, (num_values + 1) * sizeof(Value));
     if (!temp) {
-      perror("Failed to reallocate values");
+      fprintf(stderr, "Failed to reallocate values");
       ast_free(node);
       return NULL;
     }
 
     node->insert_rows.values = temp;
 
-    node->insert_rows.values[num_values] = strdup(tokens[index].value);
-    if (!node->insert_rows.values[num_values]) {
-      perror("Failed to duplicate row value name");
-      ast_free(node);
-      return NULL;
+    if (tokens[index].type == TOKEN_STRING_LITERAL) {
+      node->insert_rows.values[num_values].string_value =
+          strdup(tokens[index].value);
+      if (!node->insert_rows.values[num_values].string_value) {
+        fprintf(stderr, "Failed to duplicate row value name");
+        ast_free(node);
+        return NULL;
+      }
+      node->insert_rows.values[num_values].type = COLUMN_TYPE_TEXT;
+
+    } else if (tokens[index].type == TOKEN_NUMERIC_LITERAL) {
+      node->insert_rows.values[num_values].int_value =
+          atoi(tokens[index].value);
+      node->insert_rows.values[num_values].type = COLUMN_TYPE_INT;
     }
 
     num_values++;

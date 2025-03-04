@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 typedef struct Column Column;
+typedef struct Value Value;
 
 typedef enum ASTNodeResult {
     AST_SUCCESS,
@@ -24,7 +25,7 @@ typedef struct {
 } CreateTable;
 
 typedef struct {
-    char** values;  // Array of string values to be converted later
+    Value* values;  // Array of string values to be converted later
     int num_values;
 } InsertRows;
 

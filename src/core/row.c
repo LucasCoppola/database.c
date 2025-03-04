@@ -45,8 +45,14 @@ RowResult insert_row(Table *out_table, ASTNode *node) {
   }
 
   for (uint32_t i = 0; i < row->num_columns; i++) {
-    row->values[i] =
-        convert_value(node->insert_rows.values[i], out_table->columns[i].type);
+    row->values[i].type = node->insert_rows.values[i].type;
+
+    if (node->insert_rows.values[i].type == COLUMN_TYPE_TEXT) {
+      row->values[i].string_value =
+          strdup(node->insert_rows.values[i].string_value);
+    } else {
+      row->values[i].int_value = node->insert_rows.values[i].int_value;
+    }
   }
 
   Cursor *cursor = table_end(out_table);
@@ -153,7 +159,8 @@ RowResult delete_row(Table *table, uint32_t row_id) {
 
 void free_row(Row *row) {
   for (uint32_t i = 0; i < row->num_columns; i++) {
-    if (row->values[i].type == COLUMN_TYPE_TEXT) {
+    if (row->values[i].type == COLUMN_TYPE_TEXT &&
+        row->values[i].string_value) {
       free(row->values[i].string_value);
     }
   }

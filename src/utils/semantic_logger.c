@@ -27,6 +27,12 @@ void semantic_error_report(const SemanticError *error) {
     fprintf(stderr, "Semantic Error: Column '%s' is already defined\n",
             error->found ? error->found : "unknown");
     break;
+  case SEMANTIC_COLUMN_COUNT_MISMATCH:
+    fprintf(
+        stderr,
+        "Semantic Error: Table has %s columns but %s values were supplied\n",
+        error->found, error->expected);
+    break;
   default:
     fprintf(stderr, "Semantic Error: Unknown semantic error\n");
     break;
