@@ -69,12 +69,7 @@ void print_row(Row row, ASTNode *node, Table *table) {
           break;
         }
       }
-
-      if (col_index == -1) {
-        printf("No such column: '%s'", node->select_rows.select_columns[i]);
-      } else {
-        print_value(row.values[col_index], table->columns[col_index].type);
-      }
+      print_value(row.values[col_index], table->columns[col_index].type);
 
       if (i < node->select_rows.num_columns - 1) {
         printf(", ");

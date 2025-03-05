@@ -27,6 +27,11 @@ void semantic_error_report(const SemanticError *error) {
         "Semantic Error: Table has %s columns but %s values were supplied\n",
         error->found, error->expected);
     break;
+  case SEMANTIC_INVALID_NAME_LENGTH:
+    fprintf(stderr,
+            "Semantic Error: '%s' exceeds maximum length of 64 characters\n",
+            error->found);
+    break;
   default:
     fprintf(stderr, "Semantic Error: Unknown semantic error\n");
     break;

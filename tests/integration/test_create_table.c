@@ -6,6 +6,7 @@
 #include "core/database.h"
 #include "core/table.h"
 #include "parser/ast.h"
+#include "parser/semantic_analyzer.h"
 #include "parser/statements.h"
 #include "parser/tokenizer.h"
 
@@ -103,6 +104,10 @@ void test_create_table_already_exists() {
   ASTNode *node = parser_table_create(state->tokens, state->token_count);
   assert(node != NULL && "Failed to parse CREATE TABLE statement");
 
+  SemanticResult semantic_result = semantic_analyze(db, node);
+  assert(semantic_result == SEMANTIC_SUCCESS &&
+         "Semantic analysis should pass");
+
   Table *table = NULL;
   TableResult result = table_create(db, node, &table);
   assert(result == TABLE_SUCCESS && "Failed to create table");
@@ -117,14 +122,10 @@ void test_create_table_already_exists() {
   assert(node_duplicate != NULL &&
          "Failed to parse duplicate CREATE TABLE statement");
 
-  Table *table_duplicate = NULL;
-  TableResult result_duplicate =
-      table_create(db, node_duplicate, &table_duplicate);
-
-  assert(result_duplicate == TABLE_ALREADY_EXISTS &&
-         "Expected TABLE_ERROR_ALREADY_EXISTS when creating a duplicate table");
-  assert(table_duplicate == NULL &&
-         "Table pointer should be NULL for duplicate table creation");
+  SemanticResult semantic_result_duplicate =
+      semantic_analyze(db, node_duplicate);
+  assert(semantic_result_duplicate == SEMANTIC_DUPLICATE_TABLE &&
+         "Semantic analyzer should detect duplicate table");
 
   ast_free(node);
   ast_free(node_duplicate);
@@ -159,42 +160,6 @@ void test_create_table_invalid_column_type() {
   printf("✓ Create table with invalid column type test passed\n");
 }
 
-void test_create_table_max_name_length() {
-  printf("Test: Creating table with maximum name length\n");
-
-  remove(TEST_DB);
-  Database *db = NULL;
-  DatabaseResult db_result = database_open(&db, TEST_DB);
-  assert(db_result == DATABASE_SUCCESS && "Failed to open database");
-  assert(db != NULL && "Database pointer is NULL");
-
-  char long_name[MAX_NAME_LENGTH * 2];
-  memset(long_name, 'a', MAX_NAME_LENGTH + 10);
-  long_name[MAX_NAME_LENGTH + 10] = '\0';
-
-  char query[MAX_NAME_LENGTH * 3];
-  snprintf(query, sizeof(query), "CREATE TABLE %s (id INT);", long_name);
-
-  TokenizerState *state = setup_tokenizer(query);
-  assert(state != NULL && "Failed to setup tokenizer");
-
-  ASTNode *node = parser_table_create(state->tokens, state->token_count);
-  assert(node != NULL && "Failed to parse CREATE TABLE statement");
-
-  Table *table = NULL;
-  TableResult result = table_create(db, node, &table);
-  assert(result == TABLE_NAME_TOO_LONG &&
-         "Should fail for too long table name");
-  assert(table == NULL && "Table should not be created");
-
-  ast_free(node);
-  teardown_tokenizer(state);
-  database_close(db);
-  remove(TEST_DB);
-
-  printf("✓ Create table with max name length test passed\n");
-}
-
 void test_create_table_no_columns() {
   printf("Test: Creating table with no columns\n");
 
@@ -224,7 +189,6 @@ int main() {
   test_create_table_with_columns();
   test_create_table_already_exists();
   test_create_table_invalid_column_type();
-  test_create_table_max_name_length();
   test_create_table_no_columns();
 
   printf("\nAll create table integration tests passed!\n");

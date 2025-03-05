@@ -32,6 +32,11 @@ SemanticResult semantic_analyze_create_table(Database *db, ASTNode *node) {
     return SEMANTIC_DUPLICATE_TABLE;
   }
 
+  if (strlen(node->table_name) >= MAX_NAME_LENGTH) {
+    SEMANTIC_LOG_ERROR(SEMANTIC_INVALID_NAME_LENGTH, node->table_name, NULL);
+    return SEMANTIC_INVALID_NAME_LENGTH;
+  }
+
   char *out_column = NULL;
   bool is_column_unique = semantic_validate_columns_uniqueness(
       node->create_table.columns, node->create_table.num_columns, &out_column);

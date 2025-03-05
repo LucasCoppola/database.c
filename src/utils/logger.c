@@ -104,16 +104,10 @@ const char *table_error_string(TableResult result) {
     return "Invalid database";
   case TABLE_ALLOC_ERROR:
     return "Failed to allocate memory for table";
-  case TABLE_NAME_TOO_LONG:
-    return "Table name is too long";
   case TABLE_CREATE_ERROR:
     return "Failed to set table in hashmap";
   case TABLE_DELETE_ERROR:
     return "Failed to delete table in hashmap";
-  case TABLE_ALREADY_EXISTS:
-    return "Table already exists";
-  case TABLE_NOT_FOUND:
-    return "Table not found";
   default:
     return "Unrecognized table error";
   }

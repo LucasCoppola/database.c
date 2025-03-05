@@ -19,22 +19,12 @@ TableResult table_create(Database *db, ASTNode *node, Table **out_table) {
     return TABLE_INVALID_DB;
   }
 
-  char *table_name = node->table_name;
-  Table *tmp_table = NULL;
-  if (hashmap_get(db->tables, table_name, &tmp_table) == HASHMAP_SUCCESS) {
-    return TABLE_ALREADY_EXISTS;
-  }
-
-  if (strlen(table_name) >= MAX_NAME_LENGTH) {
-    return TABLE_NAME_TOO_LONG;
-  }
-
   Table *table = malloc(sizeof(Table));
   if (table == NULL) {
     return TABLE_ALLOC_ERROR;
   }
 
-  TableResult init_result = table_initialize(table, table_name, db);
+  TableResult init_result = table_initialize(table, node->table_name, db);
   if (init_result != TABLE_SUCCESS) {
     table_free(table);
     return init_result;
@@ -48,7 +38,7 @@ TableResult table_create(Database *db, ASTNode *node, Table **out_table) {
     return set_cols_result;
   }
 
-  HashMapResult map_result = hashmap_set(db->tables, table_name, table);
+  HashMapResult map_result = hashmap_set(db->tables, node->table_name, table);
   if (map_result != HASHMAP_SUCCESS) {
     LOG_ERROR("hashmap", "set", map_result);
     table_free(table);
