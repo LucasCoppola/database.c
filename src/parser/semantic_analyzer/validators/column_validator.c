@@ -1,6 +1,10 @@
+#include <inttypes.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "core/table.h"
+#include "parser/ast.h"
 #include "parser/semantic_analyzer.h"
 
 bool semantic_validate_columns_unique(Column *columns, int column_count,
@@ -15,4 +19,8 @@ bool semantic_validate_columns_unique(Column *columns, int column_count,
   }
 
   return true;
+}
+
+void convert_uint32_to_str(uint32_t num, char *str, size_t str_size) {
+  snprintf(str, str_size, "%" PRIu32, num);
 }

@@ -13,12 +13,6 @@ void semantic_error_report(const SemanticError *error) {
     fprintf(stderr, "Semantic Error: Unable to find column '%s'\n",
             error->found ? error->found : "unknown");
     break;
-  case SEMANTIC_TYPE_MISMATCH:
-    fprintf(stderr,
-            "Semantic Error: Type mismatch - found '%s', expected '%s'\n",
-            error->found ? error->found : "unknown",
-            error->expected ? error->expected : "unknown");
-    break;
   case SEMANTIC_DUPLICATE_TABLE:
     fprintf(stderr, "Semantic Error: Table '%s' already exists\n",
             error->found ? error->found : "unknown");

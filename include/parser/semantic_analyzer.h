@@ -2,12 +2,11 @@
 #define SEMANTIC_ANALYZER_H
 
 #include <stdbool.h>
+#include "core/table.h"
+#include "core/row.h"
 
 typedef struct ASTNode ASTNode;
 typedef struct Database Database;
-typedef struct Value Value;
-typedef struct Column Column;
-typedef enum DataType DataType;
 
 typedef enum {
     SEMANTIC_SUCCESS,
@@ -15,7 +14,8 @@ typedef enum {
     SEMANTIC_COLUMN_NOT_FOUND,
     SEMANTIC_TYPE_MISMATCH,
     SEMANTIC_DUPLICATE_TABLE,
-    SEMANTIC_DUPLICATE_COLUMN
+    SEMANTIC_DUPLICATE_COLUMN,
+    SEMANTIC_COLUMN_COUNT_MISMATCH
 } SemanticResult;
 
 SemanticResult semantic_analyze(Database *db, ASTNode *node);
@@ -25,8 +25,10 @@ SemanticResult semantic_analyze_drop_table(Database *db, ASTNode *node);
 SemanticResult semantic_analyze_insert(Database *db, ASTNode *node);
 SemanticResult semantic_analyze_select(Database *db, ASTNode *node);
 
-bool semantic_validate_table_exists(Database *db, char *table_name);
+Table *semantic_validate_table_exists(Database *db, char *table_name);
 bool semantic_validate_columns_unique(Column *columns, int column_count, char **out_column);
-SemanticResult semantic_validate_data_types(Database *db, char *table_name, char *column_name, DataType value_type);
+bool semantic_validate_insert_columns(Table *table, ASTNode *node, char **out_column);
+SemanticResult semantic_validate_data_types(Column *columns, int num_columns, Value *values, 
+                                              char **expected_type, char **found_type, char **column_name);
 
 #endif
