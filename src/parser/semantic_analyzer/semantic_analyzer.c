@@ -1,4 +1,6 @@
 #include <inttypes.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "core/database.h"
 #include "core/table.h"
@@ -16,8 +18,7 @@ SemanticResult semantic_analyze(Database *db, ASTNode *node) {
   case NODE_INSERT:
     return semantic_analyze_insert(db, node);
   case NODE_SELECT:
-    // return semantic_analyze_select(db, node);
-    break;
+    return semantic_analyze_select(db, node);
   default:
     return SEMANTIC_SUCCESS;
   }
@@ -32,7 +33,7 @@ SemanticResult semantic_analyze_create_table(Database *db, ASTNode *node) {
   }
 
   char *out_column = NULL;
-  bool is_column_unique = semantic_validate_columns_unique(
+  bool is_column_unique = semantic_validate_columns_uniqueness(
       node->create_table.columns, node->create_table.num_columns, &out_column);
   if (!is_column_unique) {
     SEMANTIC_LOG_ERROR(SEMANTIC_DUPLICATE_COLUMN, out_column, NULL);
@@ -89,9 +90,24 @@ SemanticResult semantic_analyze_insert(Database *db, ASTNode *node) {
   return SEMANTIC_SUCCESS;
 }
 
-// SemanticResult semantic_analyze_select(Database *db, ASTNode *node) {
-// 1. existent table
-// 2. existent columns
+SemanticResult semantic_analyze_select(Database *db, ASTNode *node) {
+  Table *table = semantic_validate_table_exists(db, node->table_name);
+  if (!table) {
+    SEMANTIC_LOG_ERROR(SEMANTIC_TABLE_NOT_FOUND, node->table_name, NULL);
+    return SEMANTIC_TABLE_NOT_FOUND;
+  }
 
-// return SEMANTIC_SUCCESS;
-// }
+  if (node->select_rows.select_all) {
+    return SEMANTIC_SUCCESS;
+  }
+
+  char *out_column = NULL;
+  bool are_valid_columns =
+      semantic_validate_select_columns(table, node, &out_column);
+  if (!are_valid_columns) {
+    SEMANTIC_LOG_ERROR(SEMANTIC_COLUMN_NOT_FOUND, out_column, NULL);
+    return SEMANTIC_COLUMN_NOT_FOUND;
+  }
+
+  return SEMANTIC_SUCCESS;
+}

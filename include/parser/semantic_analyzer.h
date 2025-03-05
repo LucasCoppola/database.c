@@ -26,8 +26,9 @@ SemanticResult semantic_analyze_insert(Database *db, ASTNode *node);
 SemanticResult semantic_analyze_select(Database *db, ASTNode *node);
 
 Table *semantic_validate_table_exists(Database *db, char *table_name);
-bool semantic_validate_columns_unique(Column *columns, int column_count, char **out_column);
+bool semantic_validate_columns_uniqueness(Column *columns, int column_count, char **out_column);
 bool semantic_validate_insert_columns(Table *table, ASTNode *node, char **out_column);
+bool semantic_validate_select_columns(Table *table, ASTNode *node, char **out_column);
 SemanticResult semantic_validate_data_types(Column *columns, int num_columns, Value *values, 
                                               char **expected_type, char **found_type, char **column_name);
 
