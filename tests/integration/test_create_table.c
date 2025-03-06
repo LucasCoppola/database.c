@@ -30,6 +30,10 @@ void test_create_table_with_columns() {
   ASTNode *node = parser_table_create(state->tokens, state->token_count);
   assert(node != NULL && "Failed to parse CREATE TABLE statement");
 
+  SemanticResult semantic_result = semantic_analyze(db, node);
+  assert(semantic_result == SEMANTIC_SUCCESS &&
+         "Semantic analysis should pass");
+
   Table *table = NULL;
   TableResult result = table_create(db, node, &table);
   assert(result == TABLE_SUCCESS && "Failed to create table");

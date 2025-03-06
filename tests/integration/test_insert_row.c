@@ -7,6 +7,7 @@
 #include "core/table.h"
 
 #include "parser/ast.h"
+#include "parser/semantic_analyzer.h"
 #include "parser/statements.h"
 #include "parser/tokenizer.h"
 
@@ -58,7 +59,10 @@ void test_insert_row() {
       parser_row_insert(insert_state->tokens, insert_state->token_count);
   assert(insert_node != NULL && "Failed to parse INSERT statement");
 
-  // Execute the INSERT statement
+  SemanticResult semantic_result = semantic_analyze(db, insert_node);
+  assert(semantic_result == SEMANTIC_SUCCESS &&
+         "Semantic analysis should pass");
+
   ExecuteResult insert_result = execute_insert_rows(db, insert_node);
   assert(insert_result == EXECUTE_SUCCESS && "Failed to insert row");
 
@@ -151,7 +155,10 @@ void test_insert_row_multiple_columns() {
       parser_row_insert(insert_state->tokens, insert_state->token_count);
   assert(insert_node != NULL && "Failed to parse INSERT statement");
 
-  // Execute the INSERT statement
+  SemanticResult semantic_result = semantic_analyze(db, insert_node);
+  assert(semantic_result == SEMANTIC_SUCCESS &&
+         "Semantic analysis should pass");
+
   ExecuteResult insert_result = execute_insert_rows(db, insert_node);
   assert(insert_result == EXECUTE_SUCCESS && "Failed to insert row");
 
@@ -214,7 +221,10 @@ void test_insert_row_int_only() {
       parser_row_insert(insert_state->tokens, insert_state->token_count);
   assert(insert_node != NULL && "Failed to parse INSERT statement");
 
-  // Execute the INSERT statement
+  SemanticResult semantic_result = semantic_analyze(db, insert_node);
+  assert(semantic_result == SEMANTIC_SUCCESS &&
+         "Semantic analysis should pass");
+
   ExecuteResult insert_result = execute_insert_rows(db, insert_node);
   assert(insert_result == EXECUTE_SUCCESS && "Failed to insert row");
 
@@ -275,7 +285,10 @@ void test_insert_row_text_only() {
       parser_row_insert(insert_state->tokens, insert_state->token_count);
   assert(insert_node != NULL && "Failed to parse INSERT statement");
 
-  // Execute the INSERT statement
+  SemanticResult semantic_result = semantic_analyze(db, insert_node);
+  assert(semantic_result == SEMANTIC_SUCCESS &&
+         "Semantic analysis should pass");
+
   ExecuteResult insert_result = execute_insert_rows(db, insert_node);
   assert(insert_result == EXECUTE_SUCCESS && "Failed to insert row");
 

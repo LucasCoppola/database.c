@@ -7,6 +7,7 @@
 #include "core/table.h"
 #include "executor/executor.h"
 #include "parser/ast.h"
+#include "parser/semantic_analyzer.h"
 #include "parser/statements.h"
 #include "parser/tokenizer.h"
 
@@ -37,6 +38,11 @@ void test_drop_table_success() {
   TokenizerState *drop_state = setup_tokenizer(drop_query);
   ASTNode *drop_node = parser_table_drop(drop_state->tokens);
   assert(drop_node != NULL && "Failed to parse DROP TABLE statement");
+
+  SemanticResult semantic_result = semantic_analyze(db, drop_node);
+  assert(semantic_result == SEMANTIC_SUCCESS &&
+         "Semantic analysis should pass");
+
   ExecuteResult exec_result = execute_drop_table(db, drop_node);
   assert(exec_result == EXECUTE_SUCCESS && "Failed to execute DROP TABLE");
 
@@ -75,9 +81,10 @@ void test_drop_table_nonexistent() {
   TokenizerState *drop_state = setup_tokenizer(drop_query);
   ASTNode *drop_node = parser_table_drop(drop_state->tokens);
   assert(drop_node != NULL && "Failed to parse DROP TABLE statement");
-  ExecuteResult exec_result = execute_drop_table(db, drop_node);
-  assert(exec_result == EXECUTE_FAILURE &&
-         "Dropping a non-existent table should fail");
+
+  SemanticResult semantic_result = semantic_analyze(db, drop_node);
+  assert(semantic_result == SEMANTIC_TABLE_NOT_FOUND &&
+         "Semantic analysis should fail for non-existent table");
 
   ast_free(drop_node);
   teardown_tokenizer(drop_state);
