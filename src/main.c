@@ -5,6 +5,7 @@
 #include "core/database.h"
 #include "core/table.h"
 
+#include "linenoise.h"
 #include "parser/ast.h"
 #include "parser/parser.h"
 #include "parser/semantic_analyzer.h"
@@ -13,16 +14,6 @@
 #include "executor/executor.h"
 #include "meta_commands.h"
 #include "utils/logger.h"
-
-#define MAX_INPUT_LENGTH 256
-
-void read_input(char *input, size_t input_size) {
-  if (fgets(input, input_size, stdin) == NULL) {
-    return;
-  }
-
-  input[strcspn(input, "\n")] = 0; // Remove newline character
-};
 
 int main(int argc, char *argv[]) {
   Database *db = NULL;
@@ -40,17 +31,29 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  char input[MAX_INPUT_LENGTH];
-
   printf("Connected to %s database.\n", filename);
-  printf("Type '.help' for commands.\n");
+  printf("Type '.help' to list all available commands.\n");
+
+  linenoiseHistoryLoad(HISTORY_FILE);
+  linenoiseHistorySetMaxLen(MAX_HISTORY_LENGTH);
 
   while (1) {
-    printf("db> ");
-    read_input(input, sizeof(input));
+    char *input = linenoise("db> ");
+    if (!input)
+      break;
+
+    if (input[0] == '\0') {
+      linenoiseFree(input);
+      continue;
+    }
+
+    if (input[0] != '\0') {
+      linenoiseHistoryAdd(input);
+    }
 
     if (input[0] == '.') {
       process_meta_command(input, db);
+      linenoiseFree(input);
       continue;
     }
 
@@ -58,6 +61,7 @@ int main(int argc, char *argv[]) {
     TokenizerResult tokenizer_init_result = tokenizer_init(input, &state);
     if (tokenizer_init_result != TOKENIZER_SUCCESS) {
       LOG_ERROR("tokenizer", "init", tokenizer_init_result);
+      linenoiseFree(input);
       continue;
     }
 
@@ -71,12 +75,14 @@ int main(int argc, char *argv[]) {
         LOG_ERROR("tokenizer", "tokenize_query", tokenize_query_result);
       }
       tokenizer_free(state);
+      linenoiseFree(input);
       continue;
     }
 
     ASTNode *ast_node = parse(state->tokens, state->token_count);
     if (ast_node == NULL) {
       tokenizer_free(state);
+      linenoiseFree(input);
       continue;
     }
 
@@ -84,6 +90,7 @@ int main(int argc, char *argv[]) {
     if (semantic_result != SEMANTIC_SUCCESS) {
       tokenizer_free(state);
       ast_free(ast_node);
+      linenoiseFree(input);
       continue;
     }
 
@@ -99,8 +106,10 @@ int main(int argc, char *argv[]) {
 
     ast_free(ast_node);
     tokenizer_free(state);
+    linenoiseFree(input);
   }
 
-  database_free(db);
+  linenoiseHistorySave(HISTORY_FILE);
+  database_close(db);
   return 0;
 }
