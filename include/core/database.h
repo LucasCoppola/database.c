@@ -21,6 +21,7 @@ typedef struct Database {
 } Database;
 
 DatabaseResult database_open(Database **out_db, const char *filename);
+void database_tables_list(Database *db);
 void database_close(Database *db);
 void database_free(Database *db);
 

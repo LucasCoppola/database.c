@@ -43,6 +43,30 @@ DatabaseResult database_open(Database **out_db, const char *filename) {
   return DATABASE_SUCCESS;
 }
 
+void database_tables_list(Database *db) {
+  if (!db || !db->tables) {
+    printf("No database connection\n");
+    return;
+  }
+
+  HashMapIterator *iterator = hashmap_iterator_init(db->tables);
+  if (!hashmap_iterator_has_next(iterator)) {
+    printf("No tables found.\n");
+    hashmap_iterator_free(iterator);
+    return;
+  }
+
+  while (hashmap_iterator_has_next(iterator)) {
+    Bucket *bucket = hashmap_iterator_next(iterator);
+    if (bucket && bucket->value) {
+      Table *table = bucket->value;
+      printf("%s\n", table->name);
+    }
+  }
+
+  hashmap_iterator_free(iterator);
+}
+
 void database_close(Database *db) {
   if (!db)
     return;
