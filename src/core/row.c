@@ -40,7 +40,7 @@ RowResult insert_row(Table *out_table, ASTNode *node) {
   Row *row = NULL;
   RowResult init_result = initialize_row(out_table, &row);
   if (init_result != ROW_SUCCESS) {
-    LOG_ERROR("row", "initialize", init_result);
+    DEBUG_LOG("row", "initialize", init_result);
     return init_result;
   }
 
@@ -65,7 +65,7 @@ RowResult insert_row(Table *out_table, ASTNode *node) {
     if (result != PAGER_SUCCESS) {
       free(cursor);
       free_row(row);
-      LOG_ERROR("pager", "allocation", result);
+      DEBUG_LOG("pager", "allocation", result);
       return ROW_ALLOC_PAGE_ERROR;
     }
   }
@@ -76,7 +76,7 @@ RowResult insert_row(Table *out_table, ASTNode *node) {
   if (result != PAGER_SUCCESS) {
     free(cursor);
     free_row(row);
-    LOG_ERROR("pager", "load", result);
+    DEBUG_LOG("pager", "load", result);
     return ROW_GET_PAGE_ERROR;
   }
 
@@ -87,7 +87,7 @@ RowResult insert_row(Table *out_table, ASTNode *node) {
   PagerResult pager_result =
       pager_page_flush(out_table->pager, page_num, out_table);
   if (pager_result != PAGER_SUCCESS) {
-    LOG_ERROR("pager", "flush", pager_result);
+    DEBUG_LOG("pager", "flush", pager_result);
     free_row(row);
     free(cursor);
     return ROW_FLUSH_PAGE_ERROR;

@@ -30,7 +30,7 @@ void header_tables_write(Database *db) {
     header_table_write(db->pager, table, i);
     PagerResult result = pager_pages_flush(db->pager, table);
     if (result != PAGER_SUCCESS) {
-      LOG_ERROR("pager", "flush", result);
+      DEBUG_LOG("pager", "flush", result);
       return;
     }
   }

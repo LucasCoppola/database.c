@@ -32,7 +32,7 @@ const char* pager_error_string(PagerResult result);
 const char* ast_error_string(ASTNodeResult result);
 const char* tokenizer_error_string(TokenizerResult result);
 
-#define LOG_ERROR(comp, op, err_code) do { \
+#define DEBUG_LOG(comp, op, err_code) do { \
     Error error = { \
         .file = __FILE__, \
         .line = __LINE__, \

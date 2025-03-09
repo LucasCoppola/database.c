@@ -29,7 +29,7 @@ ASTNode *parser_table_drop(const Token *tokens) {
   ASTNode *node = NULL;
   ASTNodeResult ast_result = create_ast_node(NODE_DROP_TABLE, &node);
   if (ast_result != AST_SUCCESS) {
-    LOG_ERROR("ast", "create", ast_result);
+    DEBUG_LOG("ast", "create", ast_result);
     return NULL;
   }
 

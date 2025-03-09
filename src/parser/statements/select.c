@@ -19,7 +19,7 @@ ASTNode *parser_row_select(const Token *tokens, int token_count) {
   ASTNode *node = NULL;
   ASTNodeResult ast_result = create_ast_node(NODE_SELECT, &node);
   if (ast_result != AST_SUCCESS) {
-    LOG_ERROR("ast", "create", ast_result);
+    DEBUG_LOG("ast", "create", ast_result);
     return NULL;
   }
 

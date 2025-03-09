@@ -9,7 +9,7 @@ bool test_query(const char *query, int query_num) {
   TokenizerResult init_result = tokenizer_init(query, &state);
 
   if (init_result != TOKENIZER_SUCCESS) {
-    LOG_ERROR("tokenizer", "init", init_result);
+    DEBUG_LOG("tokenizer", "init", init_result);
     return false;
   }
 
@@ -17,7 +17,7 @@ bool test_query(const char *query, int query_num) {
   tokenizer_free(state);
 
   if (result != TOKENIZER_SUCCESS) {
-    LOG_ERROR("tokenizer", "tokenize_query", result);
+    DEBUG_LOG("tokenizer", "tokenize_query", result);
     return false;
   }
 

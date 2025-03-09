@@ -40,7 +40,7 @@ TableResult table_create(Database *db, ASTNode *node, Table **out_table) {
 
   HashMapResult map_result = hashmap_set(db->tables, node->table_name, table);
   if (map_result != HASHMAP_SUCCESS) {
-    LOG_ERROR("hashmap", "set", map_result);
+    DEBUG_LOG("hashmap", "set", map_result);
     table_free(table);
     return TABLE_CREATE_ERROR;
   }
@@ -75,7 +75,7 @@ TableResult table_drop(Database *db, char *table_name) {
 
   HashMapResult delete_result = hashmap_delete(db->tables, table->name);
   if (delete_result != HASHMAP_SUCCESS) {
-    LOG_ERROR("hashmap", "delete", delete_result);
+    DEBUG_LOG("hashmap", "delete", delete_result);
     return TABLE_DELETE_ERROR;
   }
 

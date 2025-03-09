@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
 
   DatabaseResult db_result = database_open(&db, filename);
   if (db_result != DATABASE_SUCCESS) {
-    LOG_ERROR("database", "open", db_result);
+    DEBUG_LOG("database", "open", db_result);
     return 1;
   }
 
@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
     TokenizerState *state = NULL;
     TokenizerResult tokenizer_init_result = tokenizer_init(input, &state);
     if (tokenizer_init_result != TOKENIZER_SUCCESS) {
-      LOG_ERROR("tokenizer", "init", tokenizer_init_result);
+      DEBUG_LOG("tokenizer", "init", tokenizer_init_result);
       linenoiseFree(input);
       continue;
     }
@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
                 "Syntax Error: Unterminated statement at position %d.\n",
                 state->position);
       } else {
-        LOG_ERROR("tokenizer", "tokenize_query", tokenize_query_result);
+        DEBUG_LOG("tokenizer", "tokenize_query", tokenize_query_result);
       }
       tokenizer_free(state);
       linenoiseFree(input);

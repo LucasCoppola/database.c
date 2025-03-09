@@ -66,7 +66,7 @@ void header_table_initialize(TableHeader *header, Pager *pager, HashMap *map) {
 
   HashMapResult result = hashmap_set(map, table->name, table);
   if (result != HASHMAP_SUCCESS) {
-    LOG_ERROR("hashmap", "set", result);
+    DEBUG_LOG("hashmap", "set", result);
     table_free(table);
     return;
   }
@@ -75,7 +75,7 @@ void header_table_initialize(TableHeader *header, Pager *pager, HashMap *map) {
     void *page = NULL;
     PagerResult result = pager_page_load(pager, i, table, &page);
     if (result != PAGER_SUCCESS) {
-      LOG_ERROR("pager", "load", result);
+      DEBUG_LOG("pager", "load", result);
       table_free(table);
       return;
     }

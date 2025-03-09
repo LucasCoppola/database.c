@@ -21,7 +21,7 @@ DatabaseResult database_open(Database **out_db, const char *filename) {
   Pager *pager = NULL;
   PagerResult pager_result = pager_init(filename, &pager);
   if (pager_result != PAGER_SUCCESS) {
-    LOG_ERROR("pager", "init", pager_result);
+    DEBUG_LOG("pager", "init", pager_result);
     free(db);
     return DATABASE_PAGER_INIT_ERROR;
   }
@@ -29,7 +29,7 @@ DatabaseResult database_open(Database **out_db, const char *filename) {
   HashMap *map = NULL;
   HashMapResult map_result = hashmap_initialize(HASHMAP_CAPACITY, &map);
   if (map_result != HASHMAP_SUCCESS) {
-    LOG_ERROR("hashmap", "init", map_result);
+    DEBUG_LOG("hashmap", "init", map_result);
     free(pager);
     free(db);
     return DATABASE_HASHMAP_INIT_ERROR;

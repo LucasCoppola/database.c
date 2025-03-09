@@ -11,7 +11,7 @@ TokenizerState *setup_tokenizer(const char *query) {
   TokenizerState *state = NULL;
   TokenizerResult result = tokenizer_init(query, &state);
   if (result != TOKENIZER_SUCCESS) {
-    LOG_ERROR("tokenizer", "init", result);
+    DEBUG_LOG("tokenizer", "init", result);
     return NULL;
   }
 
@@ -21,7 +21,7 @@ TokenizerState *setup_tokenizer(const char *query) {
       fprintf(stderr, "Syntax Error: Unterminated statement at position %d.\n",
               state->position);
     } else {
-      LOG_ERROR("tokenizer", "tokenize_query", tokenize_query_result);
+      DEBUG_LOG("tokenizer", "tokenize_query", tokenize_query_result);
     }
     tokenizer_free(state);
     return NULL;
