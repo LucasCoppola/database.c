@@ -1,15 +1,5 @@
 #include "parser/semantic_analyzer.h"
-
-char *data_type_to_string(DataType type) {
-  switch (type) {
-  case COLUMN_TYPE_INT:
-    return "INT";
-  case COLUMN_TYPE_TEXT:
-    return "TEXT";
-  default:
-    return "UNKNOWN";
-  }
-}
+#include "utils/convertions.h"
 
 SemanticResult semantic_validate_data_types(Column *columns, int num_columns,
                                             Value *values, char **expected_type,

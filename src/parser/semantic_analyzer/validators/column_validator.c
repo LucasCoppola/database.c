@@ -1,6 +1,4 @@
-#include <inttypes.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <string.h>
 
 #include "core/table.h"
@@ -41,8 +39,4 @@ bool semantic_validate_select_columns(Table *table, ASTNode *node,
   }
 
   return true;
-}
-
-void convert_uint32_to_str(uint32_t num, char *str, size_t str_size) {
-  snprintf(str, str_size, "%" PRIu32, num);
 }

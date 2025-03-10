@@ -6,6 +6,7 @@
 #include "core/row.h"
 #include "parser/ast.h"
 #include "storage/pager.h"
+#include "utils/convertions.h"
 
 uint32_t calculate_row_size(Table *table) {
   uint32_t row_size = sizeof(uint32_t); // row.id
@@ -34,19 +35,6 @@ uint32_t calculate_rows_per_page(Table *table) {
 
 uint32_t calculate_max_rows(Table *table) {
   return calculate_rows_per_page(table) * TABLE_MAX_PAGES;
-}
-
-void print_value(Value value, DataType type) {
-  switch (type) {
-  case COLUMN_TYPE_INT:
-    printf("%d", value.int_value);
-    break;
-  case COLUMN_TYPE_TEXT:
-    printf("%s", value.string_value);
-    break;
-  default:
-    printf("Unknown type");
-  }
 }
 
 void print_row(Row row, ASTNode *node, Table *table) {
