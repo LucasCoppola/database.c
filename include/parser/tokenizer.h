@@ -16,7 +16,8 @@ typedef enum {
     TOKEN_KEYWORD,        // Reserved SQL keywords like SELECT, INSERT
     TOKEN_IDENTIFIER,     // Table/column names
     TOKEN_STRING_LITERAL, 
-    TOKEN_NUMERIC_LITERAL,
+    TOKEN_INTEGER_LITERAL,
+    TOKEN_REAL_LITERAL,
     TOKEN_OPERATOR,       // Operators like =, >, <
     TOKEN_PUNCTUATION,    // Symbols like commas, parentheses
     TOKEN_WILDCARD,       // *
@@ -37,6 +38,11 @@ typedef struct {
     int token_count;
 } TokenizerState;
 
+typedef struct {
+  char *value;
+  bool is_real;
+} NumericLiteralResult;
+
 // tokenizer.c
 TokenizerResult tokenizer_init(const char* query, TokenizerState** state);
 TokenizerResult tokenize_query(TokenizerState* state);
@@ -46,7 +52,7 @@ void tokenizer_free(TokenizerState* state);
 void add_token(TokenizerState* state, const char* value, TokenType type, int position);
 
 char *read_word(char* query, int* position);
-char *read_numeric_literal(char *query, int *position);
+NumericLiteralResult read_numeric_literal(char *query, int *position);
 char *read_string_literal(char *query, int *position, char quote);
 
 bool is_keyword(char* value);

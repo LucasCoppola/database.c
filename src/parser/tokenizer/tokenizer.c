@@ -60,13 +60,16 @@ TokenizerResult tokenize_query(TokenizerState *state) {
     if (isdigit(c) ||
         (c == '-' && isdigit(state->query[state->position + 1]))) {
       int start_pos = state->position;
-      char *number = read_numeric_literal(state->query, &state->position);
-      if (!number) {
+      NumericLiteralResult result =
+          read_numeric_literal(state->query, &state->position);
+      if (!result.value) {
         return TOKENIZER_READ_NUMBER_ERROR;
       }
 
-      add_token(state, number, TOKEN_NUMERIC_LITERAL, start_pos);
-      free(number);
+      TokenType token_type =
+          result.is_real ? TOKEN_REAL_LITERAL : TOKEN_INTEGER_LITERAL;
+      add_token(state, result.value, token_type, start_pos);
+      free(result.value);
       continue;
     }
 

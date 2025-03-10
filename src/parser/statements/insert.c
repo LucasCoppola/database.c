@@ -5,6 +5,7 @@
 
 #include "parser/ast.h"
 #include "parser/parser.h"
+#include "utils/convertions.h"
 #include "utils/logger.h"
 #include "utils/parser_logger.h"
 
@@ -64,7 +65,8 @@ ASTNode *parser_row_insert(const Token *tokens, int token_count) {
 
   while (index < token_count) {
     if (tokens[index].type != TOKEN_STRING_LITERAL &&
-        tokens[index].type != TOKEN_NUMERIC_LITERAL) {
+        tokens[index].type != TOKEN_INTEGER_LITERAL &&
+        tokens[index].type != TOKEN_REAL_LITERAL) {
       PARSER_LOG_ERROR(tokens[index].position, PARSER_INVALID_LITERAL,
                        tokens[index].value, "column_value");
       ast_free(node);
@@ -82,19 +84,14 @@ ASTNode *parser_row_insert(const Token *tokens, int token_count) {
     node->insert_rows.values = temp;
 
     if (tokens[index].type == TOKEN_STRING_LITERAL) {
-      node->insert_rows.values[num_values].string_value =
-          strdup(tokens[index].value);
-      if (!node->insert_rows.values[num_values].string_value) {
-        fprintf(stderr, "Failed to duplicate row value name");
-        ast_free(node);
-        return NULL;
-      }
-      node->insert_rows.values[num_values].type = COLUMN_TYPE_TEXT;
-
-    } else if (tokens[index].type == TOKEN_NUMERIC_LITERAL) {
-      node->insert_rows.values[num_values].int_value =
-          atoi(tokens[index].value);
-      node->insert_rows.values[num_values].type = COLUMN_TYPE_INT;
+      Value value = convert_value(tokens[index].value, COLUMN_TYPE_TEXT);
+      node->insert_rows.values[num_values] = value;
+    } else if (tokens[index].type == TOKEN_INTEGER_LITERAL) {
+      Value value = convert_value(tokens[index].value, COLUMN_TYPE_INT);
+      node->insert_rows.values[num_values] = value;
+    } else if (tokens[index].type == TOKEN_REAL_LITERAL) {
+      Value value = convert_value(tokens[index].value, COLUMN_TYPE_REAL);
+      node->insert_rows.values[num_values] = value;
     }
 
     num_values++;

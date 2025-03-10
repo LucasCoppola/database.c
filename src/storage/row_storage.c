@@ -20,8 +20,6 @@ void serialize_row(Row *row, Table *table, void *destination) {
   memcpy(ptr, &row->size, sizeof(row->size));
   ptr += sizeof(row->size);
 
-  printf("Row %d, size %d\n", row->id, row->size);
-
   for (uint32_t i = 0; i < table->num_columns; i++) {
     Value *value = &row->values[i];
 
@@ -32,6 +30,10 @@ void serialize_row(Row *row, Table *table, void *destination) {
     case COLUMN_TYPE_INT:
       memcpy(ptr, &value->int_value, sizeof(value->int_value));
       ptr += sizeof(value->int_value);
+      break;
+    case COLUMN_TYPE_REAL:
+      memcpy(ptr, &value->real_value, sizeof(value->real_value));
+      ptr += sizeof(value->real_value);
       break;
     case COLUMN_TYPE_TEXT: {
       uint32_t str_len = strlen(value->string_value);
@@ -69,6 +71,10 @@ void deserialize_row(void *source, Row *row, Table *table) {
     case COLUMN_TYPE_INT:
       memcpy(&value->int_value, ptr, sizeof(value->int_value));
       ptr += sizeof(value->int_value);
+      break;
+    case COLUMN_TYPE_REAL:
+      memcpy(&value->real_value, ptr, sizeof(value->real_value));
+      ptr += sizeof(value->real_value);
       break;
     case COLUMN_TYPE_TEXT: {
       uint32_t str_len;

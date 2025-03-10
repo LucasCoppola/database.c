@@ -52,6 +52,7 @@ RowResult insert_row(Table *out_table, ASTNode *node) {
           strdup(node->insert_rows.values[i].string_value);
     } else {
       row->values[i].int_value = node->insert_rows.values[i].int_value;
+      row->values[i].real_value = node->insert_rows.values[i].real_value;
     }
   }
 

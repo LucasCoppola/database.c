@@ -4,12 +4,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "parser/keywords.h"
 #include "parser/tokenizer.h"
 
-const char *keywords[] = {"CREATE", "DROP",   "TABLE", "SELECT",  "INSERT",
-                          "DELETE", "FROM",   "WHERE", "INTO",    "VALUES",
-                          "UPDATE", "SET",    "INT",   "INTEGER", "REAL",
-                          "TEXT",   "BOOLEAN"};
+static const char *keywords[] = {
+    KEYWORD_CREATE, KEYWORD_DROP,    KEYWORD_TABLE,
+    KEYWORD_SELECT, KEYWORD_INSERT,  KEYWORD_DELETE,
+    KEYWORD_FROM,   KEYWORD_INTO,    KEYWORD_VALUES,
+
+    KEYWORD_INT,    KEYWORD_INTEGER, KEYWORD_REAL,
+    KEYWORD_TEXT,   KEYWORD_BOOLEAN};
 
 bool is_keyword(char *value) {
   int keywords_length = sizeof(keywords) / sizeof(keywords[0]);
@@ -34,7 +38,7 @@ void add_token(TokenizerState *state, const char *value, TokenType type,
   Token *new_tokens =
       realloc(state->tokens, (state->token_count + 1) * sizeof(Token));
   if (!new_tokens) {
-    perror("Failed to allocate memory for new token");
+    fprintf(stderr, "Failed to allocate memory for new token");
     tokenizer_free(state);
     exit(EXIT_FAILURE);
   }
@@ -45,9 +49,9 @@ void add_token(TokenizerState *state, const char *value, TokenType type,
   token->type = type;
   token->value = strdup(value);
   if (!token->value) {
-    perror("Failed to allocate memory for token value");
+    fprintf(stderr, "Failed to allocate memory for token value");
     tokenizer_free(state);
-    exit(1);
+    exit(EXIT_FAILURE);
   }
   token->position = position;
 
@@ -79,47 +83,34 @@ char *read_word(char *query, int *position) {
   return value;
 }
 
-char *read_numeric_literal(char *query, int *position) {
+NumericLiteralResult read_numeric_literal(char *query, int *position) {
   int start_pos = *position;
   bool has_decimal = false;
-  bool has_digits = false;
 
-  // check for negative sign
   if (query[*position] == '-') {
     (*position)++;
   }
 
   while (isdigit(query[*position]) || query[*position] == '.') {
     if (query[*position] == '.') {
-      // prevent 3..14
       if (has_decimal) {
-        break;
+        break; // Invalid format (e.g., "3.14.15")
       }
       has_decimal = true;
-    } else {
-      has_digits = true;
     }
-
     (*position)++;
   }
 
-  // check if we've read a number not just a sign
-  if (!has_digits) {
-    *position = start_pos;
-    return NULL;
-  }
-
   int length = *position - start_pos;
-
   char *value = malloc(length + 1);
   if (!value) {
-    perror("Failed to allocate memory for numeric literal");
-    return NULL;
+    fprintf(stderr, "Failed to allocate memory for numeric literal");
+    return (NumericLiteralResult){NULL, false};
   }
   strncpy(value, &query[start_pos], length);
-
   value[length] = '\0';
-  return value;
+
+  return (NumericLiteralResult){value, has_decimal};
 }
 
 char *read_string_literal(char *query, int *position, char quote) {
