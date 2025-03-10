@@ -17,9 +17,15 @@ uint32_t calculate_row_size(Table *table) {
     case COLUMN_TYPE_INT:
       row_size += sizeof(uint32_t);
       break;
+    case COLUMN_TYPE_REAL:
+      row_size += sizeof(double);
+      break;
     case COLUMN_TYPE_TEXT:
       row_size += sizeof(uint32_t);
       row_size += MAX_NAME_LENGTH;
+      break;
+    case COLUMN_TYPE_BOOL:
+      row_size += sizeof(bool);
       break;
     default:
       break;

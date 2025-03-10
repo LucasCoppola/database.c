@@ -66,7 +66,8 @@ ASTNode *parser_row_insert(const Token *tokens, int token_count) {
   while (index < token_count) {
     if (tokens[index].type != TOKEN_STRING_LITERAL &&
         tokens[index].type != TOKEN_INTEGER_LITERAL &&
-        tokens[index].type != TOKEN_REAL_LITERAL) {
+        tokens[index].type != TOKEN_REAL_LITERAL &&
+        tokens[index].type != TOKEN_BOOLEAN_LITERAL) {
       PARSER_LOG_ERROR(tokens[index].position, PARSER_INVALID_LITERAL,
                        tokens[index].value, "column_value");
       ast_free(node);
@@ -91,6 +92,9 @@ ASTNode *parser_row_insert(const Token *tokens, int token_count) {
       node->insert_rows.values[num_values] = value;
     } else if (tokens[index].type == TOKEN_REAL_LITERAL) {
       Value value = convert_value(tokens[index].value, COLUMN_TYPE_REAL);
+      node->insert_rows.values[num_values] = value;
+    } else if (tokens[index].type == TOKEN_BOOLEAN_LITERAL) {
+      Value value = convert_value(tokens[index].value, COLUMN_TYPE_BOOL);
       node->insert_rows.values[num_values] = value;
     }
 

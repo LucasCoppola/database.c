@@ -18,5 +18,6 @@
 #define KEYWORD_REAL "REAL"
 #define KEYWORD_TEXT "TEXT"
 #define KEYWORD_BOOLEAN "BOOLEAN"
+#define KEYWORD_BOOL "BOOL"
 
 #endif 

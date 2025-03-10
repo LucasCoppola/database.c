@@ -26,6 +26,7 @@ typedef struct Value {
         uint32_t int_value;
         double real_value; 
         char *string_value;
+        bool bool_value;
     };
 } Value;
 

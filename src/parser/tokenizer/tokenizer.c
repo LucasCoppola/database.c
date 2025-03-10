@@ -50,8 +50,16 @@ TokenizerResult tokenize_query(TokenizerState *state) {
         return TOKENIZER_READ_WORD_ERROR;
       }
 
-      TokenType type = is_keyword(word) ? TOKEN_KEYWORD : TOKEN_IDENTIFIER;
-      add_token(state, word, type, start_pos);
+      TokenType token_type;
+      if (is_boolean_literal(word)) {
+        token_type = TOKEN_BOOLEAN_LITERAL;
+      } else if (is_keyword(word)) {
+        token_type = TOKEN_KEYWORD;
+      } else {
+        token_type = TOKEN_IDENTIFIER;
+      }
+
+      add_token(state, word, token_type, start_pos);
       free(word);
       continue;
     }

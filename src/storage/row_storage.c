@@ -42,6 +42,10 @@ void serialize_row(Row *row, Table *table, void *destination) {
       memcpy(ptr, value->string_value, str_len + 1);
       ptr += str_len + 1;
       break;
+    case COLUMN_TYPE_BOOL:
+      memcpy(ptr, &row->values[i].bool_value, sizeof(bool));
+      ptr += sizeof(bool);
+      break;
     }
     default:
       fprintf(stderr, "Unknown columun type in serialize_row\n");
@@ -84,6 +88,10 @@ void deserialize_row(void *source, Row *row, Table *table) {
       value->string_value = malloc(str_len + 1);
       memcpy(value->string_value, ptr, str_len + 1);
       ptr += str_len + 1;
+      break;
+    case COLUMN_TYPE_BOOL:
+      memcpy(&row->values[i].bool_value, ptr, sizeof(bool));
+      ptr += sizeof(bool);
       break;
     }
     default:

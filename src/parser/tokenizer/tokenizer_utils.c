@@ -13,7 +13,7 @@ static const char *keywords[] = {
     KEYWORD_FROM,   KEYWORD_INTO,    KEYWORD_VALUES,
 
     KEYWORD_INT,    KEYWORD_INTEGER, KEYWORD_REAL,
-    KEYWORD_TEXT,   KEYWORD_BOOLEAN};
+    KEYWORD_TEXT,   KEYWORD_BOOL,    KEYWORD_BOOLEAN};
 
 bool is_keyword(char *value) {
   int keywords_length = sizeof(keywords) / sizeof(keywords[0]);
@@ -31,6 +31,10 @@ bool is_operator(char value) {
 
 bool is_punctuation(char value) {
   return (value == ',' || value == '(' || value == ')');
+}
+
+bool is_boolean_literal(const char *value) {
+  return (strcasecmp(value, "true") == 0 || strcasecmp(value, "false") == 0);
 }
 
 void add_token(TokenizerState *state, const char *value, TokenType type,

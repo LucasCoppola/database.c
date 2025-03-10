@@ -15,8 +15,11 @@ DataType map_column_type(char *type) {
     return COLUMN_TYPE_TEXT;
   } else if (strcmp(type, KEYWORD_REAL) == 0) {
     return COLUMN_TYPE_REAL;
+  } else if (strcmp(type, KEYWORD_BOOL) == 0 ||
+             strcmp(type, KEYWORD_BOOLEAN) == 0) {
+    return COLUMN_TYPE_BOOL;
   } else {
-    printf("Unkown column type %s\n", type);
+    printf("Unknown column type %s\n", type);
     return COLUMN_TYPE_UNKNOWN;
   }
 }
@@ -25,10 +28,12 @@ char *data_type_to_string(DataType type) {
   switch (type) {
   case COLUMN_TYPE_INT:
     return KEYWORD_INT;
-  case COLUMN_TYPE_TEXT:
-    return KEYWORD_TEXT;
   case COLUMN_TYPE_REAL:
     return KEYWORD_REAL;
+  case COLUMN_TYPE_TEXT:
+    return KEYWORD_TEXT;
+  case COLUMN_TYPE_BOOL:
+    return KEYWORD_BOOLEAN;
   default:
     return "UNKNOWN";
   }
@@ -48,6 +53,9 @@ Value convert_value(const char *value_str, DataType type) {
   case COLUMN_TYPE_TEXT:
     value.string_value = strdup(value_str);
     break;
+  case COLUMN_TYPE_BOOL:
+    value.bool_value = (strcasecmp(value_str, "true") == 0);
+    break;
   default:
     fprintf(stderr, "Unknown type in convert_value\n");
   }
@@ -64,6 +72,9 @@ void print_value(Value value, DataType type) {
     break;
   case COLUMN_TYPE_REAL:
     printf("%g", value.real_value);
+    break;
+  case COLUMN_TYPE_BOOL:
+    printf("%s", value.bool_value ? "true" : "false");
     break;
   default:
     printf("Unknown type");

@@ -27,6 +27,7 @@ typedef enum DataType {
     COLUMN_TYPE_INT,
     COLUMN_TYPE_TEXT,
     COLUMN_TYPE_REAL,
+    COLUMN_TYPE_BOOL,
     COLUMN_TYPE_UNKNOWN
 } DataType;
 
