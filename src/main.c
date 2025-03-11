@@ -5,7 +5,7 @@
 #include "core/database.h"
 #include "core/table.h"
 
-#include "linenoise.h"
+#include "libs/linenoise.h"
 #include "parser/ast.h"
 #include "parser/parser.h"
 #include "parser/semantic_analyzer.h"

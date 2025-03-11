@@ -3,6 +3,7 @@ CFLAGS = -g -Wall -Wextra -I./include
 
 # Directories
 SRC_DIR = src
+LIBS_DIR = libs
 CORE_DIR = $(SRC_DIR)/core
 STORAGE_DIR = $(SRC_DIR)/storage
 PARSER_DIR = $(SRC_DIR)/parser
@@ -29,6 +30,9 @@ TOKENIZER_FILES = $(wildcard $(TOKENIZER_DIR)/*.c)
 SEMANTIC_ANALYZER_FILES = $(wildcard $(SEMANTIC_ANALYZER_DIR)/*.c) 
 SEMANTIC_ANALYZER_VALIDATORS_FILES = $(wildcard $(SEMANTIC_ANALYZER_VALIDATORS_DIR)/*.c) 
 
+LINENOISE_LIB = $(wildcard $(LIBS_DIR)/linenoise.c)
+UNITY_LIB = $(wildcard $(LIBS_DIR)/unity.c)
+
 # Test files
 TEST_UTILS = $(UNIT_DIR)/utils/test_utils.c
 TEST_HASHMAP = $(UNIT_DIR)/core/test_hashmap.c
@@ -49,12 +53,12 @@ TEST_DROP_TABLE_EXEC = test_drop_table
 TEST_INSERT_ROW_EXEC = test_insert_row
 
 # Main target
-main: $(SRC_FILES) $(CORE_FILES) $(STORAGE_FILES) $(PARSER_FILES) $(EXECUTOR_FILES) $(UTILS_FILES) $(TOKENIZER_FILES) \
+main: $(SRC_FILES) $(LINENOISE_LIB) $(CORE_FILES) $(STORAGE_FILES) $(PARSER_FILES) $(EXECUTOR_FILES) $(UTILS_FILES) $(TOKENIZER_FILES) \
 			$(PARSER_STATEMENTS_FILES) $(EXECUTOR_FILES) $(SEMANTIC_ANALYZER_FILES) $(SEMANTIC_ANALYZER_VALIDATORS_FILES) 
 	$(CC) $(CFLAGS) $^ -o $(MAIN_EXEC)
 
 # Test targets
-test_hashmap: $(TEST_HASHMAP) $(CORE_FILES) $(STORAGE_FILES) $(UTILS_FILES)
+test_hashmap: $(UNITY_LIB) $(TEST_HASHMAP) $(CORE_FILES) $(STORAGE_FILES) $(UTILS_FILES)
 	$(CC) $(CFLAGS) $^ -o $(TEST_HASHMAP_EXEC)
 	valgrind --leak-check=full --show-leak-kinds=all ./$(TEST_HASHMAP_EXEC)
 
