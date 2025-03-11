@@ -7,6 +7,8 @@
 #include "statements/test_select.c"
 
 int main() {
+  UNITY_BEGIN();
+
   printf("Running CREATE TABLE tests...\n");
   run_create_table_tests();
 
@@ -19,5 +21,5 @@ int main() {
   printf("Running INSERT tests...\n");
   run_insert_tests();
 
-  return 0;
+  return UNITY_END();
 }

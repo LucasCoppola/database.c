@@ -3,91 +3,95 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "libs/unity.h"
 #include "parser/ast.h"
 #include "parser/statements.h"
-#include "parser/tokenizer.h"
 
 #include "../../utils/test_utils.h"
 #include "core/row.h"
 
-void test_insert(const char *query, bool should_pass,
-                 const char *expected_table_name, const char **expected_values,
-                 int expected_num_values) {
-  printf("Testing query: %s\n", query);
-
-  TokenizerState *state = setup_tokenizer(query);
-  if (!state) {
-    return;
-  }
-
-  ASTNode *node = parser_row_insert(state->tokens, state->token_count);
-
+void test_insert_query(bool should_pass, const char *expected_table_name,
+                       const char **expected_values, int expected_num_values) {
   if (should_pass) {
-    if (!node) {
-      printf("   FAIL: Expected parsing to succeed, but it failed.\n");
-    } else {
-      if (strcmp(node->table_name, expected_table_name) != 0) {
-        printf("   FAIL: Expected table name '%s', got '%s'.\n",
-               expected_table_name, node->table_name);
-      } else if (node->insert_rows.num_values != expected_num_values) {
-        printf("   FAIL: Expected %d values, got %d.\n", expected_num_values,
-               node->insert_rows.num_values);
-      } else {
-        bool values_match = true;
-        for (int i = 0; i < expected_num_values; i++) {
-          char actual_value[32];
-          if (node->insert_rows.values[i].type == COLUMN_TYPE_TEXT) {
-            strncpy(actual_value, node->insert_rows.values[i].string_value, 32);
-          } else if (node->insert_rows.values[i].type == COLUMN_TYPE_INT) {
-            snprintf(actual_value, 32, "%d",
-                     node->insert_rows.values[i].int_value);
-          }
+    TEST_ASSERT_NOT_NULL(node);
+    TEST_ASSERT_EQUAL_STRING(expected_table_name, node->table_name);
+    TEST_ASSERT_EQUAL(expected_num_values, node->insert_rows.num_values);
 
-          if (strcmp(actual_value, expected_values[i]) != 0) {
-            values_match = false;
-            break;
-          }
-        }
-        if (!values_match) {
-          printf("   FAIL: Values do not match expected values.\n");
-        } else {
-          printf("   PASS: Parsing succeeded and output matches expected "
-                 "values.\n");
-        }
+    for (int i = 0; i < expected_num_values; i++) {
+      char actual_value[32];
+      switch (node->insert_rows.values[i].type) {
+      case COLUMN_TYPE_TEXT:
+        strncpy(actual_value, node->insert_rows.values[i].string_value, 32);
+        break;
+      case COLUMN_TYPE_INT:
+        snprintf(actual_value, 32, "%d", node->insert_rows.values[i].int_value);
+        break;
+      case COLUMN_TYPE_REAL:
+        snprintf(actual_value, 32, "%.2f",
+                 node->insert_rows.values[i].real_value);
+        break;
+      case COLUMN_TYPE_BOOL:
+        snprintf(actual_value, 32, "%s",
+                 node->insert_rows.values[i].bool_value ? "true" : "false");
+        break;
+      default:
+        snprintf(actual_value, 32, "unknown_type");
       }
-      ast_free(node);
+      TEST_ASSERT_EQUAL_STRING(expected_values[i], actual_value);
     }
   } else {
-    if (node) {
-      printf("   FAIL: Expected parsing to fail, but it succeeded.\n");
-      ast_free(node);
-    } else {
-      printf("   PASS: Parsing failed as expected.\n");
-    }
+    TEST_ASSERT_NULL(node);
   }
-
-  teardown_tokenizer(state);
-  printf("\n");
 }
 
-void run_insert_tests() {
-  const char *query1 = "INSERT INTO users VALUES (1, 'Alice');";
-  const char *expected_values1[] = {"1", "Alice"};
-  test_insert(query1, true, "users", expected_values1, 2);
+void test_valid_insert_multiple_values(void) {
+  current_query = "INSERT INTO products VALUES (101, 'Laptop', 999.99, false);";
+  setUp();
+  const char *expected_values[] = {"101", "Laptop", "999.99", "false"};
+  test_insert_query(true, "products", expected_values, 4);
+}
 
-  const char *query2 = "INSERT INTO products VALUES (101, 'Laptop', 999.99);";
-  const char *expected_values2[] = {"101", "Laptop", "999.99"};
-  test_insert(query2, true, "products", expected_values2, 3);
+void test_insert_missing_values(void) {
+  current_query = "INSERT INTO users VALUES ();";
+  setUp();
+  test_insert_query(false, NULL, NULL, 0);
+}
 
-  const char *query3 = "INSERT INTO users VALUES ();";
-  test_insert(query3, false, NULL, NULL, 0);
+void test_insert_missing_table(void) {
+  current_query = "INSERT INTO users;";
+  setUp();
+  test_insert_query(false, NULL, NULL, 0);
+}
 
-  const char *query4 = "INSERT INTO users;";
-  test_insert(query4, false, NULL, NULL, 0);
+void test_insert_unterminated_values(void) {
+  current_query = "INSERT INTO users VALUES (1, Alice;";
+  setUp();
+  test_insert_query(false, NULL, NULL, 0);
+}
 
-  const char *query5 = "INSERT INTO users VALUES (1, Alice;";
-  test_insert(query5, false, NULL, NULL, 0);
+void test_insert_missing_table_name(void) {
+  current_query = "INSERT INTO VALUES (1, Alice);";
+  setUp();
+  test_insert_query(false, NULL, NULL, 0);
+}
 
-  const char *query6 = "INSERT INTO VALUES (1, Alice);";
-  test_insert(query6, false, NULL, NULL, 0);
+void test_insert_invalid_boolean_format(void) {
+  current_query = "INSERT INTO flags VALUES ('feature', truth);";
+  setUp();
+  test_insert_query(false, NULL, NULL, 0);
+}
+
+void run_insert_tests(void) {
+  printf("\n");
+  RUN_TEST(test_valid_insert_multiple_values);
+  printf("\n");
+  RUN_TEST(test_insert_missing_values);
+  printf("\n");
+  RUN_TEST(test_insert_missing_table);
+  printf("\n");
+  RUN_TEST(test_insert_unterminated_values);
+  printf("\n");
+  RUN_TEST(test_insert_missing_table_name);
+  printf("\n");
+  RUN_TEST(test_insert_invalid_boolean_format);
 }

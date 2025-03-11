@@ -3,56 +3,44 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "libs/unity.h"
 #include "parser/ast.h"
 #include "parser/statements.h"
-#include "parser/tokenizer.h"
 
 #include "../../utils/test_utils.h"
 
-void test_drop_table(const char *query, bool should_pass,
-                     const char *expected_table_name) {
-  printf("Testing query: %s\n", query);
-
-  TokenizerState *state = setup_tokenizer(query);
-  if (!state)
-    return;
-
-  ASTNode *node = parser_table_drop(state->tokens);
-
+void test_drop_table_query(bool should_pass, const char *expected_table_name) {
   if (should_pass) {
-    if (!node) {
-      printf("   FAIL: Expected parsing to succeed, but it failed.\n");
-    } else {
-      if (strcmp(node->table_name, expected_table_name) != 0) {
-        printf("   FAIL: Expected table name '%s', got '%s'.\n",
-               expected_table_name, node->table_name);
-      } else {
-        printf("   PASS: Parsing succeeded and output matches expected "
-               "values.\n");
-      }
-    }
+    TEST_ASSERT_NOT_NULL(node);
+    TEST_ASSERT_EQUAL_STRING(expected_table_name, node->table_name);
   } else {
-    if (node) {
-      printf("   FAIL: Expected parsing to fail, but it succeeded.\n");
-    } else {
-      printf("   PASS: Parsing failed as expected.\n");
-    }
+    TEST_ASSERT_NULL(node);
   }
-
-  if (node) {
-    ast_free(node);
-  }
-  teardown_tokenizer(state);
-  printf("\n");
 }
 
-void run_drop_table_tests() {
-  const char *query1 = "DROP TABLE users;";
-  test_drop_table(query1, true, "users");
+void test_valid_drop_table(void) {
+  current_query = "DROP TABLE users;";
+  setUp();
+  test_drop_table_query(true, "users");
+}
 
-  const char *query2 = "DROP TABLE;";
-  test_drop_table(query2, false, NULL);
+void test_missing_table_name(void) {
+  current_query = "DROP TABLE;";
+  setUp();
+  test_drop_table_query(false, NULL);
+}
 
-  const char *query3 = "DROP users;";
-  test_drop_table(query3, false, NULL);
+void test_invalid_drop_table(void) {
+  current_query = "DROP users;";
+  setUp();
+  test_drop_table_query(false, NULL);
+}
+
+void run_drop_table_tests(void) {
+  printf("\n");
+  RUN_TEST(test_valid_drop_table);
+  printf("\n");
+  RUN_TEST(test_missing_table_name);
+  printf("\n");
+  RUN_TEST(test_invalid_drop_table);
 }
