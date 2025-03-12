@@ -5,6 +5,7 @@
 
 #include "core/database.h"
 #include "core/table.h"
+#include "libs/unity.h"
 #include "parser/ast.h"
 #include "parser/semantic_analyzer.h"
 #include "parser/statements.h"
@@ -12,189 +13,157 @@
 
 #include "../unit/utils/test_utils.h"
 
+// Global variables for shared test state
 static const char *TEST_DB = "test_create_table.db";
+Database *db = NULL;
+TokenizerState *state = NULL;
+ASTNode *node = NULL;
 
-void test_create_table_with_columns() {
-  printf("Test: Creating table with columns\n");
-
-  remove(TEST_DB);
-  Database *db = NULL;
+// setUp: Called before each test
+void setUp(void) {
+  remove(TEST_DB); // Ensure the database file is removed before each test
   DatabaseResult db_result = database_open(&db, TEST_DB);
-  assert(db_result == DATABASE_SUCCESS && "Failed to open database");
-  assert(db != NULL && "Database pointer is NULL");
+  TEST_ASSERT_EQUAL(DATABASE_SUCCESS, db_result);
+  TEST_ASSERT_NOT_NULL(db);
+}
 
+// tearDown: Called after each test
+void tearDown(void) {
+  if (node) {
+    ast_free(node);
+    node = NULL;
+  }
+
+  if (state) {
+    teardown_tokenizer(state);
+    state = NULL;
+  }
+
+  if (db) {
+    database_close(db);
+    db = NULL;
+  }
+
+  remove(TEST_DB); // Clean up the database file after each test
+}
+
+// Test: Creating table with columns
+void test_create_table_with_columns(void) {
   const char *query = "CREATE TABLE users (id INT, name TEXT);";
-  TokenizerState *state = setup_tokenizer(query);
-  assert(state != NULL && "Failed to setup tokenizer");
+  state = setup_tokenizer(query);
+  TEST_ASSERT_NOT_NULL(state);
 
-  ASTNode *node = parser_table_create(state->tokens, state->token_count);
-  assert(node != NULL && "Failed to parse CREATE TABLE statement");
+  node = parser_table_create(state->tokens, state->token_count);
+  TEST_ASSERT_NOT_NULL(node);
 
   SemanticResult semantic_result = semantic_analyze(db, node);
-  assert(semantic_result == SEMANTIC_SUCCESS &&
-         "Semantic analysis should pass");
+  TEST_ASSERT_EQUAL(SEMANTIC_SUCCESS, semantic_result);
 
   Table *table = NULL;
   TableResult result = table_create(db, node, &table);
-  assert(result == TABLE_SUCCESS && "Failed to create table");
-  assert(table != NULL && "Table pointer is NULL");
+  TEST_ASSERT_EQUAL(TABLE_SUCCESS, result);
+  TEST_ASSERT_NOT_NULL(table);
 
-  assert(strcmp(table->name, "users") == 0 && "Table name mismatch");
-  assert(table->num_columns == 2 && "Wrong number of columns");
-  assert(table->num_rows == 0 && "Table should be empty");
+  TEST_ASSERT_EQUAL_STRING("users", table->name);
+  TEST_ASSERT_EQUAL(2, table->num_columns);
+  TEST_ASSERT_EQUAL(0, table->num_rows);
 
-  assert(strcmp(table->columns[0].name, "id") == 0 &&
-         "First column name mismatch");
-  assert(table->columns[0].type == COLUMN_TYPE_INT &&
-         "First column type mismatch");
-  assert(strcmp(table->columns[1].name, "name") == 0 &&
-         "Second column name mismatch");
-  assert(table->columns[1].type == COLUMN_TYPE_TEXT &&
-         "Second column type mismatch");
+  TEST_ASSERT_EQUAL_STRING("id", table->columns[0].name);
+  TEST_ASSERT_EQUAL(COLUMN_TYPE_INT, table->columns[0].type);
+  TEST_ASSERT_EQUAL_STRING("name", table->columns[1].name);
+  TEST_ASSERT_EQUAL(COLUMN_TYPE_TEXT, table->columns[1].type);
 
+  // Reopen the database to verify persistence
   database_close(db);
-  db_result = database_open(&db, TEST_DB);
-  assert(db_result == DATABASE_SUCCESS && "Failed to reopen database");
+  DatabaseResult db_result = database_open(&db, TEST_DB);
+  TEST_ASSERT_EQUAL(DATABASE_SUCCESS, db_result);
 
   ASTNode *out_node = NULL;
   ASTNodeResult ast_result = create_ast_node(NODE_CREATE_TABLE, &out_node);
-  assert(ast_result == AST_SUCCESS && "Failed to create AST Node");
+  TEST_ASSERT_EQUAL(AST_SUCCESS, ast_result);
   out_node->table_name = strdup("users");
   out_node->create_table.columns = NULL;
   out_node->create_table.num_columns = 0;
 
   Table *loaded_table = NULL;
   TableResult find_result = table_find(db, out_node->table_name, &loaded_table);
-  assert(find_result == TABLE_SUCCESS && "Failed to find table after reload");
-  assert(loaded_table != NULL && "Loaded table pointer is NULL");
+  TEST_ASSERT_EQUAL(TABLE_SUCCESS, find_result);
+  TEST_ASSERT_NOT_NULL(loaded_table);
 
-  assert(strcmp(loaded_table->name, "users") == 0 &&
-         "Loaded table name mismatch");
-  assert(loaded_table->num_columns == 2 &&
-         "Wrong number of columns after reload");
-  assert(loaded_table->num_rows == 0 && "Loaded table should be empty");
+  TEST_ASSERT_EQUAL_STRING("users", loaded_table->name);
+  TEST_ASSERT_EQUAL(2, loaded_table->num_columns);
+  TEST_ASSERT_EQUAL(0, loaded_table->num_rows);
 
-  assert(strcmp(loaded_table->columns[0].name, "id") == 0 &&
-         "Loaded first column name mismatch");
-  assert(loaded_table->columns[0].type == COLUMN_TYPE_INT &&
-         "Loaded first column type mismatch");
-  assert(strcmp(loaded_table->columns[1].name, "name") == 0 &&
-         "Loaded second column name mismatch");
-  assert(loaded_table->columns[1].type == COLUMN_TYPE_TEXT &&
-         "Loaded second column type mismatch");
+  TEST_ASSERT_EQUAL_STRING("id", loaded_table->columns[0].name);
+  TEST_ASSERT_EQUAL(COLUMN_TYPE_INT, loaded_table->columns[0].type);
+  TEST_ASSERT_EQUAL_STRING("name", loaded_table->columns[1].name);
+  TEST_ASSERT_EQUAL(COLUMN_TYPE_TEXT, loaded_table->columns[1].type);
 
-  ast_free(node);
   ast_free(out_node);
-  teardown_tokenizer(state);
-  database_close(db);
-  remove(TEST_DB);
-
-  printf("✓ Create table test passed\n");
 }
 
-void test_create_table_already_exists() {
-  printf("Test: Attempting to create a table that already exists\n");
-
-  remove(TEST_DB);
-  Database *db = NULL;
-  DatabaseResult db_result = database_open(&db, TEST_DB);
-  assert(db_result == DATABASE_SUCCESS && "Failed to open database");
-  assert(db != NULL && "Database pointer is NULL");
-
+// Test: Attempting to create a table that already exists
+void test_create_table_already_exists(void) {
   const char *query = "CREATE TABLE users (id INT, name TEXT);";
-  TokenizerState *state = setup_tokenizer(query);
-  assert(state != NULL && "Failed to setup tokenizer");
+  state = setup_tokenizer(query);
+  TEST_ASSERT_NOT_NULL(state);
 
-  ASTNode *node = parser_table_create(state->tokens, state->token_count);
-  assert(node != NULL && "Failed to parse CREATE TABLE statement");
+  node = parser_table_create(state->tokens, state->token_count);
+  TEST_ASSERT_NOT_NULL(node);
 
   SemanticResult semantic_result = semantic_analyze(db, node);
-  assert(semantic_result == SEMANTIC_SUCCESS &&
-         "Semantic analysis should pass");
+  TEST_ASSERT_EQUAL(SEMANTIC_SUCCESS, semantic_result);
 
   Table *table = NULL;
   TableResult result = table_create(db, node, &table);
-  assert(result == TABLE_SUCCESS && "Failed to create table");
-  assert(table != NULL && "Table pointer is NULL");
+  TEST_ASSERT_EQUAL(TABLE_SUCCESS, result);
+  TEST_ASSERT_NOT_NULL(table);
 
+  // Attempt to create the same table again
   TokenizerState *state_duplicate = setup_tokenizer(query);
-  assert(state_duplicate != NULL &&
-         "Failed to setup tokenizer for duplicate table");
+  TEST_ASSERT_NOT_NULL(state_duplicate);
 
   ASTNode *node_duplicate = parser_table_create(state_duplicate->tokens,
                                                 state_duplicate->token_count);
-  assert(node_duplicate != NULL &&
-         "Failed to parse duplicate CREATE TABLE statement");
+  TEST_ASSERT_NOT_NULL(node_duplicate);
 
   SemanticResult semantic_result_duplicate =
       semantic_analyze(db, node_duplicate);
-  assert(semantic_result_duplicate == SEMANTIC_DUPLICATE_TABLE &&
-         "Semantic analyzer should detect duplicate table");
+  TEST_ASSERT_EQUAL(SEMANTIC_DUPLICATE_TABLE, semantic_result_duplicate);
 
-  ast_free(node);
   ast_free(node_duplicate);
-  teardown_tokenizer(state);
   teardown_tokenizer(state_duplicate);
-  database_close(db);
-  remove(TEST_DB);
-
-  printf("✓ Create table already exists test passed\n");
 }
 
-void test_create_table_invalid_column_type() {
-  printf("Test: Creating table with invalid column type\n");
-
-  remove(TEST_DB);
-  Database *db = NULL;
-  DatabaseResult db_result = database_open(&db, TEST_DB);
-  assert(db_result == DATABASE_SUCCESS && "Failed to open database");
-  assert(db != NULL && "Database pointer is NULL");
-
+// Test: Creating table with invalid column type
+void test_create_table_invalid_column_type(void) {
   const char *query = "CREATE TABLE users (id FLOAT, name TEXT);";
-  TokenizerState *state = setup_tokenizer(query);
-  assert(state != NULL && "Failed to setup tokenizer");
+  state = setup_tokenizer(query);
+  TEST_ASSERT_NOT_NULL(state);
 
-  ASTNode *node = parser_table_create(state->tokens, state->token_count);
-  assert(node == NULL && "Parser should fail for invalid column type");
-
-  teardown_tokenizer(state);
-  database_close(db);
-  remove(TEST_DB);
-
-  printf("✓ Create table with invalid column type test passed\n");
+  node = parser_table_create(state->tokens, state->token_count);
+  TEST_ASSERT_NULL(node); // Parser should fail for invalid column type
 }
 
-void test_create_table_no_columns() {
-  printf("Test: Creating table with no columns\n");
-
-  remove(TEST_DB);
-  Database *db = NULL;
-  DatabaseResult db_result = database_open(&db, TEST_DB);
-  assert(db_result == DATABASE_SUCCESS && "Failed to open database");
-  assert(db != NULL && "Database pointer is NULL");
-
+// Test: Creating table with no columns
+void test_create_table_no_columns(void) {
   const char *query = "CREATE TABLE empty ();";
-  TokenizerState *state = setup_tokenizer(query);
-  assert(state != NULL && "Failed to setup tokenizer");
+  state = setup_tokenizer(query);
+  TEST_ASSERT_NOT_NULL(state);
 
-  ASTNode *node = parser_table_create(state->tokens, state->token_count);
-  assert(node == NULL && "Parser should fail for empty columns list");
-
-  teardown_tokenizer(state);
-  database_close(db);
-  remove(TEST_DB);
-
-  printf("✓ Create table with no columns test passed\n");
+  node = parser_table_create(state->tokens, state->token_count);
+  TEST_ASSERT_NULL(node); // Parser should fail for empty columns list
 }
 
-int main() {
-  printf("Running create table integration tests...\n\n");
+// Main function to run all tests
+int main(void) {
+  UNITY_BEGIN();
 
-  test_create_table_with_columns();
-  test_create_table_already_exists();
-  test_create_table_invalid_column_type();
-  test_create_table_no_columns();
+  // Register test cases
+  RUN_TEST(test_create_table_with_columns);
+  RUN_TEST(test_create_table_already_exists);
+  RUN_TEST(test_create_table_invalid_column_type);
+  RUN_TEST(test_create_table_no_columns);
 
-  printf("\nAll create table integration tests passed!\n");
-  return 0;
+  return UNITY_END();
 }
