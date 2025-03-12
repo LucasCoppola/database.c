@@ -3,103 +3,96 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "core/database.h"
 #include "core/table.h"
 #include "executor/executor.h"
+#include "libs/unity.h"
 #include "parser/ast.h"
 #include "parser/semantic_analyzer.h"
 #include "parser/statements.h"
 #include "parser/tokenizer.h"
 
-#include "../unit/utils/test_utils.h"
+#include "../common/test_integration_ctx.h"
 
 static const char *TEST_DB = "test_drop_table.db";
+static TestIntegrationCtx ctx;
 
-void test_drop_table_success() {
-  printf("Test: Dropping an existing table\n");
+void setUp(void) { test_integration_ctx_init(&ctx, TEST_DB); }
 
-  remove(TEST_DB);
-  Database *db = NULL;
-  DatabaseResult db_result = database_open(&db, TEST_DB);
-  assert(db_result == DATABASE_SUCCESS && "Failed to open database");
-  assert(db != NULL && "Database pointer is NULL");
+void tearDown(void) { test_integration_ctx_teardown(&ctx, TEST_DB); }
 
+void test_drop_table_success(void) {
   const char *create_query = "CREATE TABLE users (id INT, name TEXT);";
-  TokenizerState *create_state = setup_tokenizer(create_query);
-  ASTNode *create_node =
-      parser_table_create(create_state->tokens, create_state->token_count);
-  assert(create_node != NULL && "Failed to parse CREATE TABLE statement");
+  printf("Query: %s\n", create_query);
+  TokenizerState *state = setup_tokenizer(create_query);
+  TEST_ASSERT_NOT_NULL(state);
+
+  ASTNode *node = parser_table_create(state->tokens, state->token_count);
+  TEST_ASSERT_NOT_NULL(node);
+
+  SemanticResult semantic_result = semantic_analyze(ctx.db, node);
+  TEST_ASSERT_EQUAL(SEMANTIC_SUCCESS, semantic_result);
+
   Table *table = NULL;
-  TableResult create_result = table_create(db, create_node, &table);
-  assert(create_result == TABLE_SUCCESS && "Failed to create table");
-  assert(table != NULL && "Table pointer is NULL");
+  TableResult create_result = table_create(ctx.db, node, &table);
+  TEST_ASSERT_EQUAL(TABLE_SUCCESS, create_result);
+  TEST_ASSERT_NOT_NULL(table);
+
+  if (state) {
+    tokenizer_free(state);
+    state = NULL;
+  }
+  if (node) {
+    ast_free(node);
+    node = NULL;
+  }
 
   const char *drop_query = "DROP TABLE users;";
-  TokenizerState *drop_state = setup_tokenizer(drop_query);
-  ASTNode *drop_node = parser_table_drop(drop_state->tokens);
-  assert(drop_node != NULL && "Failed to parse DROP TABLE statement");
+  state = setup_tokenizer(drop_query);
+  TEST_ASSERT_NOT_NULL(state);
 
-  SemanticResult semantic_result = semantic_analyze(db, drop_node);
-  assert(semantic_result == SEMANTIC_SUCCESS &&
-         "Semantic analysis should pass");
+  node = parser_table_drop(state->tokens);
+  TEST_ASSERT_NOT_NULL(node);
 
-  ExecuteResult exec_result = execute_drop_table(db, drop_node);
-  assert(exec_result == EXECUTE_SUCCESS && "Failed to execute DROP TABLE");
+  semantic_result = semantic_analyze(ctx.db, node);
+  TEST_ASSERT_EQUAL(SEMANTIC_SUCCESS, semantic_result);
 
+  ExecuteResult exec_result = execute_drop_table(ctx.db, node);
+  TEST_ASSERT_EQUAL(EXECUTE_SUCCESS, exec_result);
+
+  // Verify the table no longer exists
   ASTNode *out_node = NULL;
   ASTNodeResult ast_result = create_ast_node(NODE_DROP_TABLE, &out_node);
-  assert(ast_result == AST_SUCCESS && "Failed to create AST Node");
+  TEST_ASSERT_EQUAL(AST_SUCCESS, ast_result);
   out_node->table_name = strdup("users");
 
   Table *dropped_table = NULL;
   TableResult find_result =
-      table_find(db, out_node->table_name, &dropped_table);
-  assert(find_result == TABLE_NOT_FOUND &&
-         "Table should not be found after drop");
+      table_find(ctx.db, out_node->table_name, &dropped_table);
+  TEST_ASSERT_EQUAL(TABLE_NOT_FOUND, find_result);
 
-  ast_free(create_node);
-  ast_free(drop_node);
   ast_free(out_node);
-  teardown_tokenizer(create_state);
-  teardown_tokenizer(drop_state);
-  database_close(db);
-  remove(TEST_DB);
-
-  printf("✓ Drop table test passed\n");
 }
 
-void test_drop_table_nonexistent() {
-  printf("Test: Dropping a non-existent table\n");
-
-  remove(TEST_DB);
-  Database *db = NULL;
-  DatabaseResult db_result = database_open(&db, TEST_DB);
-  assert(db_result == DATABASE_SUCCESS && "Failed to open database");
-  assert(db != NULL && "Database pointer is NULL");
-
+void test_drop_table_nonexistent(void) {
   const char *drop_query = "DROP TABLE nonexistent_table;";
-  TokenizerState *drop_state = setup_tokenizer(drop_query);
-  ASTNode *drop_node = parser_table_drop(drop_state->tokens);
-  assert(drop_node != NULL && "Failed to parse DROP TABLE statement");
+  printf("Query: %s\n", drop_query);
+  TokenizerState *state = setup_tokenizer(drop_query);
+  TEST_ASSERT_NOT_NULL(state);
 
-  SemanticResult semantic_result = semantic_analyze(db, drop_node);
-  assert(semantic_result == SEMANTIC_TABLE_NOT_FOUND &&
-         "Semantic analysis should fail for non-existent table");
+  ASTNode *node = parser_table_drop(state->tokens);
+  TEST_ASSERT_NOT_NULL(node);
 
-  ast_free(drop_node);
-  teardown_tokenizer(drop_state);
-  database_close(db);
-  remove(TEST_DB);
-
-  printf("✓ Drop non-existent table test passed\n");
+  SemanticResult semantic_result = semantic_analyze(ctx.db, node);
+  TEST_ASSERT_EQUAL(SEMANTIC_TABLE_NOT_FOUND, semantic_result);
 }
 
-int main() {
-  printf("Running drop table integration tests...\n\n");
+int main(void) {
+  UNITY_BEGIN();
 
-  test_drop_table_success();
-  test_drop_table_nonexistent();
+  printf("\n");
+  RUN_TEST(test_drop_table_success);
+  printf("\n");
+  RUN_TEST(test_drop_table_nonexistent);
 
-  printf("\nAll drop table integration tests passed!\n");
-  return 0;
+  return UNITY_END();
 }

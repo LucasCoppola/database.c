@@ -7,10 +7,10 @@
 #include "parser/ast.h"
 #include "parser/statements.h"
 
-#include "../../../common/test_context.h"
+#include "../../../common/test_parser_ctx.h"
 #include "core/row.h"
 
-static TestContext ctx;
+static TestParserCtx ctx;
 
 void setUp(void) {
   ctx.query = NULL;
@@ -18,7 +18,7 @@ void setUp(void) {
   ctx.node = NULL;
 }
 
-void tearDown(void) { test_context_teardown(&ctx); }
+void tearDown(void) { test_parser_context_teardown(&ctx); }
 
 void test_insert_query(bool should_pass, const char *expected_table_name,
                        const char **expected_values, int expected_num_values) {
@@ -67,7 +67,7 @@ void test_valid_insert_multiple_values(void) {
       "INSERT INTO products VALUES (101, 'Laptop', 999.99, false);";
   printf("Testing query: %s\n", query);
 
-  test_context_init(&ctx, query);
+  test_parser_context_init(&ctx, query);
   TEST_ASSERT_NOT_NULL(ctx.state);
 
   const char *expected_values[] = {"101", "Laptop", "999.99", "false"};
@@ -78,7 +78,7 @@ void test_insert_missing_values(void) {
   const char *query = "INSERT INTO users VALUES ();";
   printf("Testing query: %s\n", query);
 
-  test_context_init(&ctx, query);
+  test_parser_context_init(&ctx, query);
   test_insert_query(false, NULL, NULL, 0);
 }
 
@@ -86,7 +86,7 @@ void test_insert_missing_table(void) {
   const char *query = "INSERT INTO users;";
   printf("Testing query: %s\n", query);
 
-  test_context_init(&ctx, query);
+  test_parser_context_init(&ctx, query);
   test_insert_query(false, NULL, NULL, 0);
 }
 
@@ -94,7 +94,7 @@ void test_insert_unterminated_values(void) {
   const char *query = "INSERT INTO users VALUES (1, Alice;";
   printf("Testing query: %s\n", query);
 
-  test_context_init(&ctx, query);
+  test_parser_context_init(&ctx, query);
   test_insert_query(false, NULL, NULL, 0);
 }
 
@@ -102,7 +102,7 @@ void test_insert_missing_table_name(void) {
   const char *query = "INSERT INTO VALUES (1, Alice);";
   printf("Testing query: %s\n", query);
 
-  test_context_init(&ctx, query);
+  test_parser_context_init(&ctx, query);
   test_insert_query(false, NULL, NULL, 0);
 }
 
@@ -110,7 +110,7 @@ void test_insert_invalid_boolean_format(void) {
   const char *query = "INSERT INTO flags VALUES ('feature', truth);";
   printf("Testing query: %s\n", query);
 
-  test_context_init(&ctx, query);
+  test_parser_context_init(&ctx, query);
   test_insert_query(false, NULL, NULL, 0);
 }
 

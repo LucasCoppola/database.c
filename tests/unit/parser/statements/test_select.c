@@ -7,9 +7,9 @@
 #include "parser/ast.h"
 #include "parser/statements.h"
 
-#include "../../../common/test_context.h"
+#include "../../../common/test_parser_ctx.h"
 
-static TestContext ctx;
+static TestParserCtx ctx;
 
 void setUp(void) {
   ctx.query = NULL;
@@ -17,7 +17,7 @@ void setUp(void) {
   ctx.node = NULL;
 }
 
-void tearDown(void) { test_context_teardown(&ctx); }
+void tearDown(void) { test_parser_context_teardown(&ctx); }
 
 void test_tokenizer_query(bool should_pass, const char *expected_table_name,
                           const char **expected_columns,
@@ -50,7 +50,7 @@ void test_valid_query(void) {
   const char *query = "SELECT id, name FROM users;";
   printf("Testing query: %s\n", query);
 
-  test_context_init(&ctx, query);
+  test_parser_context_init(&ctx, query);
   TEST_ASSERT_NOT_NULL(ctx.state);
 
   const char *expected_columns[] = {"id", "name"};
@@ -61,7 +61,7 @@ void test_unterminated_query(void) {
   const char *query = "SELECT id, name FROM users";
   printf("Testing query: %s\n", query);
 
-  test_context_init(&ctx, query);
+  test_parser_context_init(&ctx, query);
   test_tokenizer_query(false, NULL, NULL, 0, false);
 }
 
@@ -69,7 +69,7 @@ void test_invalid_query(void) {
   const char *query = "SELECT id, name FROM users";
   printf("Testing query: %s\n", query);
 
-  test_context_init(&ctx, query);
+  test_parser_context_init(&ctx, query);
   test_tokenizer_query(false, NULL, NULL, 0, false);
 }
 

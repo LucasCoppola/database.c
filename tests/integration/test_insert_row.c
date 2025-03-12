@@ -1,11 +1,11 @@
 #include <assert.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "core/database.h"
 #include "core/table.h"
-
+#include "libs/unity.h"
 #include "parser/ast.h"
 #include "parser/semantic_analyzer.h"
 #include "parser/statements.h"
@@ -16,11 +16,28 @@
 #include "storage/cursor.h"
 #include "utils/logger.h"
 
-#include "../unit/utils/test_utils.h"
+#include "../common/test_integration_ctx.h"
 
 static const char *TEST_DB = "test_insert_row.db";
+static TestIntegrationCtx ctx;
 
-void test_row_free(Row row) {
+Table *table = NULL;
+Cursor *cursor = NULL;
+
+void setUp(void) { test_integration_ctx_init(&ctx, TEST_DB); }
+
+void tearDown(void) {
+  if (cursor) {
+    free(cursor);
+    cursor = NULL;
+  }
+  if (table) {
+    table = NULL;
+  }
+  test_integration_ctx_teardown(&ctx, TEST_DB);
+}
+
+void mock_row_free(Row row) {
   for (uint32_t i = 0; i < row.num_columns; i++) {
     if (row.values[i].type == COLUMN_TYPE_TEXT && row.values[i].string_value) {
       free(row.values[i].string_value);
@@ -29,308 +46,180 @@ void test_row_free(Row row) {
   free(row.values);
 }
 
-void test_insert_row() {
-  printf("Test: Inserting a row into a table\n");
+void test_insert_row_with_bool_and_real(void) {
+  const char *create_query =
+      "CREATE TABLE items (id INT, active BOOLEAN, price REAL, name TEXT);";
+  ctx.state = setup_tokenizer(create_query);
+  TEST_ASSERT_NOT_NULL(ctx.state);
 
-  remove(TEST_DB);
-  Database *db = NULL;
-  DatabaseResult db_result = database_open(&db, TEST_DB);
-  assert(db_result == DATABASE_SUCCESS && "Failed to open database");
-  assert(db != NULL && "Database pointer is NULL");
+  ctx.node = parser_table_create(ctx.state->tokens, ctx.state->token_count);
+  TEST_ASSERT_NOT_NULL(ctx.node);
 
-  const char *create_query = "CREATE TABLE users (id INT, name TEXT);";
-  TokenizerState *create_state = setup_tokenizer(create_query);
-  assert(create_state != NULL && "Failed to setup tokenizer for CREATE TABLE");
+  SemanticResult semantic_result = semantic_analyze(ctx.db, ctx.node);
+  TEST_ASSERT_EQUAL(SEMANTIC_SUCCESS, semantic_result);
 
-  ASTNode *create_node =
-      parser_table_create(create_state->tokens, create_state->token_count);
-  assert(create_node != NULL && "Failed to parse CREATE TABLE statement");
+  TableResult create_result = table_create(ctx.db, ctx.node, &table);
+  TEST_ASSERT_EQUAL(TABLE_SUCCESS, create_result);
+  TEST_ASSERT_NOT_NULL(table);
 
-  Table *table = NULL;
-  TableResult create_result = table_create(db, create_node, &table);
-  assert(create_result == TABLE_SUCCESS && "Failed to create table");
-  assert(table != NULL && "Table pointer is NULL");
+  tokenizer_free(ctx.state);
+  ast_free(ctx.node);
+  ctx.state = NULL;
+  ctx.node = NULL;
 
-  const char *insert_query = "INSERT INTO users VALUES (1, 'Alice');";
-  TokenizerState *insert_state = setup_tokenizer(insert_query);
-  assert(insert_state != NULL && "Failed to setup tokenizer for INSERT");
+  const char *insert_query =
+      "INSERT INTO items VALUES (1, TRUE, 99.99, 'Special Item');";
+  ctx.state = setup_tokenizer(insert_query);
+  TEST_ASSERT_NOT_NULL(ctx.state);
 
-  ASTNode *insert_node =
-      parser_row_insert(insert_state->tokens, insert_state->token_count);
-  assert(insert_node != NULL && "Failed to parse INSERT statement");
+  ctx.node = parser_row_insert(ctx.state->tokens, ctx.state->token_count);
+  TEST_ASSERT_NOT_NULL(ctx.node);
 
-  SemanticResult semantic_result = semantic_analyze(db, insert_node);
-  assert(semantic_result == SEMANTIC_SUCCESS &&
-         "Semantic analysis should pass");
+  semantic_result = semantic_analyze(ctx.db, ctx.node);
+  TEST_ASSERT_EQUAL(SEMANTIC_SUCCESS, semantic_result);
 
-  ExecuteResult insert_result = execute_insert_rows(db, insert_node);
-  assert(insert_result == EXECUTE_SUCCESS && "Failed to insert row");
+  ExecuteResult insert_result = execute_insert_rows(ctx.db, ctx.node);
+  TEST_ASSERT_EQUAL(EXECUTE_SUCCESS, insert_result);
 
-  assert(table->num_rows == 1 && "Table should have one row");
+  TEST_ASSERT_EQUAL(1, table->num_rows);
 
-  Cursor *cursor = table_start(table);
-  assert(cursor != NULL && "Failed to create cursor");
+  cursor = table_start(table);
+  TEST_ASSERT_NOT_NULL(cursor);
 
   Row row;
   void *row_location = cursor_value(cursor);
   deserialize_row(row_location, &row, table);
 
-  assert(row.id == 1 && "Row ID mismatch");
-  assert(strcmp(row.values[1].string_value, "Alice") == 0 &&
-         "Row name mismatch");
+  TEST_ASSERT_EQUAL(1, row.id);
+  TEST_ASSERT_EQUAL(true, row.values[1].bool_value);
+  TEST_ASSERT_EQUAL(99.99, row.values[2].real_value);
+  TEST_ASSERT_EQUAL_STRING("Special Item", row.values[3].string_value);
 
-  database_close(db);
-  db_result = database_open(&db, TEST_DB);
-  assert(db_result == DATABASE_SUCCESS && "Failed to reopen database");
-
-  ASTNode *out_node = NULL;
-  ASTNodeResult ast_result = create_ast_node(NODE_INSERT, &out_node);
-  assert(ast_result == AST_SUCCESS && "Failed to create AST Node");
-  out_node->table_name = strdup("users");
-  out_node->insert_rows.values = NULL;
-  out_node->insert_rows.num_values = 0;
-
-  Table *loaded_table = NULL;
-  TableResult find_result = table_find(db, out_node->table_name, &loaded_table);
-  assert(find_result == TABLE_SUCCESS && "Failed to find table after reload");
-  assert(loaded_table != NULL && "Loaded table pointer is NULL");
-
-  assert(loaded_table->num_rows == 1 && "Loaded table should have one row");
-
-  Cursor *loaded_cursor = table_start(loaded_table);
-  assert(loaded_cursor != NULL && "Failed to create cursor for loaded table");
-
-  Row loaded_row;
-  void *loaded_row_location = cursor_value(loaded_cursor);
-  deserialize_row(loaded_row_location, &loaded_row, loaded_table);
-
-  assert(loaded_row.id == 1 && "Loaded row ID mismatch");
-  assert(strcmp(loaded_row.values[1].string_value, "Alice") == 0 &&
-         "Loaded row name mismatch");
-
-  test_row_free(loaded_row);
-  test_row_free(row);
-  ast_free(create_node);
-  ast_free(insert_node);
-  ast_free(out_node);
-  teardown_tokenizer(create_state);
-  teardown_tokenizer(insert_state);
-  free(cursor);
-  free(loaded_cursor);
-  database_close(db);
-  remove(TEST_DB);
-
-  printf("✓ Insert row test passed\n");
+  mock_row_free(row);
+  tokenizer_free(ctx.state);
+  ast_free(ctx.node);
+  ctx.state = NULL;
+  ctx.node = NULL;
 }
 
-void test_insert_row_multiple_columns() {
-  printf("Test: Inserting a row into a table with multiple columns\n");
+void test_insert_row(void) {
+  const char *create_query = "CREATE TABLE users (id INT, name TEXT);";
+  ctx.state = setup_tokenizer(create_query);
+  TEST_ASSERT_NOT_NULL(ctx.state);
 
-  remove(TEST_DB);
-  Database *db = NULL;
-  DatabaseResult db_result = database_open(&db, TEST_DB);
-  assert(db_result == DATABASE_SUCCESS && "Failed to open database");
-  assert(db != NULL && "Database pointer is NULL");
+  ctx.node = parser_table_create(ctx.state->tokens, ctx.state->token_count);
+  TEST_ASSERT_NOT_NULL(ctx.node);
 
+  SemanticResult semantic_result = semantic_analyze(ctx.db, ctx.node);
+  TEST_ASSERT_EQUAL(SEMANTIC_SUCCESS, semantic_result);
+
+  TableResult create_result = table_create(ctx.db, ctx.node, &table);
+  TEST_ASSERT_EQUAL(TABLE_SUCCESS, create_result);
+  TEST_ASSERT_NOT_NULL(table);
+
+  tokenizer_free(ctx.state);
+  ast_free(ctx.node);
+  ctx.state = NULL;
+  ctx.node = NULL;
+
+  const char *insert_query = "INSERT INTO users VALUES (1, 'Alice');";
+  ctx.state = setup_tokenizer(insert_query);
+  TEST_ASSERT_NOT_NULL(ctx.state);
+
+  ctx.node = parser_row_insert(ctx.state->tokens, ctx.state->token_count);
+  TEST_ASSERT_NOT_NULL(ctx.node);
+
+  semantic_result = semantic_analyze(ctx.db, ctx.node);
+  TEST_ASSERT_EQUAL(SEMANTIC_SUCCESS, semantic_result);
+
+  ExecuteResult insert_result = execute_insert_rows(ctx.db, ctx.node);
+  TEST_ASSERT_EQUAL(EXECUTE_SUCCESS, insert_result);
+
+  TEST_ASSERT_EQUAL(1, table->num_rows);
+
+  cursor = table_start(table);
+  TEST_ASSERT_NOT_NULL(cursor);
+
+  Row row;
+  void *row_location = cursor_value(cursor);
+  deserialize_row(row_location, &row, table);
+
+  TEST_ASSERT_EQUAL(1, row.id);
+  TEST_ASSERT_EQUAL_STRING("Alice", row.values[1].string_value);
+
+  mock_row_free(row);
+  tokenizer_free(ctx.state);
+  ast_free(ctx.node);
+  ctx.state = NULL;
+  ctx.node = NULL;
+}
+
+void test_insert_row_multiple_columns(void) {
   const char *create_query =
       "CREATE TABLE products (id INT, name TEXT, price INT, description TEXT);";
-  TokenizerState *create_state = setup_tokenizer(create_query);
-  assert(create_state != NULL && "Failed to setup tokenizer for CREATE TABLE");
+  ctx.state = setup_tokenizer(create_query);
+  TEST_ASSERT_NOT_NULL(ctx.state);
 
-  ASTNode *create_node =
-      parser_table_create(create_state->tokens, create_state->token_count);
-  assert(create_node != NULL && "Failed to parse CREATE TABLE statement");
+  ctx.node = parser_table_create(ctx.state->tokens, ctx.state->token_count);
+  TEST_ASSERT_NOT_NULL(ctx.node);
 
-  Table *table = NULL;
-  TableResult create_result = table_create(db, create_node, &table);
-  assert(create_result == TABLE_SUCCESS && "Failed to create table");
-  assert(table != NULL && "Table pointer is NULL");
+  SemanticResult semantic_result = semantic_analyze(ctx.db, ctx.node);
+  TEST_ASSERT_EQUAL(SEMANTIC_SUCCESS, semantic_result);
+
+  TableResult create_result = table_create(ctx.db, ctx.node, &table);
+  TEST_ASSERT_EQUAL(TABLE_SUCCESS, create_result);
+  TEST_ASSERT_NOT_NULL(table);
+
+  tokenizer_free(ctx.state);
+  ast_free(ctx.node);
+  ctx.state = NULL;
+  ctx.node = NULL;
 
   const char *insert_query = "INSERT INTO products VALUES (1, 'Laptop', 1200, "
                              "'High-end gaming laptop');";
-  TokenizerState *insert_state = setup_tokenizer(insert_query);
-  assert(insert_state != NULL && "Failed to setup tokenizer for INSERT");
+  ctx.state = setup_tokenizer(insert_query);
+  TEST_ASSERT_NOT_NULL(ctx.state);
 
-  ASTNode *insert_node =
-      parser_row_insert(insert_state->tokens, insert_state->token_count);
-  assert(insert_node != NULL && "Failed to parse INSERT statement");
+  ctx.node = parser_row_insert(ctx.state->tokens, ctx.state->token_count);
+  TEST_ASSERT_NOT_NULL(ctx.node);
 
-  SemanticResult semantic_result = semantic_analyze(db, insert_node);
-  assert(semantic_result == SEMANTIC_SUCCESS &&
-         "Semantic analysis should pass");
+  semantic_result = semantic_analyze(ctx.db, ctx.node);
+  TEST_ASSERT_EQUAL(SEMANTIC_SUCCESS, semantic_result);
 
-  ExecuteResult insert_result = execute_insert_rows(db, insert_node);
-  assert(insert_result == EXECUTE_SUCCESS && "Failed to insert row");
+  ExecuteResult insert_result = execute_insert_rows(ctx.db, ctx.node);
+  TEST_ASSERT_EQUAL(EXECUTE_SUCCESS, insert_result);
 
-  assert(table->num_rows == 1 && "Table should have one row");
+  TEST_ASSERT_EQUAL(1, table->num_rows);
 
-  Cursor *cursor = table_start(table);
-  assert(cursor != NULL && "Failed to create cursor");
+  cursor = table_start(table);
+  TEST_ASSERT_NOT_NULL(cursor);
 
   Row row;
   void *row_location = cursor_value(cursor);
   deserialize_row(row_location, &row, table);
 
-  assert(row.id == 1 && "Row ID mismatch");
-  assert(strcmp(row.values[1].string_value, "Laptop") == 0 &&
-         "Row name mismatch");
-  assert(row.values[2].int_value == 1200 && "Row price mismatch");
-  assert(strcmp(row.values[3].string_value, "High-end gaming laptop") == 0 &&
-         "Row description mismatch");
+  TEST_ASSERT_EQUAL(1, row.id);
+  TEST_ASSERT_EQUAL_STRING("Laptop", row.values[1].string_value);
+  TEST_ASSERT_EQUAL(1200, row.values[2].int_value);
+  TEST_ASSERT_EQUAL_STRING("High-end gaming laptop",
+                           row.values[3].string_value);
 
-  test_row_free(row);
-  ast_free(create_node);
-  ast_free(insert_node);
-  teardown_tokenizer(create_state);
-  teardown_tokenizer(insert_state);
-  free(cursor);
-  database_close(db);
-  remove(TEST_DB);
-
-  printf("✓ Insert row with multiple columns test passed\n");
+  mock_row_free(row);
+  tokenizer_free(ctx.state);
+  ast_free(ctx.node);
+  ctx.state = NULL;
+  ctx.node = NULL;
 }
 
-void test_insert_row_int_only() {
-  printf("Test: Inserting a row into a table with only INT columns\n");
+int main(void) {
+  UNITY_BEGIN();
 
-  remove(TEST_DB);
-  Database *db = NULL;
-  DatabaseResult db_result = database_open(&db, TEST_DB);
-  assert(db_result == DATABASE_SUCCESS && "Failed to open database");
-  assert(db != NULL && "Database pointer is NULL");
-
-  const char *create_query =
-      "CREATE TABLE scores (player_id INT, score INT, level INT);";
-  TokenizerState *create_state = setup_tokenizer(create_query);
-  assert(create_state != NULL && "Failed to setup tokenizer for CREATE TABLE");
-
-  ASTNode *create_node =
-      parser_table_create(create_state->tokens, create_state->token_count);
-  assert(create_node != NULL && "Failed to parse CREATE TABLE statement");
-
-  Table *table = NULL;
-  TableResult create_result = table_create(db, create_node, &table);
-  assert(create_result == TABLE_SUCCESS && "Failed to create table");
-  assert(table != NULL && "Table pointer is NULL");
-
-  const char *insert_query = "INSERT INTO scores VALUES (1, 100, 5);";
-  TokenizerState *insert_state = setup_tokenizer(insert_query);
-  assert(insert_state != NULL && "Failed to setup tokenizer for INSERT");
-
-  ASTNode *insert_node =
-      parser_row_insert(insert_state->tokens, insert_state->token_count);
-  assert(insert_node != NULL && "Failed to parse INSERT statement");
-
-  SemanticResult semantic_result = semantic_analyze(db, insert_node);
-  assert(semantic_result == SEMANTIC_SUCCESS &&
-         "Semantic analysis should pass");
-
-  ExecuteResult insert_result = execute_insert_rows(db, insert_node);
-  assert(insert_result == EXECUTE_SUCCESS && "Failed to insert row");
-
-  assert(table->num_rows == 1 && "Table should have one row");
-
-  Cursor *cursor = table_start(table);
-  assert(cursor != NULL && "Failed to create cursor");
-
-  Row row;
-  void *row_location = cursor_value(cursor);
-  deserialize_row(row_location, &row, table);
-
-  assert(row.id == 1 && "Row ID mismatch");
-  assert(row.values[1].int_value == 100 && "Row score mismatch");
-  assert(row.values[2].int_value == 5 && "Row level mismatch");
-
-  test_row_free(row);
-  ast_free(create_node);
-  ast_free(insert_node);
-  teardown_tokenizer(create_state);
-  teardown_tokenizer(insert_state);
-  free(cursor);
-  database_close(db);
-  remove(TEST_DB);
-
-  printf("✓ Insert row with only INT columns test passed\n");
-}
-
-void test_insert_row_text_only() {
-  printf("Test: Inserting a row into a table with only TEXT columns\n");
-
-  remove(TEST_DB);
-  Database *db = NULL;
-  DatabaseResult db_result = database_open(&db, TEST_DB);
-  assert(db_result == DATABASE_SUCCESS && "Failed to open database");
-  assert(db != NULL && "Database pointer is NULL");
-
-  const char *create_query =
-      "CREATE TABLE messages (sender TEXT, receiver TEXT, message TEXT);";
-  TokenizerState *create_state = setup_tokenizer(create_query);
-  assert(create_state != NULL && "Failed to setup tokenizer for CREATE TABLE");
-
-  ASTNode *create_node =
-      parser_table_create(create_state->tokens, create_state->token_count);
-  assert(create_node != NULL && "Failed to parse CREATE TABLE statement");
-
-  Table *table = NULL;
-  TableResult create_result = table_create(db, create_node, &table);
-  assert(create_result == TABLE_SUCCESS && "Failed to create table");
-  assert(table != NULL && "Table pointer is NULL");
-
-  const char *insert_query =
-      "INSERT INTO messages VALUES ('Alice', 'Bob', 'Hello, Bob!');";
-  TokenizerState *insert_state = setup_tokenizer(insert_query);
-  assert(insert_state != NULL && "Failed to setup tokenizer for INSERT");
-
-  ASTNode *insert_node =
-      parser_row_insert(insert_state->tokens, insert_state->token_count);
-  assert(insert_node != NULL && "Failed to parse INSERT statement");
-
-  SemanticResult semantic_result = semantic_analyze(db, insert_node);
-  assert(semantic_result == SEMANTIC_SUCCESS &&
-         "Semantic analysis should pass");
-
-  ExecuteResult insert_result = execute_insert_rows(db, insert_node);
-  assert(insert_result == EXECUTE_SUCCESS && "Failed to insert row");
-
-  assert(table->num_rows == 1 && "Table should have one row");
-
-  Cursor *cursor = table_start(table);
-  assert(cursor != NULL && "Failed to create cursor");
-
-  Row row;
-  void *row_location = cursor_value(cursor);
-  deserialize_row(row_location, &row, table);
-
-  assert(strcmp(row.values[0].string_value, "Alice") == 0 &&
-         "Row sender mismatch");
-  assert(strcmp(row.values[1].string_value, "Bob") == 0 &&
-         "Row receiver mismatch");
-  assert(strcmp(row.values[2].string_value, "Hello, Bob!") == 0 &&
-         "Row message mismatch");
-
-  test_row_free(row);
-  ast_free(create_node);
-  ast_free(insert_node);
-  teardown_tokenizer(create_state);
-  teardown_tokenizer(insert_state);
-  free(cursor);
-  database_close(db);
-  remove(TEST_DB);
-
-  printf("✓ Insert row with only TEXT columns test passed\n");
-}
-
-int main() {
-  printf("Running insert row integration tests...\n\n");
-
-  test_insert_row();
   printf("\n");
-  test_insert_row_multiple_columns();
+  RUN_TEST(test_insert_row);
   printf("\n");
-  test_insert_row_int_only();
+  RUN_TEST(test_insert_row_multiple_columns);
   printf("\n");
-  test_insert_row_text_only();
+  RUN_TEST(test_insert_row_with_bool_and_real);
 
-  printf("\nAll insert row integration tests passed!\n");
-  return 0;
+  return UNITY_END();
 }

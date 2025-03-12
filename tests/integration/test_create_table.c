@@ -11,56 +11,29 @@
 #include "parser/statements.h"
 #include "parser/tokenizer.h"
 
-#include "../unit/utils/test_utils.h"
+#include "../common/test_integration_ctx.h"
 
-// Global variables for shared test state
 static const char *TEST_DB = "test_create_table.db";
-Database *db = NULL;
-TokenizerState *state = NULL;
-ASTNode *node = NULL;
+static TestIntegrationCtx ctx;
 
-// setUp: Called before each test
-void setUp(void) {
-  remove(TEST_DB); // Ensure the database file is removed before each test
-  DatabaseResult db_result = database_open(&db, TEST_DB);
-  TEST_ASSERT_EQUAL(DATABASE_SUCCESS, db_result);
-  TEST_ASSERT_NOT_NULL(db);
-}
+void setUp(void) { test_integration_ctx_init(&ctx, TEST_DB); }
 
-// tearDown: Called after each test
-void tearDown(void) {
-  if (node) {
-    ast_free(node);
-    node = NULL;
-  }
+void tearDown(void) { test_integration_ctx_teardown(&ctx, TEST_DB); }
 
-  if (state) {
-    teardown_tokenizer(state);
-    state = NULL;
-  }
-
-  if (db) {
-    database_close(db);
-    db = NULL;
-  }
-
-  remove(TEST_DB); // Clean up the database file after each test
-}
-
-// Test: Creating table with columns
 void test_create_table_with_columns(void) {
   const char *query = "CREATE TABLE users (id INT, name TEXT);";
-  state = setup_tokenizer(query);
-  TEST_ASSERT_NOT_NULL(state);
+  printf("Query: %s\n", query);
+  ctx.state = setup_tokenizer(query);
+  TEST_ASSERT_NOT_NULL(ctx.state);
 
-  node = parser_table_create(state->tokens, state->token_count);
-  TEST_ASSERT_NOT_NULL(node);
+  ctx.node = parser_table_create(ctx.state->tokens, ctx.state->token_count);
+  TEST_ASSERT_NOT_NULL(ctx.node);
 
-  SemanticResult semantic_result = semantic_analyze(db, node);
+  SemanticResult semantic_result = semantic_analyze(ctx.db, ctx.node);
   TEST_ASSERT_EQUAL(SEMANTIC_SUCCESS, semantic_result);
 
   Table *table = NULL;
-  TableResult result = table_create(db, node, &table);
+  TableResult result = table_create(ctx.db, ctx.node, &table);
   TEST_ASSERT_EQUAL(TABLE_SUCCESS, result);
   TEST_ASSERT_NOT_NULL(table);
 
@@ -74,8 +47,8 @@ void test_create_table_with_columns(void) {
   TEST_ASSERT_EQUAL(COLUMN_TYPE_TEXT, table->columns[1].type);
 
   // Reopen the database to verify persistence
-  database_close(db);
-  DatabaseResult db_result = database_open(&db, TEST_DB);
+  database_close(ctx.db);
+  DatabaseResult db_result = database_open(&ctx.db, TEST_DB);
   TEST_ASSERT_EQUAL(DATABASE_SUCCESS, db_result);
 
   ASTNode *out_node = NULL;
@@ -86,7 +59,8 @@ void test_create_table_with_columns(void) {
   out_node->create_table.num_columns = 0;
 
   Table *loaded_table = NULL;
-  TableResult find_result = table_find(db, out_node->table_name, &loaded_table);
+  TableResult find_result =
+      table_find(ctx.db, out_node->table_name, &loaded_table);
   TEST_ASSERT_EQUAL(TABLE_SUCCESS, find_result);
   TEST_ASSERT_NOT_NULL(loaded_table);
 
@@ -102,20 +76,20 @@ void test_create_table_with_columns(void) {
   ast_free(out_node);
 }
 
-// Test: Attempting to create a table that already exists
 void test_create_table_already_exists(void) {
   const char *query = "CREATE TABLE users (id INT, name TEXT);";
-  state = setup_tokenizer(query);
-  TEST_ASSERT_NOT_NULL(state);
+  printf("Query: %s\n", query);
+  ctx.state = setup_tokenizer(query);
+  TEST_ASSERT_NOT_NULL(ctx.state);
 
-  node = parser_table_create(state->tokens, state->token_count);
-  TEST_ASSERT_NOT_NULL(node);
+  ctx.node = parser_table_create(ctx.state->tokens, ctx.state->token_count);
+  TEST_ASSERT_NOT_NULL(ctx.node);
 
-  SemanticResult semantic_result = semantic_analyze(db, node);
+  SemanticResult semantic_result = semantic_analyze(ctx.db, ctx.node);
   TEST_ASSERT_EQUAL(SEMANTIC_SUCCESS, semantic_result);
 
   Table *table = NULL;
-  TableResult result = table_create(db, node, &table);
+  TableResult result = table_create(ctx.db, ctx.node, &table);
   TEST_ASSERT_EQUAL(TABLE_SUCCESS, result);
   TEST_ASSERT_NOT_NULL(table);
 
@@ -128,41 +102,43 @@ void test_create_table_already_exists(void) {
   TEST_ASSERT_NOT_NULL(node_duplicate);
 
   SemanticResult semantic_result_duplicate =
-      semantic_analyze(db, node_duplicate);
+      semantic_analyze(ctx.db, node_duplicate);
   TEST_ASSERT_EQUAL(SEMANTIC_DUPLICATE_TABLE, semantic_result_duplicate);
 
   ast_free(node_duplicate);
-  teardown_tokenizer(state_duplicate);
+  tokenizer_free(state_duplicate);
 }
 
-// Test: Creating table with invalid column type
 void test_create_table_invalid_column_type(void) {
   const char *query = "CREATE TABLE users (id FLOAT, name TEXT);";
-  state = setup_tokenizer(query);
-  TEST_ASSERT_NOT_NULL(state);
+  printf("Query: %s\n", query);
+  ctx.state = setup_tokenizer(query);
+  TEST_ASSERT_NOT_NULL(ctx.state);
 
-  node = parser_table_create(state->tokens, state->token_count);
-  TEST_ASSERT_NULL(node); // Parser should fail for invalid column type
+  ctx.node = parser_table_create(ctx.state->tokens, ctx.state->token_count);
+  TEST_ASSERT_NULL(ctx.node);
 }
 
-// Test: Creating table with no columns
 void test_create_table_no_columns(void) {
   const char *query = "CREATE TABLE empty ();";
-  state = setup_tokenizer(query);
-  TEST_ASSERT_NOT_NULL(state);
+  printf("Query: %s\n", query);
+  ctx.state = setup_tokenizer(query);
+  TEST_ASSERT_NOT_NULL(ctx.state);
 
-  node = parser_table_create(state->tokens, state->token_count);
-  TEST_ASSERT_NULL(node); // Parser should fail for empty columns list
+  ctx.node = parser_table_create(ctx.state->tokens, ctx.state->token_count);
+  TEST_ASSERT_NULL(ctx.node);
 }
 
-// Main function to run all tests
 int main(void) {
   UNITY_BEGIN();
 
-  // Register test cases
+  printf("\n");
   RUN_TEST(test_create_table_with_columns);
+  printf("\n");
   RUN_TEST(test_create_table_already_exists);
+  printf("\n");
   RUN_TEST(test_create_table_invalid_column_type);
+  printf("\n");
   RUN_TEST(test_create_table_no_columns);
 
   return UNITY_END();

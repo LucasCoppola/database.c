@@ -5,19 +5,19 @@
 #include "parser/ast.h"
 #include "test_utils.h"
 
-typedef struct TestContext {
+typedef struct TestParserCtx {
     char *query;
     TokenizerState *state;
     ASTNode *node;
-} TestContext;
+} TestParserCtx;
 
-static inline void test_context_init(TestContext *ctx, const char *query) {
+static inline void test_parser_context_init(TestParserCtx *ctx, const char *query) {
     ctx->query = strdup(query);
     ctx->state = setup_tokenizer(query);
     ctx->node = NULL;
 }
 
-static inline void test_context_teardown(TestContext *ctx) {
+static inline void test_parser_context_teardown(TestParserCtx *ctx) {
     if (ctx->node) {
         ast_free(ctx->node);
         ctx->node = NULL;

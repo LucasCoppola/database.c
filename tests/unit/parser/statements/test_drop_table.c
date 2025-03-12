@@ -3,12 +3,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../../../common/test_context.h"
 #include "libs/unity.h"
 #include "parser/ast.h"
 #include "parser/statements.h"
 
-static TestContext ctx;
+#include "../../../common/test_parser_ctx.h"
+
+static TestParserCtx ctx;
 
 void setUp(void) {
   ctx.query = NULL;
@@ -16,7 +17,7 @@ void setUp(void) {
   ctx.node = NULL;
 }
 
-void tearDown(void) { test_context_teardown(&ctx); }
+void tearDown(void) { test_parser_context_teardown(&ctx); }
 
 void test_drop_table_query(bool should_pass, const char *expected_table_name) {
   if (ctx.state == NULL) {
@@ -38,7 +39,7 @@ void test_valid_drop_table(void) {
   const char *query = "DROP TABLE users;";
   printf("Testing query: %s\n", query);
 
-  test_context_init(&ctx, query);
+  test_parser_context_init(&ctx, query);
   test_drop_table_query(true, "users");
 }
 
@@ -46,7 +47,7 @@ void test_missing_table_name(void) {
   const char *query = "DROP TABLE;";
   printf("Testing query: %s\n", query);
 
-  test_context_init(&ctx, query);
+  test_parser_context_init(&ctx, query);
   test_drop_table_query(false, NULL);
 }
 
@@ -54,7 +55,7 @@ void test_invalid_drop_table(void) {
   const char *query = "DROP users;";
   printf("Testing query: %s\n", query);
 
-  test_context_init(&ctx, query);
+  test_parser_context_init(&ctx, query);
   test_drop_table_query(false, NULL);
 }
 
