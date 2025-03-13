@@ -45,14 +45,14 @@ RowResult insert_row(Table *out_table, ASTNode *node) {
   }
 
   for (uint32_t i = 0; i < row->num_columns; i++) {
-    row->values[i].type = node->insert_rows.values[i].type;
+    row->values[i].type = node->insert_rows.values[i]->type;
 
-    if (node->insert_rows.values[i].type == COLUMN_TYPE_TEXT) {
+    if (node->insert_rows.values[i]->type == COLUMN_TYPE_TEXT) {
       row->values[i].string_value =
-          strdup(node->insert_rows.values[i].string_value);
+          strdup(node->insert_rows.values[i]->string_value);
     } else {
-      row->values[i].int_value = node->insert_rows.values[i].int_value;
-      row->values[i].real_value = node->insert_rows.values[i].real_value;
+      row->values[i].int_value = node->insert_rows.values[i]->int_value;
+      row->values[i].real_value = node->insert_rows.values[i]->real_value;
     }
   }
 

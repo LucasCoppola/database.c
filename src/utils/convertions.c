@@ -39,22 +39,26 @@ char *data_type_to_string(DataType type) {
   }
 }
 
-Value convert_value(const char *value_str, DataType type) {
-  Value value;
-  value.type = type;
+Value *convert_value(const char *value_str, DataType type) {
+  Value *value = malloc(sizeof(Value));
+  if (!value) {
+    fprintf(stderr, "Failed to allocate memory for value");
+    return NULL;
+  }
+  value->type = type;
 
   switch (type) {
   case COLUMN_TYPE_INT:
-    value.int_value = atoi(value_str);
+    value->int_value = atoi(value_str);
     break;
   case COLUMN_TYPE_REAL:
-    value.real_value = strtod(value_str, NULL);
+    value->real_value = strtod(value_str, NULL);
     break;
   case COLUMN_TYPE_TEXT:
-    value.string_value = strdup(value_str);
+    value->string_value = strdup(value_str);
     break;
   case COLUMN_TYPE_BOOL:
-    value.bool_value = (strcasecmp(value_str, "true") == 0);
+    value->bool_value = (strcasecmp(value_str, "true") == 0);
     break;
   default:
     fprintf(stderr, "Unknown type in convert_value\n");

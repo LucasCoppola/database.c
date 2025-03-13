@@ -20,12 +20,18 @@ typedef enum {
 } NodeType;
 
 typedef struct {
+    char *column_name;          
+    char op;                 
+    Value* value;           
+} WhereCondition;
+
+typedef struct {
     Column* columns;
     int num_columns;
 } CreateTable;
 
 typedef struct {
-    Value* values;  // Array of string values to be converted later
+    Value** values;
     int num_values;
 } InsertRows;
 
@@ -41,6 +47,7 @@ typedef struct ASTNode {
     CreateTable create_table;
     InsertRows insert_rows;
     SelectRows select_rows;
+    WhereCondition where_condition;   
 } ASTNode;
 
 ASTNodeResult create_ast_node(NodeType type, ASTNode **out_node);

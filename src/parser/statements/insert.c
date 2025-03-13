@@ -74,7 +74,7 @@ ASTNode *parser_row_insert(const Token *tokens, int token_count) {
       return NULL;
     }
 
-    Value *temp =
+    Value **temp =
         realloc(node->insert_rows.values, (num_values + 1) * sizeof(Value));
     if (!temp) {
       fprintf(stderr, "Failed to reallocate values");
@@ -85,16 +85,16 @@ ASTNode *parser_row_insert(const Token *tokens, int token_count) {
     node->insert_rows.values = temp;
 
     if (tokens[index].type == TOKEN_STRING_LITERAL) {
-      Value value = convert_value(tokens[index].value, COLUMN_TYPE_TEXT);
+      Value *value = convert_value(tokens[index].value, COLUMN_TYPE_TEXT);
       node->insert_rows.values[num_values] = value;
     } else if (tokens[index].type == TOKEN_INTEGER_LITERAL) {
-      Value value = convert_value(tokens[index].value, COLUMN_TYPE_INT);
+      Value *value = convert_value(tokens[index].value, COLUMN_TYPE_INT);
       node->insert_rows.values[num_values] = value;
     } else if (tokens[index].type == TOKEN_REAL_LITERAL) {
-      Value value = convert_value(tokens[index].value, COLUMN_TYPE_REAL);
+      Value *value = convert_value(tokens[index].value, COLUMN_TYPE_REAL);
       node->insert_rows.values[num_values] = value;
     } else if (tokens[index].type == TOKEN_BOOLEAN_LITERAL) {
-      Value value = convert_value(tokens[index].value, COLUMN_TYPE_BOOL);
+      Value *value = convert_value(tokens[index].value, COLUMN_TYPE_BOOL);
       node->insert_rows.values[num_values] = value;
     }
 

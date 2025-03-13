@@ -36,21 +36,23 @@ void test_insert_query(bool should_pass, const char *expected_table_name,
 
     for (int i = 0; i < expected_num_values; i++) {
       char actual_value[32];
-      switch (ctx.node->insert_rows.values[i].type) {
+      switch (ctx.node->insert_rows.values[i]->type) {
       case COLUMN_TYPE_TEXT:
-        strncpy(actual_value, ctx.node->insert_rows.values[i].string_value, 32);
+        strncpy(actual_value, ctx.node->insert_rows.values[i]->string_value,
+                32);
         break;
       case COLUMN_TYPE_INT:
         snprintf(actual_value, 32, "%d",
-                 ctx.node->insert_rows.values[i].int_value);
+                 ctx.node->insert_rows.values[i]->int_value);
         break;
       case COLUMN_TYPE_REAL:
         snprintf(actual_value, 32, "%.2f",
-                 ctx.node->insert_rows.values[i].real_value);
+                 ctx.node->insert_rows.values[i]->real_value);
         break;
       case COLUMN_TYPE_BOOL:
         snprintf(actual_value, 32, "%s",
-                 ctx.node->insert_rows.values[i].bool_value ? "true" : "false");
+                 ctx.node->insert_rows.values[i]->bool_value ? "true"
+                                                             : "false");
         break;
       default:
         snprintf(actual_value, 32, "unknown_type");
