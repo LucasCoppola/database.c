@@ -19,7 +19,7 @@ typedef enum {
     NODE_DELETE
 } NodeType;
 
-typedef struct {
+typedef struct WhereCondition {
     char *column_name;          
     char op;                 
     Value* value;           
@@ -52,5 +52,6 @@ typedef struct ASTNode {
 
 ASTNodeResult create_ast_node(NodeType type, ASTNode **out_node);
 void ast_free(ASTNode* node);
+void ast_free_where_condition(WhereCondition where_condition);
 
 #endif 

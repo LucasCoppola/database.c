@@ -42,6 +42,8 @@ void ast_free(ASTNode *node) {
       }
       free(node->select_rows.select_columns);
     }
+
+    ast_free_where_condition(node->where_condition);
     break;
 
   case NODE_INSERT:
@@ -67,4 +69,17 @@ void ast_free(ASTNode *node) {
     free(node->table_name);
   }
   free(node);
+}
+
+void ast_free_where_condition(WhereCondition where_condition) {
+  if (where_condition.value) {
+    if (where_condition.value->type == COLUMN_TYPE_TEXT &&
+        where_condition.value->string_value) {
+      free(where_condition.value->string_value);
+    }
+    free(where_condition.value);
+  }
+  if (where_condition.column_name) {
+    free(where_condition.column_name);
+  }
 }

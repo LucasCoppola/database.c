@@ -15,6 +15,7 @@ ASTNode* parser_table_drop(const Token* tokens);
 
 // select.c
 ASTNode* parser_row_select(const Token* tokens, int token_count);
+bool parser_where_condition(const Token* tokens, int *index, ASTNode *node);
 
 // insert.c
 ASTNode* parser_row_insert(const Token* tokens, int token_count);

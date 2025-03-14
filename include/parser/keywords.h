@@ -11,6 +11,7 @@
 #define KEYWORD_FROM "FROM"
 #define KEYWORD_INTO "INTO"
 #define KEYWORD_VALUES "VALUES"
+#define KEYWORD_WHERE "WHERE"
 
 // Data Types
 #define KEYWORD_INT "INT"
@@ -19,5 +20,10 @@
 #define KEYWORD_TEXT "TEXT"
 #define KEYWORD_BOOLEAN "BOOLEAN"
 #define KEYWORD_BOOL "BOOL"
+
+// Operators
+#define OP_EQUAL         '=' 
+#define OP_GREATER       '>' 
+#define OP_LESS          '<' 
 
 #endif 
