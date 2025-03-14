@@ -40,3 +40,12 @@ bool semantic_validate_select_columns(Table *table, ASTNode *node,
 
   return true;
 }
+
+Column *semantic_find_column(Table *table, const char *column_name) {
+  for (uint32_t i = 0; i < table->num_columns; i++) {
+    if (strcmp(column_name, table->columns[i].name) == 0) {
+      return &table->columns[i];
+    }
+  }
+  return NULL;
+}
