@@ -13,25 +13,6 @@
 #include "storage/pager.h"
 #include "utils/logger.h"
 
-RowResult initialize_row(Table *table, Row **row) {
-  *row = malloc(sizeof(Row));
-  if (!*row) {
-    fprintf(stderr, "Failed to allocate row.\n");
-    return ROW_ALLOC_ERROR;
-  }
-
-  (*row)->id = table->next_id++;
-  (*row)->num_columns = table->num_columns;
-  (*row)->values = malloc((*row)->num_columns * sizeof(Value));
-  if (!(*row)->values) {
-    fprintf(stderr, "Failed to allocate row values.\n");
-    free(*row);
-    return ROW_VALUES_ALLOC_ERROR;
-  }
-
-  return ROW_SUCCESS;
-}
-
 RowResult insert_row(Table *out_table, ASTNode *node) {
   if (out_table == NULL) {
     return ROW_INVALID_TABLE;
@@ -53,6 +34,7 @@ RowResult insert_row(Table *out_table, ASTNode *node) {
     } else {
       row->values[i].int_value = node->insert_rows.values[i]->int_value;
       row->values[i].real_value = node->insert_rows.values[i]->real_value;
+      row->values[i].bool_value = node->insert_rows.values[i]->bool_value;
     }
   }
 
@@ -115,7 +97,17 @@ RowResult select_row(Table *table, ASTNode *node) {
 
   while (!cursor->end_of_table) {
     deserialize_row(cursor_value(cursor), &row, table);
-    print_row(row, node, table);
+
+    bool should_print = true;
+    if (node->where_condition.value && node->where_condition.column_name &&
+        node->where_condition.op) {
+      should_print =
+          evaluate_where_condition(&row, &node->where_condition, table);
+    }
+    if (should_print) {
+      print_row(row, node, table);
+    }
+
     cursor_advance(cursor);
   }
 

@@ -1,12 +1,83 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "core/table.h"
 
 #include "core/row.h"
 #include "parser/ast.h"
+#include "parser/keywords.h"
 #include "storage/pager.h"
 #include "utils/convertions.h"
+
+RowResult initialize_row(Table *table, Row **row) {
+  *row = malloc(sizeof(Row));
+  if (!*row) {
+    fprintf(stderr, "Failed to allocate row.\n");
+    return ROW_ALLOC_ERROR;
+  }
+
+  (*row)->id = table->next_id++;
+  (*row)->num_columns = table->num_columns;
+  (*row)->values = malloc((*row)->num_columns * sizeof(Value));
+  if (!(*row)->values) {
+    fprintf(stderr, "Failed to allocate row values.\n");
+    free(*row);
+    return ROW_VALUES_ALLOC_ERROR;
+  }
+
+  return ROW_SUCCESS;
+}
+
+bool evaluate_where_condition(Row *row, WhereCondition *where, Table *table) {
+  int col_index = -1;
+  for (uint32_t i = 0; i < table->num_columns; i++) {
+    if (strcmp(table->columns[i].name, where->column_name) == 0) {
+      col_index = i;
+      break;
+    }
+  }
+
+  if (col_index < 0) {
+    return false;
+  }
+
+  if (where->op == OP_EQUAL) {
+    switch (row->values[col_index].type) {
+    case COLUMN_TYPE_INT:
+      return row->values[col_index].int_value == where->value->int_value;
+    case COLUMN_TYPE_REAL:
+      return row->values[col_index].real_value == where->value->real_value;
+    case COLUMN_TYPE_TEXT:
+      return strcmp(row->values[col_index].string_value,
+                    where->value->string_value) == 0;
+    case COLUMN_TYPE_BOOL:
+      return row->values[col_index].bool_value == where->value->bool_value;
+    default:
+      return false;
+    }
+  } else if (where->op == OP_LESS) {
+    switch (row->values[col_index].type) {
+    case COLUMN_TYPE_INT:
+      return row->values[col_index].int_value < where->value->int_value;
+    case COLUMN_TYPE_REAL:
+      return row->values[col_index].real_value < where->value->real_value;
+    default:
+      return false;
+    }
+  } else if (where->op == OP_GREATER) {
+    switch (row->values[col_index].type) {
+    case COLUMN_TYPE_INT:
+      return row->values[col_index].int_value > where->value->int_value;
+    case COLUMN_TYPE_REAL:
+      return row->values[col_index].real_value > where->value->real_value;
+    default:
+      return false;
+    }
+  }
+
+  return false;
+}
 
 uint32_t calculate_row_size(Table *table) {
   uint32_t row_size = sizeof(uint32_t); // row.id
