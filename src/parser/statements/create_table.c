@@ -11,6 +11,7 @@
 #include "utils/logger.h"
 #include "utils/parser_logger.h"
 
+// CREATE TABLE table_name (column_name column_type);
 ASTNode *parser_table_create(const Token *tokens, int token_count) {
   if (!expect_token(tokens, 0, TOKEN_KEYWORD, KEYWORD_CREATE)) {
     PARSER_LOG_ERROR(tokens[0].position, PARSER_INVALID_KEYWORD,

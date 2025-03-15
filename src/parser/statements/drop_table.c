@@ -10,6 +10,7 @@
 #include "utils/logger.h"
 #include "utils/parser_logger.h"
 
+// DROP TABLE table_name
 ASTNode *parser_table_drop(const Token *tokens) {
   if (!expect_token(tokens, 0, TOKEN_KEYWORD, KEYWORD_DROP)) {
     PARSER_LOG_ERROR(tokens[0].position, PARSER_INVALID_KEYWORD,

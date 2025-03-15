@@ -21,6 +21,6 @@ bool parser_where_condition(const Token* tokens, int *index, ASTNode *node);
 ASTNode* parser_row_insert(const Token* tokens, int token_count);
 
 // delete.c
-ASTNode* parser_row_delete(const Token* tokens, int token_count);
+ASTNode* parser_row_delete(const Token* tokens);
 
 #endif 

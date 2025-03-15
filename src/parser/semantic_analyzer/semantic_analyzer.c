@@ -20,6 +20,8 @@ SemanticResult semantic_analyze(Database *db, ASTNode *node) {
     return semantic_analyze_insert(db, node);
   case NODE_SELECT:
     return semantic_analyze_select(db, node);
+  case NODE_DELETE:
+    return semantic_analyze_delete(db, node);
   default:
     return SEMANTIC_SUCCESS;
   }
@@ -103,9 +105,7 @@ SemanticResult semantic_analyze_select(Database *db, ASTNode *node) {
     return SEMANTIC_TABLE_NOT_FOUND;
   }
 
-  // if we have a where condition run it
-  if (node->where_condition.value && node->where_condition.op &&
-      node->where_condition.column_name) {
+  if (has_where_condition(node)) {
     SemanticResult semantic_result =
         semantic_analyze_where_condition(table, node->where_condition);
     if (semantic_result != SEMANTIC_SUCCESS) {
@@ -121,6 +121,24 @@ SemanticResult semantic_analyze_select(Database *db, ASTNode *node) {
   if (!semantic_validate_select_columns(table, node, &out_column)) {
     SEMANTIC_LOG_ERROR(SEMANTIC_COLUMN_NOT_FOUND, out_column, NULL);
     return SEMANTIC_COLUMN_NOT_FOUND;
+  }
+
+  return SEMANTIC_SUCCESS;
+}
+
+SemanticResult semantic_analyze_delete(Database *db, ASTNode *node) {
+  Table *table = semantic_validate_table_exists(db, node->table_name);
+  if (!table) {
+    SEMANTIC_LOG_ERROR(SEMANTIC_TABLE_NOT_FOUND, node->table_name, NULL);
+    return SEMANTIC_TABLE_NOT_FOUND;
+  }
+
+  if (has_where_condition(node)) {
+    SemanticResult semantic_result =
+        semantic_analyze_where_condition(table, node->where_condition);
+    if (semantic_result != SEMANTIC_SUCCESS) {
+      return semantic_result;
+    }
   }
 
   return SEMANTIC_SUCCESS;

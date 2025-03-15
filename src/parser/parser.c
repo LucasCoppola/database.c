@@ -27,6 +27,8 @@ ASTNode *parse(const Token *tokens, int token_count) {
     return parser_row_select(tokens, token_count);
   } else if (strcmp(value, KEYWORD_INSERT) == 0) {
     return parser_row_insert(tokens, token_count);
+  } else if (strcmp(value, KEYWORD_DELETE) == 0) {
+    return parser_row_delete(tokens);
   } else {
     PARSER_LOG_ERROR(tokens[0].position, PARSER_INVALID_KEYWORD, NULL, NULL);
     return NULL;

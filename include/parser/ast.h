@@ -41,17 +41,28 @@ typedef struct {
     bool select_all;
 } SelectRows;
 
+typedef struct {
+  bool delete_all;
+} DeleteRows;
+
 typedef struct ASTNode {
     NodeType type;
     char* table_name;
     CreateTable create_table;
     InsertRows insert_rows;
     SelectRows select_rows;
+    DeleteRows delete_rows;
     WhereCondition where_condition;   
 } ASTNode;
 
 ASTNodeResult create_ast_node(NodeType type, ASTNode **out_node);
 void ast_free(ASTNode* node);
 void ast_free_where_condition(WhereCondition where_condition);
+
+static inline bool has_where_condition(const ASTNode *node) {
+    return node->where_condition.column_name != NULL &&
+           node->where_condition.op != '\0' &&
+           node->where_condition.value != NULL;
+}
 
 #endif 

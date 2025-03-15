@@ -27,6 +27,7 @@ SemanticResult semantic_analyze_create_table(Database *db,  ASTNode *node);
 SemanticResult semantic_analyze_drop_table(Database *db, ASTNode *node);
 SemanticResult semantic_analyze_insert(Database *db, ASTNode *node);
 SemanticResult semantic_analyze_select(Database *db, ASTNode *node);
+SemanticResult semantic_analyze_delete(Database *db, ASTNode *node);
 SemanticResult semantic_analyze_where_condition(Table *table, WhereCondition where_condition);
 
 Table *semantic_validate_table_exists(Database *db, char *table_name);
