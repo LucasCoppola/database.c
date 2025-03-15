@@ -13,14 +13,14 @@
 
 // INSERT INTO table_name VALUES (value1, value2, value3);
 ASTNode *parser_row_insert(const Token *tokens, int token_count) {
-  if (!expect_token(tokens, 0, TOKEN_KEYWORD, "INSERT")) {
+  if (!expect_token(tokens, 0, TOKEN_KEYWORD, KEYWORD_INSERT)) {
     PARSER_LOG_ERROR(tokens[0].position, PARSER_INVALID_KEYWORD,
-                     tokens[0].value, "INSERT");
+                     tokens[0].value, KEYWORD_INSERT);
     return NULL;
   }
-  if (!expect_token(tokens, 1, TOKEN_KEYWORD, "INTO")) {
+  if (!expect_token(tokens, 1, TOKEN_KEYWORD, KEYWORD_INTO)) {
     PARSER_LOG_ERROR(tokens[1].position, PARSER_INVALID_KEYWORD,
-                     tokens[1].value, "INTO");
+                     tokens[1].value, KEYWORD_INTO);
     return NULL;
   }
   if (tokens[2].type != TOKEN_IDENTIFIER) {
@@ -46,16 +46,16 @@ ASTNode *parser_row_insert(const Token *tokens, int token_count) {
   node->insert_rows.values = NULL;
   node->insert_rows.num_values = 0;
 
-  if (!expect_token(tokens, 3, TOKEN_KEYWORD, "VALUES")) {
+  if (!expect_token(tokens, 3, TOKEN_KEYWORD, KEYWORD_VALUES)) {
     PARSER_LOG_ERROR(tokens[3].position, PARSER_INVALID_KEYWORD,
-                     tokens[3].value, "VALUES");
+                     tokens[3].value, KEYWORD_VALUES);
     ast_free(node);
     return NULL;
   }
 
-  if (!expect_token(tokens, 4, TOKEN_PUNCTUATION, "(")) {
+  if (!expect_token(tokens, 4, TOKEN_PUNCTUATION, PUNCT_OPEN_PAREN)) {
     PARSER_LOG_ERROR(tokens[4].position, PARSER_MISSING_DELIMITER,
-                     tokens[4].value, "(");
+                     tokens[4].value, PUNCT_OPEN_PAREN);
     ast_free(node);
     return NULL;
   }
@@ -103,9 +103,10 @@ ASTNode *parser_row_insert(const Token *tokens, int token_count) {
     node->insert_rows.num_values = num_values;
     index++;
 
-    if (expect_token(tokens, index, TOKEN_PUNCTUATION, ",")) {
+    if (expect_token(tokens, index, TOKEN_PUNCTUATION, PUNCT_COMMA)) {
       index++;
-    } else if (expect_token(tokens, index, TOKEN_PUNCTUATION, ")")) {
+    } else if (expect_token(tokens, index, TOKEN_PUNCTUATION,
+                            PUNCT_CLOSE_PAREN)) {
       break;
     } else {
       PARSER_LOG_ERROR(tokens[index].position, PARSER_MISSING_DELIMITER,
@@ -116,9 +117,9 @@ ASTNode *parser_row_insert(const Token *tokens, int token_count) {
   }
 
   if (index < token_count &&
-      !expect_token(tokens, index, TOKEN_PUNCTUATION, ")")) {
+      !expect_token(tokens, index, TOKEN_PUNCTUATION, PUNCT_CLOSE_PAREN)) {
     PARSER_LOG_ERROR(tokens[index].position, PARSER_MISSING_DELIMITER,
-                     tokens[index].value, ")");
+                     tokens[index].value, PUNCT_CLOSE_PAREN);
     ast_free(node);
     return NULL;
   }

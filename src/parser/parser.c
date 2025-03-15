@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "parser/keywords.h"
 #include "parser/statements.h"
 #include "parser/tokenizer.h"
 #include "utils/parser_logger.h"
@@ -18,13 +19,13 @@ ASTNode *parse(const Token *tokens, int token_count) {
 
   char *value = tokens[0].value;
 
-  if (strcmp(value, "CREATE") == 0) {
+  if (strcmp(value, KEYWORD_CREATE) == 0) {
     return parser_table_create(tokens, token_count);
-  } else if (strcmp(value, "DROP") == 0) {
+  } else if (strcmp(value, KEYWORD_DROP) == 0) {
     return parser_table_drop(tokens);
-  } else if (strcmp(value, "SELECT") == 0) {
+  } else if (strcmp(value, KEYWORD_SELECT) == 0) {
     return parser_row_select(tokens, token_count);
-  } else if (strcmp(value, "INSERT") == 0) {
+  } else if (strcmp(value, KEYWORD_INSERT) == 0) {
     return parser_row_insert(tokens, token_count);
   } else {
     PARSER_LOG_ERROR(tokens[0].position, PARSER_INVALID_KEYWORD, NULL, NULL);

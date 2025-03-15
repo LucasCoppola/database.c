@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "parser/ast.h"
+#include "parser/keywords.h"
 #include "parser/parser.h"
 #include "parser/statements.h"
 #include "parser/tokenizer.h"
@@ -11,14 +12,14 @@
 #include "utils/parser_logger.h"
 
 ASTNode *parser_table_create(const Token *tokens, int token_count) {
-  if (!expect_token(tokens, 0, TOKEN_KEYWORD, "CREATE")) {
+  if (!expect_token(tokens, 0, TOKEN_KEYWORD, KEYWORD_CREATE)) {
     PARSER_LOG_ERROR(tokens[0].position, PARSER_INVALID_KEYWORD,
-                     tokens[0].value, "CREATE");
+                     tokens[0].value, KEYWORD_CREATE);
     return NULL;
   }
-  if (!expect_token(tokens, 1, TOKEN_KEYWORD, "TABLE")) {
+  if (!expect_token(tokens, 1, TOKEN_KEYWORD, KEYWORD_TABLE)) {
     PARSER_LOG_ERROR(tokens[1].position, PARSER_INVALID_KEYWORD,
-                     tokens[1].value, "TABLE");
+                     tokens[1].value, KEYWORD_TABLE);
     return NULL;
   }
   if (tokens[2].type != TOKEN_IDENTIFIER) {
@@ -43,9 +44,9 @@ ASTNode *parser_table_create(const Token *tokens, int token_count) {
 
   node->create_table.columns = NULL;
 
-  if (!expect_token(tokens, 3, TOKEN_PUNCTUATION, "(")) {
+  if (!expect_token(tokens, 3, TOKEN_PUNCTUATION, PUNCT_OPEN_PAREN)) {
     PARSER_LOG_ERROR(tokens[3].position, PARSER_MISSING_DELIMITER,
-                     tokens[3].value, "(");
+                     tokens[3].value, PUNCT_OPEN_PAREN);
     ast_free(node);
     return NULL;
   }
@@ -107,9 +108,9 @@ Column *columns_parse(const Token *tokens, int token_count, int *index,
       return NULL;
     }
 
-    if (strcmp(tokens[*index].value, ",") == 0) {
+    if (strcmp(tokens[*index].value, PUNCT_COMMA) == 0) {
       (*index)++;
-    } else if (strcmp(tokens[*index].value, ")") == 0) {
+    } else if (strcmp(tokens[*index].value, PUNCT_CLOSE_PAREN) == 0) {
       (*index)++;
       break;
     } else {

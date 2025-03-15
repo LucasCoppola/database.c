@@ -4,20 +4,21 @@
 #include <string.h>
 
 #include "parser/ast.h"
+#include "parser/keywords.h"
 #include "parser/parser.h"
 #include "parser/tokenizer.h"
 #include "utils/logger.h"
 #include "utils/parser_logger.h"
 
 ASTNode *parser_table_drop(const Token *tokens) {
-  if (!expect_token(tokens, 0, TOKEN_KEYWORD, "DROP")) {
+  if (!expect_token(tokens, 0, TOKEN_KEYWORD, KEYWORD_DROP)) {
     PARSER_LOG_ERROR(tokens[0].position, PARSER_INVALID_KEYWORD,
-                     tokens[0].value, "DROP");
+                     tokens[0].value, KEYWORD_DROP);
     return NULL;
   }
-  if (!expect_token(tokens, 1, TOKEN_KEYWORD, "TABLE")) {
+  if (!expect_token(tokens, 1, TOKEN_KEYWORD, KEYWORD_TABLE)) {
     PARSER_LOG_ERROR(tokens[1].position, PARSER_INVALID_KEYWORD,
-                     tokens[1].value, "TABLE");
+                     tokens[1].value, KEYWORD_TABLE);
     return NULL;
   }
   if (tokens[2].type != TOKEN_IDENTIFIER) {

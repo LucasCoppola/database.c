@@ -66,7 +66,7 @@ ASTNode *parser_row_select(const Token *tokens, int token_count) {
       index++;
 
       if (index < token_count &&
-          expect_token(tokens, index, TOKEN_PUNCTUATION, ",")) {
+          expect_token(tokens, index, TOKEN_PUNCTUATION, PUNCT_COMMA)) {
         index++;
       } else {
         break;

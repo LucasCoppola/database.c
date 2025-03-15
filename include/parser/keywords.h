@@ -21,6 +21,12 @@
 #define KEYWORD_BOOLEAN "BOOLEAN"
 #define KEYWORD_BOOL "BOOL"
 
+// Punctuation
+#define PUNCT_OPEN_PAREN "("
+#define PUNCT_CLOSE_PAREN ")"
+#define PUNCT_COMMA ","
+#define PUNCT_SEMICOLON ";"
+
 // Operators
 #define OP_EQUAL         '=' 
 #define OP_GREATER       '>' 
