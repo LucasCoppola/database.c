@@ -37,15 +37,6 @@ void tearDown(void) {
   test_integration_ctx_teardown(&ctx, TEST_DB);
 }
 
-void mock_row_free(Row row) {
-  for (uint32_t i = 0; i < row.num_columns; i++) {
-    if (row.values[i].type == COLUMN_TYPE_TEXT && row.values[i].string_value) {
-      free(row.values[i].string_value);
-    }
-  }
-  free(row.values);
-}
-
 void test_insert_row_with_bool_and_real(void) {
   const char *create_query =
       "CREATE TABLE items (id INT, active BOOLEAN, price REAL, name TEXT);";
@@ -95,7 +86,7 @@ void test_insert_row_with_bool_and_real(void) {
   TEST_ASSERT_EQUAL(99.99, row.values[2].real_value);
   TEST_ASSERT_EQUAL_STRING("Special Item", row.values[3].string_value);
 
-  mock_row_free(row);
+  free_row_values(&row);
   tokenizer_free(ctx.state);
   ast_free(ctx.node);
   ctx.state = NULL;
@@ -147,7 +138,7 @@ void test_insert_row(void) {
   TEST_ASSERT_EQUAL(1, row.id);
   TEST_ASSERT_EQUAL_STRING("Alice", row.values[1].string_value);
 
-  mock_row_free(row);
+  free_row_values(&row);
   tokenizer_free(ctx.state);
   ast_free(ctx.node);
   ctx.state = NULL;
@@ -204,7 +195,7 @@ void test_insert_row_multiple_columns(void) {
   TEST_ASSERT_EQUAL_STRING("High-end gaming laptop",
                            row.values[3].string_value);
 
-  mock_row_free(row);
+  free_row_values(&row);
   tokenizer_free(ctx.state);
   ast_free(ctx.node);
   ctx.state = NULL;

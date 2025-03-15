@@ -19,13 +19,8 @@ RowResult select_row(Table *table, ASTNode *node) {
   }
 
   Cursor *cursor = table_start(table);
-
   Row row;
-  row.values = malloc(table->num_columns * sizeof(Value));
-  if (!row.values) {
-    free(cursor);
-    return ROW_VALUES_ALLOC_ERROR;
-  }
+  row.values = NULL;
 
   while (!cursor->end_of_table) {
     deserialize_row(cursor_value(cursor), &row, table);
@@ -42,7 +37,7 @@ RowResult select_row(Table *table, ASTNode *node) {
     cursor_advance(cursor);
   }
 
-  free(row.values);
+  free_row_values(&row);
   free(cursor);
   return ROW_SUCCESS;
 }

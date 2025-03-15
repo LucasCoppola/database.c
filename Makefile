@@ -45,10 +45,12 @@ TEST_PARSER_CREATE_TABLE = $(UNIT_DIR)/parser/statements/test_create_table.c
 TEST_PARSER_DROP_TABLE = $(UNIT_DIR)/parser/statements/test_drop_table.c
 TEST_PARSER_INSERT = $(UNIT_DIR)/parser/statements/test_insert.c
 TEST_PARSER_SELECT = $(UNIT_DIR)/parser/statements/test_select.c
+TEST_PARSER_DELETE = tests/unit/parser/statements/test_delete.c
 
 TEST_CREATE_TABLE = $(INTEGRATION_DIR)/test_create_table.c
 TEST_DROP_TABLE = $(INTEGRATION_DIR)/test_drop_table.c
 TEST_INSERT_ROW = $(INTEGRATION_DIR)/test_insert_row.c
+TEST_DELETE_ROW = $(INTEGRATION_DIR)/test_delete_row.c
 
 # Executables
 MAIN_EXEC = main
@@ -59,10 +61,12 @@ TEST_PARSER_CREATE_TABLE_EXEC = test_parser_create_table
 TEST_PARSER_DROP_TABLE_EXEC = test_parser_drop_table
 TEST_PARSER_INSERT_EXEC = test_parser_insert
 TEST_PARSER_SELECT_EXEC = test_parser_select
+TEST_PARSER_DELETE_EXEC = test_parser_delete
 
 TEST_CREATE_TABLE_EXEC = test_create_table
 TEST_DROP_TABLE_EXEC = test_drop_table
 TEST_INSERT_ROW_EXEC = test_insert_row
+TEST_DELETE_ROW_EXEC = test_delete_row
 
 # Main target
 main: $(SRC_FILES) $(LINENOISE_LIB) $(CORE_FILES) $(STORAGE_FILES) \
@@ -113,6 +117,13 @@ test_parser_drop_table: $(UNITY_LIB) $(TEST_COMMON) \
 	valgrind --leak-check=full --show-leak-kinds=all ./$(TEST_PARSER_DROP_TABLE_EXEC)
 	rm -f ./$(TEST_PARSER_DROP_TABLE_EXEC)
 
+test_parser_delete: $(UNITY_LIB) $(TEST_PARSER_DELETE) $(TEST_COMMON) \
+    $(CORE_FILES) $(PARSER_FILES) $(PARSER_STATEMENTS_FILES) $(TOKENIZER_FILES) \
+		$(UTILS_FILES) $(ROW_FILES) $(STORAGE_FILES)
+	$(CC) $(CFLAGS) $^ -o $(TEST_PARSER_DELETE_EXEC)
+	./$(TEST_PARSER_DELETE_EXEC)
+	rm -f ./$(TEST_PARSER_DELETE_EXEC)
+
 test_create_table: $(UNITY_LIB) $(TEST_CREATE_TABLE) $(TEST_COMMON) \
     $(CORE_FILES) $(STORAGE_FILES) $(PARSER_FILES) $(TOKENIZER_FILES) \
     $(PARSER_STATEMENTS_FILES) $(UTILS_FILES) $(SEMANTIC_ANALYZER_FILES) \
@@ -124,36 +135,44 @@ test_create_table: $(UNITY_LIB) $(TEST_CREATE_TABLE) $(TEST_COMMON) \
 test_drop_table: $(UNITY_LIB) $(TEST_DROP_TABLE) $(TEST_COMMON) \
     $(CORE_FILES) $(STORAGE_FILES) $(PARSER_FILES) $(TOKENIZER_FILES) \
     $(EXECUTOR_FILES) $(PARSER_STATEMENTS_FILES) $(UTILS_FILES) \
-    $(SEMANTIC_ANALYZER_FILES) $(SEMANTIC_ANALYZER_VALIDATORS_FILES)
-	$(CC) $(CFLAGS) $^ -o $(TEST_DROP_TABLE_EXEC) $(ROW_FILES)
+    $(SEMANTIC_ANALYZER_FILES) $(SEMANTIC_ANALYZER_VALIDATORS_FILES) $(ROW_FILES)
+	$(CC) $(CFLAGS) $^ -o $(TEST_DROP_TABLE_EXEC) 
 	valgrind --leak-check=full --show-leak-kinds=all ./$(TEST_DROP_TABLE_EXEC)
 	rm -f ./$(TEST_DROP_TABLE_EXEC)
 
 test_insert_row: $(UNITY_LIB) $(TEST_INSERT_ROW) $(TEST_COMMON) \
     $(CORE_FILES) $(STORAGE_FILES) $(PARSER_FILES) $(TOKENIZER_FILES) \
     $(EXECUTOR_FILES) $(PARSER_STATEMENTS_FILES) $(UTILS_FILES) \
-    $(SEMANTIC_ANALYZER_FILES) $(SEMANTIC_ANALYZER_VALIDATORS_FILES)
-	$(CC) $(CFLAGS) $^ -o $(TEST_INSERT_ROW_EXEC) $(ROW_FILES)
+    $(SEMANTIC_ANALYZER_FILES) $(SEMANTIC_ANALYZER_VALIDATORS_FILES) $(ROW_FILES)
+	$(CC) $(CFLAGS) $^ -o $(TEST_INSERT_ROW_EXEC) 
 	valgrind --leak-check=full --show-leak-kinds=all ./$(TEST_INSERT_ROW_EXEC)
 	rm -f ./$(TEST_INSERT_ROW_EXEC)
 
-test_integration: test_create_table test_drop_table test_insert_row
+test_delete_row: $(UNITY_LIB) $(TEST_DELETE_ROW) $(TEST_COMMON) \
+    $(CORE_FILES) $(STORAGE_FILES) $(PARSER_FILES) $(TOKENIZER_FILES) $(EXECUTOR_FILES) \
+    $(PARSER_STATEMENTS_FILES) $(UTILS_FILES) $(SEMANTIC_ANALYZER_FILES) \
+		$(ROW_FILES) $(SEMANTIC_ANALYZER_VALIDATORS_FILES)
+	$(CC) $(CFLAGS) $^ -o $(TEST_DELETE_ROW_EXEC) 
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(TEST_DELETE_ROW_EXEC)
+	rm -f ./$(TEST_DELETE_ROW_EXEC)
+
+test_integration: test_create_table test_drop_table test_insert_row test_delete_row
 
 test_parser: test_parser_create_table test_parser_drop_table \
-    test_parser_insert test_parser_select
+    test_parser_insert test_parser_select test_parser_delete
 
 test: test_hashmap test_tokenizer test_parser_create_table \
     test_parser_drop_table test_parser_insert test_parser_select \
-    test_create_table test_drop_table test_insert_row
+    test_create_table test_drop_table test_insert_row test_delete_row
 
 clean:
 	rm -f $(MAIN_EXEC) $(TEST_HASHMAP_EXEC) $(TEST_TOKENIZER_EXEC) \
     $(TEST_PARSER_CREATE_TABLE_EXEC) $(TEST_PARSER_DROP_TABLE_EXEC) \
     $(TEST_PARSER_INSERT_EXEC) $(TEST_PARSER_SELECT_EXEC) \
     $(TEST_CREATE_TABLE_EXEC) $(TEST_DROP_TABLE_EXEC) \
-    $(TEST_INSERT_ROW_EXEC)
+    $(TEST_INSERT_ROW_EXEC) $(TEST_PARSER_DELETE_EXEC) $(TEST_DELETE_EXEC)
 
 .PHONY: main test_hashmap test_tokenizer test_parser test_create_table \
-    test_drop_table test_insert_row test clean \
-    test_parser_create_table test_parser_drop_table test_parser_insert \
-    test_parser_select
+    test_drop_table test_insert_row test_parser_create_table test_parser_drop_table \
+    test_parser_insert test_parser_select test_parser_delete test_delete_row \
+    test clean

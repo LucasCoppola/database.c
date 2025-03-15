@@ -4,13 +4,13 @@
 #include <string.h>
 #include <strings.h>
 
-#include "core/table.h"
-
 #include "core/hashmap.h"
-#include "core/row.h"
+#include "core/table.h"
 #include "parser/ast.h"
 #include "storage/pager.h"
 #include "utils/logger.h"
+
+#include "core/row.h"
 
 RowResult delete_row(Table *table, ASTNode *node) {
   if (table == NULL) {
@@ -36,23 +36,19 @@ RowResult delete_row(Table *table, ASTNode *node) {
     // Get the row's serialized location.
     void *row_location = (char *)page + offset * row_size;
 
-    // Deserialize the row for evaluation.
-    Row temp;
-    temp.values = malloc(table->num_columns * sizeof(Value));
-    if (!temp.values) {
-      return ROW_VALUES_ALLOC_ERROR;
-    }
-    deserialize_row(row_location, &temp, table);
+    Row row;
+    row.values = NULL;
+    deserialize_row(row_location, &row, table);
 
     bool should_delete = false;
     if (has_where_condition(node)) {
       should_delete =
-          evaluate_where_condition(&temp, &node->where_condition, table);
+          evaluate_where_condition(&row, &node->where_condition, table);
     } else {
       should_delete = true;
     }
-    free(temp.values);
 
+    free_row_values(&row);
     if (should_delete) {
       uint32_t last_index = table->num_rows - 1;
       // If the current row is not the last row, swap it with the last row.

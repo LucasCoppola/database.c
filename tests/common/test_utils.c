@@ -8,6 +8,8 @@
 #include "test_utils.h"
 #include "utils/logger.h"
 
+#include "core/row.h"
+
 TokenizerState *setup_tokenizer(const char *query) {
   TokenizerState *state = NULL;
   TokenizerResult result = tokenizer_init(query, &state);

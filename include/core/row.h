@@ -47,6 +47,7 @@ RowResult delete_row(Table *table, ASTNode *node);
 bool evaluate_where_condition(Row *row, WhereCondition *where, Table *table);
 RowResult initialize_row(Table *table, Row **row);
 void free_row(Row *row);
+void free_row_values(Row *row);
 uint32_t calculate_row_size(Table *table);
 uint32_t calculate_rows_per_page(Table *table);
 uint32_t calculate_max_rows(Table *table);

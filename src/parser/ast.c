@@ -32,7 +32,6 @@ void ast_free(ASTNode *node) {
       free(node->create_table.columns);
     }
     break;
-
   case NODE_SELECT:
     if (node->select_rows.select_columns) {
       for (int i = 0; i < node->select_rows.num_columns; i++) {
@@ -45,7 +44,6 @@ void ast_free(ASTNode *node) {
 
     ast_free_where_condition(node->where_condition);
     break;
-
   case NODE_INSERT:
     if (node->insert_rows.values) {
       for (int i = 0; i < node->insert_rows.num_values; i++) {
@@ -60,7 +58,11 @@ void ast_free(ASTNode *node) {
       free(node->insert_rows.values);
     }
     break;
-
+  case NODE_DELETE:
+    if (has_where_condition(node)) {
+      ast_free_where_condition(node->where_condition);
+    }
+    break;
   default:
     break;
   }
