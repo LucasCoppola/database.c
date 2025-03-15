@@ -24,6 +24,8 @@ ExecuteResult execute_ast(Database *db, ASTNode *node) {
     return execute_insert_rows(db, node);
   case NODE_SELECT:
     return execute_select_rows(db, node);
+  case NODE_DELETE:
+    return execute_delete_rows(db, node);
   default:
     fprintf(stderr, "Error: Unknown node type %d\n", node->type);
     return EXECUTE_FAILURE;
@@ -85,6 +87,24 @@ ExecuteResult execute_select_rows(Database *db, ASTNode *node) {
   RowResult row_result = select_row(out_table, node);
   if (row_result != ROW_SUCCESS) {
     DEBUG_LOG("row", "select", row_result);
+    return EXECUTE_FAILURE;
+  }
+
+  return EXECUTE_SUCCESS;
+}
+
+ExecuteResult execute_delete_rows(Database *db, ASTNode *node) {
+  Table *table = NULL;
+  TableResult table_result = table_find(db, node->table_name, &table);
+
+  if (table_result != TABLE_SUCCESS) {
+    DEBUG_LOG("table", "find", table_result);
+    return EXECUTE_FAILURE;
+  }
+
+  RowResult row_result = delete_row(table, node);
+  if (row_result != ROW_SUCCESS) {
+    DEBUG_LOG("row", "delete", row_result);
     return EXECUTE_FAILURE;
   }
 

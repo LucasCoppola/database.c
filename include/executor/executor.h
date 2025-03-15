@@ -14,5 +14,6 @@ ExecuteResult execute_create_table(Database *db, ASTNode *node);
 ExecuteResult execute_drop_table(Database *db, ASTNode *node);
 ExecuteResult execute_insert_rows(Database *db, ASTNode *node);
 ExecuteResult execute_select_rows(Database *db, ASTNode *node);
+ExecuteResult execute_delete_rows(Database *db, ASTNode *node);
 
 #endif

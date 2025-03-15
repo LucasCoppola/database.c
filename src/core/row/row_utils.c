@@ -29,6 +29,17 @@ RowResult initialize_row(Table *table, Row **row) {
   return ROW_SUCCESS;
 }
 
+void free_row(Row *row) {
+  for (uint32_t i = 0; i < row->num_columns; i++) {
+    if (row->values[i].type == COLUMN_TYPE_TEXT &&
+        row->values[i].string_value) {
+      free(row->values[i].string_value);
+    }
+  }
+  free(row->values);
+  free(row);
+}
+
 bool evaluate_where_condition(Row *row, WhereCondition *where, Table *table) {
   int col_index = -1;
   for (uint32_t i = 0; i < table->num_columns; i++) {
