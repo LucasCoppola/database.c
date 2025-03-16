@@ -7,6 +7,7 @@
 
 void help() {
   printf(".tables     List all existing tables in the database.\n");
+  printf(".schema     Show table schemas.\n");
   printf(".help       List of all available commands.\n");
   printf(".exit       Exit this program.\n");
 }
@@ -16,6 +17,8 @@ void process_meta_command(char *command, Database *db) {
     help();
   } else if (strcasecmp(command, META_CMD_TABLES) == 0) {
     database_tables_list(db);
+  } else if (strcasecmp(command, META_CMD_SCHEMA) == 0) {
+    database_schema(db);
   } else if (strcasecmp(command, META_CMD_EXIT) == 0) {
     exit(0);
   } else {

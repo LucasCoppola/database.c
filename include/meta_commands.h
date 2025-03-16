@@ -4,6 +4,7 @@
 #define META_CMD_HELP ".help"
 #define META_CMD_EXIT  ".exit"
 #define META_CMD_TABLES  ".tables"
+#define META_CMD_SCHEMA ".schema"
 
 typedef struct Database Database;
 

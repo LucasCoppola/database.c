@@ -10,6 +10,7 @@
 #include "core/hashmap.h"
 #include "storage/pager.h"
 #include "storage/table_header.h"
+#include "utils/convertions.h"
 #include "utils/logger.h"
 
 DatabaseResult database_open(Database **out_db, const char *filename) {
@@ -64,6 +65,42 @@ void database_tables_list(Database *db) {
     }
   }
 
+  hashmap_iterator_free(iterator);
+}
+
+void database_schema(Database *db) {
+  if (db == NULL || db->tables == NULL) {
+    printf("No database connection.\n");
+    return;
+  }
+
+  HashMapIterator *iterator = hashmap_iterator_init(db->tables);
+  if (iterator == NULL || !hashmap_iterator_has_next(iterator)) {
+    printf("No tables found.\n");
+    if (iterator)
+      hashmap_iterator_free(iterator);
+    return;
+  }
+
+  while (hashmap_iterator_has_next(iterator)) {
+    Bucket *bucket = hashmap_iterator_next(iterator);
+    if (bucket && bucket->value) {
+      Table *table = (Table *)bucket->value;
+      printf("CREATE TABLE %s (\n", table->name);
+      if (table->columns && table->num_columns > 0) {
+        for (uint32_t i = 0; i < table->num_columns; i++) {
+          Column *col = &table->columns[i];
+          const char *type_str = data_type_to_string(col->type);
+          if (i < table->num_columns - 1) {
+            printf("    %s %s,\n", col->name, type_str);
+          } else {
+            printf("    %s %s\n", col->name, type_str);
+          }
+        }
+      }
+      printf(");\n\n");
+    }
+  }
   hashmap_iterator_free(iterator);
 }
 
