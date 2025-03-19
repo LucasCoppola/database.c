@@ -4,47 +4,100 @@
 
 This project is a lightweight database management system inspired by SQLite and written from scratch in C.
 
-It serves as a practical exploration of database internals, focusing on core concepts such as query parsing, storage management, and indexing while keeping the implementation simple and functional at this stage.
+It serves as a practical exploration of database internals, focusing on core concepts such as query parsing, storage management, and execution while keeping the implementation simple and functional at this stage.
 
 ## **Components**  
 
-### **1. Database & Storage**  
-- **Database File**: A single file that stores table metadata and row data.  
-- **Pager**: Each table manages its own pager, which handles storage as an array rather than a B-tree. This keeps storage straightforward while maintaining clear table separation. 
+### **1. Core Engine**  
+- **Database**: Central structure that manages tables and coordinates operations.  
+- **Table**: Represents database tables with columns, data types, and rows.
+- **Row**: Handles serialization/deserialization of individual records.
+- **Hashmap**: Provides table lookups by name. 
 
-### **2. Table Management**  
-- **Table**: Represents a collection of rows within the database.  
-- **Row**: Each row is a record within a table.  
+### **2. Storage Layer**  
+- **Pager**: Manages reading/writing pages to disk with a simple paging system.  
+- **Cursor**: Abstracts traversal through table rows.  
+- **Header Management**: Functions that store and restore table metadata between sessions.  
 
-### **3. HashMap**  
-- **HashMap**: A data structure used for storing tables in memory, allowing for efficient retrieval and management.  
+### **3. Query Processing Pipeline**  
+- **Tokenizer**: Converts SQL strings into tokens (lexical analysis).  
+- **Parser**: Transforms tokens into an AST.
+- **Semantic Analyzer**: Validates operations against the database schema.
+- **Executor**: Performs the requested operations using the validated AST.
 
-### **4. Storage Management**  
-- **Header Store/Restore**: Functions that manage the metadata of tables, ensuring that everything can be correctly restored after closing the database.  
+### **4. Logging**  
+- **Debug Logger**: Captures and reports errors with component and operation context.
+- **Parser Error Logger**: Specialized error reporting for syntax issues.
+- **Semantic Error Logger**: Specialized error reporting for semantic issues.
 
-### **5. Query Parsing**  
-- **Tokenizer**: Breaks down SQL-like commands into manageable tokens for easier processing.  
-- **Query Parser**: Interprets those tokens and prepares statements for execution.  
+## **Usage**
 
-### **6. Error Logging**  
-- **Logger**: A simple logging mechanism to capture and report errors that occur during database operations.  
+```bash
+# Clone the repository
+git clone https://github.com/LucasCoppola/database.c.git
+cd database.c
 
-### **7. Testing**  
-- **Unit Tests**: A suite of tests designed to validate the functionality of the HashMap and other components, ensuring reliability and correctness.  
+# Build the project
+make main
 
-## **A Note on Optimization**  
+# Run with a database file
+./main mydb.db
+```
 
-Many components in this project are not fully optimized yet. The goal was to keep things straightforward to better understand how each feature works. 
+### **SQL Support**
+Currently supported SQL commands:
 
-For instance, storage is currently managed using an array instead of a B-tree, and table management relies on a HashMap rather than a B+ tree. While these choices make implementation simpler, they leave room for future improvements in efficiency and scalability.
+```sql
+-- Create a new table
+CREATE TABLE products (id INT, name TEXT, price REAL, available BOOLEAN);
 
-## **Future Work**  
+-- Insert data
+INSERT INTO products VALUES (1, 'Apple', 1.99, true);
 
-- Building a more robust query execution engine.  
-- Improving error handling and user feedback.  
-- Optimizing the pager to handle pages more efficiently.  
-- Replacing the array-based storage with a B-tree for better indexing and retrieval.  
-- Replacing the HashMap used for table management with a B+ tree for improved performance and scalability.
-- Adding support for more data types and operations.
+-- Query data
+SELECT * FROM products;
+SELECT name, price FROM products WHERE available = true;
 
-Contributions and suggestions for improvement are always welcome.
+-- Delete data
+DELETE FROM products WHERE id = 1;
+
+-- Drop a table
+DROP TABLE products;
+
+```
+### **Testing**
+The project includes both unit and integration tests that use Valgrind to check for memory leaks:
+
+```bash
+# Run unit tests
+make test_hashmap
+make test_tokenizer
+make test_parser
+
+# Run integration tests
+make test_integration
+
+# Run all tests
+make test
+```
+
+### **Meta Commands**
+Special commands available in the CLI:
+
+- `.help` - Display available commands
+- `.tables` - List all tables in the database
+- `.schema` - Show the schema for all tables
+- `.exit` - Exit the program
+
+### **Development**
+- **src/core/**: Core database structures (tables, rows, hashmap)
+- **src/storage/**: Disk I/O and page management
+- **src/parser/**: SQL parsing and AST generation
+- **src/executor/**: Query execution logic
+- **src/utils/**: Logging and utility functions
+
+### **Requirements (Linux/macOS)**
+- GCC compiler
+- Valgrind (for memory leak detection in tests)
+
+
